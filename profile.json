@@ -1,0 +1,70 @@
+{
+  "general_introduction": {
+    "name": "Dipak Niroula",
+    "current_company": "Logpoint",
+    "current_position": "Senior Software Engineer"
+  },
+  "experiences": [
+    {
+      "company": "Prixa Technology Pvt. Ltd.",
+      "start_date": "2016-04",
+      "end_date": "2016-10",
+      "duration": "6 months",
+      "position": "Web Developer",
+      "tech_stacks": [
+        "Python Programming Language",
+        "Django Web Framework",
+        "JavaScript"
+      ]
+    },
+    {
+      "company": "Sarobar Technology Pvt. Ltd.",
+      "start_date": "2016-01",
+      "end_date": "2016-01",
+      "duration": "5 years 6 months",
+      "position": "Web Developer",
+      "tech_stacks": [
+        "Python Programming Language",
+        "Django Web Framework",
+        "JavaScript"
+      ]
+    },
+    {
+      "company": "Logpoint Nepal Pvt. Ltd.",
+      "start_date": "2022-01",
+      "end_date": "present",
+      "duration": "still working",
+      "position": "Senior Software Engineer",
+      "tech_stacks": [
+        "Python Programming Language",
+        "Django Web Framework",
+        "JavaScript"
+      ]
+    }
+  ],
+  "skills": {
+    "general": [
+      "Software Design and Development",
+      "OOP & Design Patterns",
+      "Software Architecture Designing",
+      "Microservices and Distributed System Design",
+      "Concurrency, Multithreading, and Multiprocessing",
+      "Training and Mentoring",
+      "Cloud Computing using AWS",
+      "Agile "
+    ],
+    "programming_languages": {
+      "primary": ["Python", "Rust", "JavaScript", "Java", "Bash Script"],
+      "secondary": ["Go", "C", "C++", "C#", "and more..."]
+    },
+    "tech_stacks": [
+      "Django",
+      "FastAPI",
+      "Starlette",
+      "Axum",
+      "Kafka",
+      "Message Brokers like ZeroMQ, RabbitMQ, etc",
+      "and more..."
+    ]
+  }
+}

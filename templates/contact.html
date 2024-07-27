@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+<p>Mobile: {{ mobile }}</p>
+<p>Email: <a href="mailto:{{ email }}">{{ email }}</a></p>
+<p>LinkedIn: <a href="{{ linkedin }}" target="_blank">LinkedIn Profile</a></p>
+
+{% if youtube.is_some() %}
+<p>Youtube: <a href="{{ youtube.as_ref().unwrap() }}" target="_blank">Click Here</a></p>
+{% endif %}
+
+{% if facebook.is_some() %}
+<p>Facebook: <a href="{{ facebook.as_ref().unwrap() }}" target="_blank">Click Here</a></p>
+{% endif %}
+{% endblock %}
