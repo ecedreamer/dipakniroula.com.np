@@ -18,6 +18,7 @@ struct HomeTemplate {
     name: String,
     current_company: String,
     current_position: String,
+    company_link: String,
     skills: HashMap<String, Vec<String>>,
 }
 
@@ -28,6 +29,7 @@ async fn home_page() -> impl IntoResponse {
     let name = content["general_introduction"]["name"].as_str().unwrap().to_string();
     let current_company = content["general_introduction"]["current_company"].as_str().unwrap().to_string();
     let current_position = content["general_introduction"]["current_position"].as_str().unwrap().to_string();
+    let company_link = content["general_introduction"]["company_link"].as_str().unwrap().to_string();
     let skills= content["skills"].as_object().unwrap().iter()
         .map(|(k, v)| {
             (k.clone(), v.as_array().unwrap().iter().map(|s| s.as_str().unwrap().to_string()).collect())
@@ -39,6 +41,7 @@ async fn home_page() -> impl IntoResponse {
         name,
         current_company,
         current_position,
+        company_link,
         skills,
     };
 

@@ -4,10 +4,8 @@
 {% block content %}
 
 
-<h1>General Introduction</h1>
-<p>Name: {{ name }}</p>
-<p>Current Company: {{ current_company }}</p>
-<p>Current Position: {{ current_position }}</p>
+<h3>{{ name }}</h3>
+<p><u>{{ current_position }}</u>  at  <a href="{{company_link}}">{{ current_company }}</a></p>
 
 <h2>Skills</h2>
 <ul>
