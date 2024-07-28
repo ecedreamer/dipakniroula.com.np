@@ -1,0 +1,42 @@
+.container {
+    margin-left: 10%;
+    margin-right: 10%;
+}
+.header {
+    padding: 10px 0; /* Padding for top and bottom */
+    text-align: center; /* Center align text */
+    display: flex; /* Use Flexbox */
+    justify-content: space-between; /* Distribute space between items */
+    align-items: center; /* Center items vertically */
+}
+
+.header ul {
+    list-style-type: none; /* Remove default list styling */
+    margin: 0;
+    padding: 0;
+    display: flex; /* Use Flexbox for list */
+    width: 100%; /* Ensure ul takes full width */
+    align-items: center; /* Center items vertically */
+}
+
+.header .left-item {
+    margin-right: auto; /* Push the left item to the start */
+}
+
+.header .right-items {
+    display: flex; /* Use Flexbox for right items */
+    gap: 50px; /* Space between right items */
+}
+
+.header li {
+    list-style: none; /* Remove default list styling */
+}
+
+
+.header a {
+    text-decoration: none; /* Remove underline from links */
+}
+
+.header a:hover {
+    text-decoration: underline; /* Underline on hover */
+}

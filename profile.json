@@ -43,7 +43,7 @@
     }
   ],
   "skills": {
-    "general": [
+    "General Skills": [
       "Software Design and Development",
       "OOP & Design Patterns",
       "Software Architecture Designing",
@@ -53,18 +53,17 @@
       "Cloud Computing using AWS",
       "Agile "
     ],
-    "programming_languages": {
-      "primary": ["Python", "Rust", "JavaScript", "Java", "Bash Script"],
-      "secondary": ["Go", "C", "C++", "C#", "and more..."]
-    },
-    "tech_stacks": [
-      "Django",
-      "FastAPI",
-      "Starlette",
-      "Axum",
-      "Kafka",
-      "Message Brokers like ZeroMQ, RabbitMQ, etc",
-      "and more..."
+    "Programming Language": [
+      "Python Programming Language",
+      "Java Programming Language",
+      "Rust Programming Language",
+      "JavaScript Programming Language"
+    ],
+    "Tools & Frameworks": [
+      "Django Web Framework",
+      "Starlette/FastAPI Framework",
+      "Axum Web Framework",
+      "Message Brokers like ZeroMQ, Kafka, RabbitMQ, ActiveMQ, Redis"
     ]
   }
 }

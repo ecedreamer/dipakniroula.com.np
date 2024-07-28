@@ -2,8 +2,25 @@
 
 
 {% block content %}
-    <h5>{{name}}</h5>
-    <h6>{{current_position}} at {{current_company}}</h6>
 
+
+<h1>General Introduction</h1>
+<p>Name: {{ name }}</p>
+<p>Current Company: {{ current_company }}</p>
+<p>Current Position: {{ current_position }}</p>
+
+<h2>Skills</h2>
+<ul>
+    {% for (skill_name, skills) in skills.iter() %}
+    <li>
+        <h3>{{ skill_name }}</h3>
+        <ul>
+            {% for skill in skills %}
+            <li>{{ skill }}</li>
+            {% endfor %}
+        </ul>
+    </li>
+    {% endfor %}
+</ul>
 
 {% endblock %}
