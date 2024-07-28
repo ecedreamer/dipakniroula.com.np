@@ -100,6 +100,7 @@ struct ContactTemplate {
     mobile: String,
     email: String,
     linkedin: String,
+    github: String,
     youtube: Option<String>,
     facebook: Option<String>,
 }
@@ -110,6 +111,7 @@ async fn contact_page() -> impl IntoResponse {
         mobile: "9849978896".to_string(),
         email: "sangit.niroula@gmail.com".to_string(),
         linkedin: "https://www.linkedin.com/in/dipak-niroula-90b11610b/".to_string(),
+        github: "https://github.com/ecedreamer/".to_string(),
         youtube: None,
         facebook: None,
     };
