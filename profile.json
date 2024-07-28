@@ -2,7 +2,8 @@
   "general_introduction": {
     "name": "Dipak Niroula",
     "current_company": "Logpoint",
-    "current_position": "Senior Software Engineer"
+    "current_position": "Senior Software Engineer",
+    "company_link": "https://logpoint.com"
   },
   "experiences": [
     {
@@ -51,19 +52,23 @@
       "Concurrency, Multithreading, and Multiprocessing",
       "Training and Mentoring",
       "Cloud Computing using AWS",
-      "Agile "
+      "Agile Methodology"
     ],
     "Programming Language": [
       "Python Programming Language",
-      "Java Programming Language",
       "Rust Programming Language",
-      "JavaScript Programming Language"
+      "Java Programming Language",
+      "JavaScript Programming Language",
+      "C/C++",
+      "can learn when needed"
     ],
     "Tools & Frameworks": [
+      "Core Programming",
       "Django Web Framework",
       "Starlette/FastAPI Framework",
       "Axum Web Framework",
-      "Message Brokers like ZeroMQ, Kafka, RabbitMQ, ActiveMQ, Redis"
+      "Message Brokers like ZeroMQ, Kafka, RabbitMQ, ActiveMQ, Redis",
+      "git VCS"
     ]
   }
 }
