@@ -40,3 +40,19 @@
 .header a:hover {
     text-decoration: underline; /* Underline on hover */
 }
+
+
+.page {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+section {
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+.center {
+    text-align: center;
+}

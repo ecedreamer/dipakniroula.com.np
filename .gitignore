@@ -1,2 +1,5 @@
 /target
 .idea/
+.env
+dipakdb.sqlite3
+.code/

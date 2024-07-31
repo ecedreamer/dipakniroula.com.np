@@ -1,10 +1,16 @@
 use std::collections::HashMap;
 use askama::Template;
+use diesel::prelude::*;
+use diesel::RunQueryDsl;
+
+
 use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse};
 use serde::Deserialize;
 use serde_json::{from_str, Value};
 use tokio::fs::read_to_string;
+use crate::db::establish_connection;
+use crate::models::{Blogs, SocialLink};
 
 #[derive(Template, Deserialize)]
 #[template(path = "home.html")]
@@ -60,21 +66,34 @@ struct Blog {
 #[derive(Template)]
 #[template(path = "blog_list.html")]
 struct BlogListTemplate {
-    blog_list: Vec<Blog>,
+    blog_list: Vec<Blogs>,
 }
 
 
 pub async fn blog_list_page() -> impl IntoResponse {
-    let blog1 = Blog {
-        title: "First blog".to_string(),
-        content: "This is the first blog".to_string(),
-    };
-    let blog2 = Blog {
-        title: "Second blog".to_string(),
-        content: "This is the second blog".to_string(),
-    };
+
+    use crate::schema::blogs::dsl::*;
+
+    let mut conn = establish_connection().await;
+
+    let results = blogs
+        .load::<Blogs>(&mut conn)
+        .expect("Error loading blogs");
+
+    // let new_blog = NewBlog {
+    //     title: "Blog One",
+    //     content: "This is the blog one",
+    // };
+
+    // diesel::insert_into(blogs)
+    //     .values(&new_blog)
+    //     .execute(&mut conn)
+    //     .expect("Error saving new blog");
+    //
+
+
     let context = BlogListTemplate {
-        blog_list: vec![blog1, blog2],
+        blog_list: results.to_vec(),
     };
 
     match context.render() {
@@ -91,23 +110,28 @@ pub async fn blog_list_page() -> impl IntoResponse {
 #[derive(Template)]
 #[template(path = "contact.html")]
 struct ContactTemplate {
-    mobile: String,
-    email: String,
-    linkedin: String,
-    github: String,
-    youtube: Option<String>,
-    facebook: Option<String>,
+    social_links: Vec<SocialLink>
 }
 
 
 pub async fn contact_page() -> impl IntoResponse {
+
+    let connection = &mut establish_connection().await;
+    use crate::schema::social_links::dsl::social_links;
+    let results = social_links
+        .select(SocialLink::as_select())
+        .load(connection)
+        .expect("Error loading posts");
+
+        println!("Displaying {} posts", results.len());
+        // for social_link in results {
+        //     println!("{}", social_link.social_media);
+        //     println!("-----------\n");
+        //     println!("{}", social_link.social_link);
+        // }
+
     let context = ContactTemplate {
-        mobile: "9849978896".to_string(),
-        email: "sangit.niroula@gmail.com".to_string(),
-        linkedin: "https://www.linkedin.com/in/dipak-niroula-90b11610b/".to_string(),
-        github: "https://github.com/ecedreamer/".to_string(),
-        youtube: None,
-        facebook: None,
+        social_links: results
     };
     match context.render() {
         Ok(html) => Html(html).into_response(),
@@ -118,11 +142,3 @@ pub async fn contact_page() -> impl IntoResponse {
     }
 }
 
-#[derive(Template)]
-#[template(path = "header.html")]
-struct HeaderTemplate;
-
-pub async fn render_template() -> impl IntoResponse {
-    let template = HeaderTemplate.render().unwrap();
-    Html(template)
-}
