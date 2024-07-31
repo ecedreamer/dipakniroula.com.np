@@ -2,17 +2,9 @@
 
 
 {% block content %}
+<h3>Social Links</h3>
+{% for social_link in social_links %}
+<p>{{social_link.id.unwrap()}} {{social_link.social_media}}: <a href="{{social_link.social_link}}" target="_blank">{{social_link.social_link}}</a></p>
+{% endfor %}
 
-<p>Mobile: {{ mobile }}</p>
-<p>Email: <a href="mailto:{{ email }}">{{ email }}</a></p>
-<p>LinkedIn: <a href="{{ linkedin }}" target="_blank">LinkedIn Profile</a></p>
-<p>Github: <a href="{{ github }}" target="_blank">Github Link</a></p>
-
-{% if youtube.is_some() %}
-<p>Youtube: <a href="{{ youtube.as_ref().unwrap() }}" target="_blank">Click Here</a></p>
-{% endif %}
-
-{% if facebook.is_some() %}
-<p>Facebook: <a href="{{ facebook.as_ref().unwrap() }}" target="_blank">Click Here</a></p>
-{% endif %}
 {% endblock %}

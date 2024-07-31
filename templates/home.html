@@ -4,21 +4,30 @@
 {% block content %}
 
 
-<h3>{{ name }}</h3>
-<p><u>{{ current_position }}</u>  at  <a href="{{company_link}}">{{ current_company }}</a></p>
 
-<h2>Skills</h2>
-<ul>
-    {% for (skill_name, skills) in skills.iter() %}
-    <li>
-        <h3>{{ skill_name }}</h3>
+<div class="page">
+    <section>
+        <h3>{{ name }}</h3>
+        <p><u>{{ current_position }}</u> at <a href="{{company_link}}">{{ current_company }}</a></p>
+        <img src="/static/dni_profile.jpeg" alt="" style="height: 300px;">
+
+    </section>
+    <section>
+        <h2>Skills</h2>
         <ul>
-            {% for skill in skills %}
-            <li>{{ skill }}</li>
+            {% for (skill_name, skills) in skills.iter() %}
+            <li>
+                <h3>{{ skill_name }}</h3>
+                <ul>
+                    {% for skill in skills %}
+                    <li>{{ skill }}</li>
+                    {% endfor %}
+                </ul>
+            </li>
             {% endfor %}
         </ul>
-    </li>
-    {% endfor %}
-</ul>
+    </section>
+</div>
+
 
 {% endblock %}
