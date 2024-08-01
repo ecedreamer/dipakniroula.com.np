@@ -3,6 +3,7 @@ mod models;
 mod schema;
 mod db;
 mod embedded_migrations;
+mod auth;
 
 use axum::{routing::get, Router};
 use db::establish_connection;
@@ -13,7 +14,6 @@ use diesel_migrations::MigrationHarness;
 
 
 use route_handlers::{home_page, blog_list_page, contact_page};
-
 
 
 
@@ -33,6 +33,7 @@ async fn main() {
         .route("/", get(home_page))
         .route("/blogs/", get(blog_list_page))
         .route("/contact/", get(contact_page))
+        .nest("/auth", auth::route_handlers::auth_routes().await)
         .nest_service("/static", static_files_service);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
