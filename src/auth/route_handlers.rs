@@ -2,10 +2,7 @@ use serde::Deserialize;
 
 use askama::Template;
 use axum::{http::StatusCode, response::{Html, IntoResponse, Redirect}, routing::{get, post}, Form, Router};
-
-
-
-
+use tower_sessions::Session;
 
 pub async fn auth_routes() -> Router {
     Router::new()
@@ -46,10 +43,11 @@ struct LoginForm {
 }
 
 
-pub async fn login_handler(Form(form_data): Form<LoginForm>) -> impl IntoResponse {
+pub async fn login_handler(session: Session, Form(form_data): Form<LoginForm>) -> impl IntoResponse {
 
     tracing::info!("Hello, {}! Your email is {}", form_data.email, form_data.password);
     if form_data.email == "sangit.niroula@gmail.com".to_string() && form_data.password == "admin@123".to_string() {
+        session.insert("username", "sangit.niroula@gmail.com").await.unwrap();
         Redirect::to("/auth/admin-panel")
     } else{
         Redirect::to("/auth/login")
@@ -60,22 +58,33 @@ pub async fn login_handler(Form(form_data): Form<LoginForm>) -> impl IntoRespons
 #[derive(Template, Deserialize)]
 #[template(path = "admin_home.html")]
 struct AdminHomeTemplate {
-    page: String
+    page: String,
+    username: String
 }
 
-pub async fn admin_home_page() -> impl IntoResponse {
-    let context = AdminHomeTemplate {
-        page: "Admin Home".to_owned()
-    };
+pub async fn admin_home_page(session: Session) -> impl IntoResponse {
+
+    let username: Option<String> = session.get("username").await.unwrap();
+
+    match username {
+        Some(uname) => {
+            let context = AdminHomeTemplate {
+                page: "Admin Home".to_owned(),
+                username: uname.to_string()
+            };
 
 
-    match context.render() {
-        Ok(html) => Html(html).into_response(),
-        Err(_) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Failed to render HTML".to_string(),
-        )
-            .into_response()
+            match context.render() {
+                Ok(html) => Html(html).into_response(),
+                Err(_) => (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Failed to render HTML".to_string(),
+                )
+                    .into_response()
+            }
+        },
+        None => {
+            Redirect::to("/auth/login").into_response()
+        }
     }
-
 }
