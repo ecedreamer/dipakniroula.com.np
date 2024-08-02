@@ -12,8 +12,11 @@ use tower_http::services::ServeDir;
 
 use diesel_migrations::MigrationHarness;
 
+use time::Duration;
 
 use route_handlers::{home_page, blog_list_page, contact_page};
+
+use tower_sessions::{Expiry, MemoryStore, Session, SessionManagerLayer};
 
 
 
@@ -21,6 +24,12 @@ use route_handlers::{home_page, blog_list_page, contact_page};
 async fn main() {
 
     tracing_subscriber::fmt::init();
+
+    let session_store = MemoryStore::default();
+
+    let session_layer = SessionManagerLayer::new(session_store)
+        .with_secure(false)
+        .with_expiry(Expiry::OnInactivity(Duration::seconds(30)));
 
 
     let mut connection = establish_connection().await;
@@ -34,7 +43,8 @@ async fn main() {
         .route("/blogs/", get(blog_list_page))
         .route("/contact/", get(contact_page))
         .nest("/auth", auth::route_handlers::auth_routes().await)
-        .nest_service("/static", static_files_service);
+        .nest_service("/static", static_files_service)
+        .layer(session_layer);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
     tracing::info!("Server listening on {}", listener.local_addr().unwrap());

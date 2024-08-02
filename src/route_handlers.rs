@@ -80,18 +80,6 @@ pub async fn blog_list_page() -> impl IntoResponse {
         .load::<Blogs>(&mut conn)
         .expect("Error loading blogs");
 
-    // let new_blog = NewBlog {
-    //     title: "Blog One",
-    //     content: "This is the blog one",
-    // };
-
-    // diesel::insert_into(blogs)
-    //     .values(&new_blog)
-    //     .execute(&mut conn)
-    //     .expect("Error saving new blog");
-    //
-
-
     let context = BlogListTemplate {
         blog_list: results.to_vec(),
     };
