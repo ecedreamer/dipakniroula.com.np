@@ -109,14 +109,8 @@ pub async fn contact_page() -> impl IntoResponse {
     let results = social_links
         .select(SocialLink::as_select())
         .load(connection)
-        .expect("Error loading posts");
+        .expect("Error loading social links");
 
-        println!("Displaying {} posts", results.len());
-        // for social_link in results {
-        //     println!("{}", social_link.social_media);
-        //     println!("-----------\n");
-        //     println!("{}", social_link.social_link);
-        // }
 
     let context = ContactTemplate {
         social_links: results

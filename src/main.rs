@@ -4,6 +4,7 @@ mod schema;
 mod db;
 mod embedded_migrations;
 mod auth;
+mod blog;
 
 use axum::{routing::get, Router};
 use db::establish_connection;
@@ -16,8 +17,12 @@ use time::Duration;
 
 use route_handlers::{home_page, blog_list_page, contact_page};
 
-use tower_sessions::{Expiry, MemoryStore, Session, SessionManagerLayer};
+use tower_sessions::{Expiry, MemoryStore, SessionManagerLayer};
 
+
+async fn handle_404() -> &'static str{
+    "404 Page not found"
+}
 
 
 #[tokio::main]
@@ -29,7 +34,7 @@ async fn main() {
 
     let session_layer = SessionManagerLayer::new(session_store)
         .with_secure(false)
-        .with_expiry(Expiry::OnInactivity(Duration::seconds(30)));
+        .with_expiry(Expiry::OnInactivity(Duration::minutes(15)));
 
 
     let mut connection = establish_connection().await;
@@ -43,11 +48,14 @@ async fn main() {
         .route("/blogs/", get(blog_list_page))
         .route("/contact/", get(contact_page))
         .nest("/auth", auth::route_handlers::auth_routes().await)
+        .nest("/blog", blog::route_handlers::blog_routes().await)
         .nest_service("/static", static_files_service)
+        .fallback(handle_404)
         .layer(session_layer);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
     tracing::info!("Server listening on {}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap();
 }
+
 
