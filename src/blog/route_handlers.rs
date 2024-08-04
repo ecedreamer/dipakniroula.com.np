@@ -1,13 +1,18 @@
+use diesel::prelude::*;
+
+
 use serde::Deserialize;
+
 
 use askama::Template;
 use axum::{http::StatusCode, response::{Html, IntoResponse, Redirect}, routing::{get, post}, Form, Router};
 use crate::db::establish_connection;
-use crate::models::NewBlog;
+use crate::models::{Blogs, NewBlog};
 use diesel::RunQueryDsl;
 
 pub async fn blog_routes() -> Router {
     Router::new()
+        .route("/list", get(blog_list_page))
         .route("/create", get(blog_create_page))
         .route("/create", post(blog_create_handler))
 }
@@ -60,3 +65,42 @@ pub async fn blog_create_handler(Form(form_data): Form<BlogForm>) -> impl IntoRe
 
     Redirect::to("/auth/admin-panel").into_response()
 }
+
+
+struct Blog {
+    title: String,
+    content: String,
+}
+
+
+#[derive(Template)]
+#[template(path = "blog_list.html")]
+struct BlogListTemplate {
+    blog_list: Vec<Blogs>,
+}
+
+
+pub async fn blog_list_page() -> impl IntoResponse {
+
+    use crate::schema::blogs::dsl::*;
+
+    let mut conn = establish_connection().await;
+
+    let results = blogs
+        .load::<Blogs>(&mut conn)
+        .expect("Error loading blogs");
+
+    let context = BlogListTemplate {
+        blog_list: results.to_vec(),
+    };
+
+    match context.render() {
+        Ok(html) => Html(html).into_response(),
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Failed to render HTML".to_string(),
+        )
+            .into_response(),
+    }
+}
+

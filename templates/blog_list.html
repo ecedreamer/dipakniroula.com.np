@@ -6,7 +6,7 @@
 
 {% for blog in blog_list %}
     <h4>{{blog.title}}</h4>
-    <p>{{blog.content}}</p>
+    <p>{{blog.content|safe}}</p>
 {% endfor %}
 
 {% endblock %}

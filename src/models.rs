@@ -34,7 +34,7 @@ pub struct Experience {
 }
 
 
-#[derive(Queryable, Selectable, Debug)]
+#[derive(Queryable, Selectable, Debug, Deserialize)]
 #[diesel(table_name = crate::schema::social_links)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct SocialLink {
