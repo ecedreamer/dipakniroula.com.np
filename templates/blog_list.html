@@ -5,8 +5,15 @@
 <h3>Blog List</h3>
 
 {% for blog in blog_list %}
-    <h4>{{blog.title}}</h4>
+<hr>
+<div class="card">
+    <h2>{{blog.title}}</h2>
+    <hr>
     <p>{{blog.content|safe}}</p>
+</div>
+<br>
+<br>
+
 {% endfor %}
 
 {% endblock %}
