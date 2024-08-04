@@ -15,7 +15,7 @@ use diesel_migrations::MigrationHarness;
 
 use time::Duration;
 
-use route_handlers::{home_page, blog_list_page, contact_page};
+use route_handlers::{home_page, contact_page};
 
 use tower_sessions::{Expiry, MemoryStore, SessionManagerLayer};
 
@@ -45,8 +45,7 @@ async fn main() {
     let static_files_service = ServeDir::new("static");
     let app = Router::new()
         .route("/", get(home_page))
-        .route("/blogs/", get(blog_list_page))
-        .route("/contact/", get(contact_page))
+        .route("/contact", get(contact_page))
         .nest("/auth", auth::route_handlers::auth_routes().await)
         .nest("/blog", blog::route_handlers::blog_routes().await)
         .nest_service("/static", static_files_service)
