@@ -2,11 +2,10 @@
 
 
 {% block content %}
-<h3>Blog List</h3>
 
 {% for blog in blog_list %}
-<hr>
 <div class="card">
+    <hr>
     <h2>{{blog.title}}</h2>
     <hr>
     <p>{{blog.content|safe}}</p>
