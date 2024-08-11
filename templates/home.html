@@ -1,13 +1,11 @@
 {% extends "base.html" %}
-
+{% block home %}active{% endblock %}
 
 {% block content %}
 
+<div class="row">
+    <div class="col-md-6">
 
-
-<div class="page">
-    <section>
-        <h3>{{ name }}</h3>
         <p><u>{{ current_position }}</u> at <a href="{{company_link}}">{{ current_company }}</a></p>
         <img src="/static/dni_profile.jpeg" alt="" style="height: 300px;">
 
@@ -16,8 +14,9 @@
         <p>{{social_link.id.unwrap()}} {{social_link.social_media}}: <a href="{{social_link.social_link}}" target="_blank">{{social_link.social_link}}</a></p>
         {% endfor %}
 
-    </section>
-    <section>
+    </div>
+
+    <div class="col-md-6">
         <h2>Skills</h2>
         <ul>
             {% for (skill_name, skills) in skills.iter() %}
@@ -31,7 +30,7 @@
             </li>
             {% endfor %}
         </ul>
-    </section>
+    </div>
 </div>
 
 

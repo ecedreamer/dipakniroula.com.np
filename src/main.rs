@@ -5,6 +5,7 @@ mod db;
 mod embedded_migrations;
 mod auth;
 mod blog;
+mod filter;
 
 use axum::{routing::get, Router};
 use db::establish_connection;

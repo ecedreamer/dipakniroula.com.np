@@ -9,6 +9,8 @@ use axum::{http::StatusCode, response::{Html, IntoResponse, Redirect}, routing::
 use crate::db::establish_connection;
 use crate::models::{Blogs, NewBlog};
 use diesel::RunQueryDsl;
+use crate::filter::{truncate_words, strip_tags};
+
 
 pub async fn blog_routes() -> Router {
     Router::new()
@@ -71,6 +73,7 @@ struct Blog {
     title: String,
     content: String,
 }
+
 
 
 #[derive(Template)]
