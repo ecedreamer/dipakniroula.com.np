@@ -6,15 +6,16 @@ use diesel::RunQueryDsl;
 use tower_sessions::Session;
 use crate::auth::models::NewSocialLink;
 use crate::db::establish_connection;
+use crate::middlewares::auth_middleware;
 use crate::schema::social_links;
 
 pub async fn auth_routes() -> Router {
     Router::new()
     .route("/login", get(login_page))
     .route("/login", post(login_handler))
-    .route("/admin-panel", get(admin_home_page))
-    .route("/add-social-link", get(social_link_create_page))
-    .route("/add-social-link", post(social_link_create_handler))
+    .route("/admin-panel", get(admin_home_page).layer(axum::middleware::from_fn(auth_middleware)))
+    .route("/add-social-link", get(social_link_create_page).layer(axum::middleware::from_fn(auth_middleware)))
+    .route("/add-social-link", post(social_link_create_handler).layer(axum::middleware::from_fn(auth_middleware)))
 }
 
 

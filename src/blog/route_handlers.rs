@@ -10,13 +10,13 @@ use crate::db::establish_connection;
 use crate::models::{Blogs, NewBlog};
 use diesel::RunQueryDsl;
 use crate::filter::{truncate_words, strip_tags};
-
+use crate::middlewares::auth_middleware;
 
 pub async fn blog_routes() -> Router {
     Router::new()
         .route("/list", get(blog_list_page))
-        .route("/create", get(blog_create_page))
-        .route("/create", post(blog_create_handler))
+        .route("/create", get(blog_create_page).layer(axum::middleware::from_fn(auth_middleware)))
+        .route("/create", post(blog_create_handler).layer(axum::middleware::from_fn(auth_middleware)))
 }
 
 
