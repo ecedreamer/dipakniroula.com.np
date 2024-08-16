@@ -134,6 +134,7 @@ pub async fn blog_list_page() -> impl IntoResponse {
     let mut conn = establish_connection().await;
 
     let results = blogs
+        .order(id.desc())
         .load::<Blogs>(&mut conn)
         .expect("Error loading blogs");
 
