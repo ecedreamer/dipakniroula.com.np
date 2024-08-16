@@ -10,6 +10,8 @@ pub struct Blogs {
     pub title: String,
     #[diesel(sql_type = Text)]
     pub content: String,
+    #[diesel(sql_type = Text)]
+    pub image: Option<String>,
 }
 
 #[derive(Insertable)]
@@ -17,6 +19,7 @@ pub struct Blogs {
 pub struct NewBlog<'a> {
     pub title: &'a str,
     pub content: &'a str,
+    pub image: Option<&'a str>
 }
 
 

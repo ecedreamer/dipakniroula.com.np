@@ -5,6 +5,7 @@ diesel::table! {
         id -> Nullable<Integer>,
         title -> Text,
         content -> Text,
+        image -> Nullable<Text>,
     }
 }
 

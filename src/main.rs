@@ -45,12 +45,14 @@ async fn main() {
 
 
     let static_files_service = ServeDir::new("static");
+    let media_files_service = ServeDir::new("media");
     let app = Router::new()
         .route("/", get(home_page))
         .route("/contact", get(contact_page))
         .nest("/auth", auth::route_handlers::auth_routes().await)
         .nest("/blog", blog::route_handlers::blog_routes().await)
         .nest_service("/static", static_files_service)
+        .nest_service("/media", media_files_service)
         .fallback(handle_404)
         .layer(session_layer);
 

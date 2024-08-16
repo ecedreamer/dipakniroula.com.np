@@ -9,6 +9,9 @@
             <div class="container mt-5">
                 <article>
                     <h1 class="mb-4">{{ blog.title }}</h1>
+                    {% if blog.image.as_ref().is_some() %}
+                    <img src="/{{ blog.image.as_ref().unwrap() }}" alt="" class="img-fluid">
+                    {% endif %}
                     <div class="blog-content">
                         {{ blog.content|safe }}
                     </div>
@@ -18,6 +21,6 @@
             {% endfor %}
         </div>
     </div>
+</div>
 
-
-    {% endblock %}
+{% endblock %}

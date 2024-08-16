@@ -9,17 +9,22 @@
 {% block content %}
 
 <h4>Block create Page</h4>
-<form action="/blog/create" method="POST">
+<form action="/blog/create" method="POST" enctype="multipart/form-data">
     <div>
         <label for="title">Blog Title</label>
         <input type="text" name="title" class="form-control" required>
     </div>
     <br>
     <div>
-        <label for="content">Content</label>
-        <textarea name="content" rows="10" class="form-control" id="summernote" required></textarea>
+        <label for="image">Blog Image</label>
+        <input type="file" class="form-control" name="blog-image">
     </div>
     <br>
+<!--    <div>-->
+<!--        <label for="content">Content</label>-->
+<!--        <textarea name="content" rows="10" class="form-control" id="summernote" required></textarea>-->
+<!--    </div>-->
+<!--    <br>-->
     <button class="btn btn-primary">Save Blog</button>
 </form>
 
