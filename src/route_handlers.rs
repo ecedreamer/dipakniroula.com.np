@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use indexmap::IndexMap;
 use askama::Template;
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
@@ -20,7 +21,7 @@ struct HomeTemplate {
     current_company: String,
     current_position: String,
     company_link: String,
-    skills: HashMap<String, Vec<String>>,
+    skills: IndexMap<String, Vec<String>>,
     social_links: Vec<SocialLink>
 }
 
