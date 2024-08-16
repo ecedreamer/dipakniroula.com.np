@@ -65,11 +65,14 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
             let file_name = field.file_name().unwrap().to_string();
             image_path = format!("{}{}", "media/", file_name);
 
-            // Save the file
-            let mut file = File::create(image_path.clone()).await.unwrap();
-            while let Some(chunk) = field.chunk().await.unwrap() {
-                file.write_all(&chunk).await.unwrap();
+            
+            if !file_name.is_empty(){
+                let mut file = File::create(image_path.clone()).await.unwrap();
+                while let Some(chunk) = field.chunk().await.unwrap() {
+                    file.write_all(&chunk).await.unwrap();
+                }
             }
+            
         } else if field_name == "title" {
             title = field.text().await.unwrap();
         } else if field_name == "content" {
@@ -80,11 +83,11 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
     use crate::schema::blogs::dsl::blogs;
 
     let conn = &mut establish_connection().await;
-
     let blog = NewBlog {
         title: &title,
         content: &content,
-        image: Some(&image_path)
+        image: (!image_path.is_empty()).then_some(image_path.as_str())
+
     };
 
     diesel::insert_into(blogs)
