@@ -1,0 +1,39 @@
+{% extends "admin/adminbase.html" %}
+
+
+{% block content %}
+<div>
+    <h4>Blog List</h4>
+    <div class="row">
+        <div class="col-md-12">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Image</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for blog in blog_list %}
+                    <tr>
+                        <td>{{blog.id.unwrap()}}</td>
+                        <td>{{blog.title}}</td>
+                        <td>
+                            {% if blog.image.as_ref().is_some() %}
+                            {{blog.image.as_ref().unwrap()}}
+                            {% endif %}
+                        </td>
+                        <th>
+                            <a href="/blog/admin/{{blog.id.unwrap()}}/update">Update</a>
+                        </th>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

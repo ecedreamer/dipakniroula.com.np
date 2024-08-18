@@ -1,4 +1,4 @@
-{% extends "adminbase.html" %}
+{% extends "admin/adminbase.html" %}
 
 
 {% block css %}
@@ -9,20 +9,23 @@
 {% block content %}
 
 <h4>Block create Page</h4>
-<form action="/blog/create" method="POST" enctype="multipart/form-data">
+<form action="/blog/admin/{{blog.id.unwrap()}}/update" method="POST" enctype="multipart/form-data">
     <div>
         <label for="title">Blog Title</label>
-        <input type="text" name="title" class="form-control" required>
+        <input type="text" name="title" class="form-control" value="{{blog.title}}">
     </div>
     <br>
     <div>
+        {% if blog.image.as_ref().is_some() %}
+        <a href="/{{ blog.image.as_ref().unwrap() }}" target="_blank"><img src="/{{ blog.image.as_ref().unwrap() }}" style="width: 200px;" alt="" class="img-fluid"></a><br>
+        {% endif %}
         <label for="image">Blog Image</label>
         <input type="file" class="form-control" name="blog-image">
     </div>
     <br>
     <div>
         <label for="content">Content</label>
-        <textarea name="content" rows="10" class="form-control" id="summernote" required></textarea>
+        <textarea name="content" rows="10" class="form-control" id="summernote">{{blog.content}}</textarea>
     </div>
     <br>
     <button class="btn btn-primary">Save Blog</button>

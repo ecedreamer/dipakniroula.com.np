@@ -52,7 +52,7 @@ struct LoginForm {
 
 pub async fn login_handler(session: Session, Form(form_data): Form<LoginForm>) -> impl IntoResponse {
 
-    tracing::info!("Hello, {}! Your email is {}", form_data.email, form_data.password);
+    // tracing::info!("Hello, {}! Your email is {}", form_data.email, form_data.password);
     if form_data.email == "sangit.niroula@gmail.com".to_string() && form_data.password == "admin@123".to_string() {
         session.insert("username", "sangit.niroula@gmail.com").await.unwrap();
         Redirect::to("/auth/admin-panel")
@@ -63,7 +63,7 @@ pub async fn login_handler(session: Session, Form(form_data): Form<LoginForm>) -
 
 
 #[derive(Template, Deserialize)]
-#[template(path = "admin_home.html")]
+#[template(path = "admin/admin_home.html")]
 struct AdminHomeTemplate {
     page: String,
     username: String
@@ -98,7 +98,7 @@ pub async fn admin_home_page(session: Session) -> impl IntoResponse {
 
 
 #[derive(Template, Deserialize)]
-#[template(path = "add_social_link.html")]
+#[template(path = "admin/add_social_link.html")]
 struct SocialLinkCreateTemplate {
     page: String,
 }

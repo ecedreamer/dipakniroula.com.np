@@ -2,7 +2,9 @@ use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
 
-#[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
+#[derive(Queryable, Selectable, Serialize, Deserialize, Debug, Clone)]
+#[diesel(table_name = crate::schema::blogs)]
+#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct Blogs {
     #[diesel(sql_type = Nullable<Integer>)]
     pub id: Option<i32>,
@@ -13,6 +15,16 @@ pub struct Blogs {
     #[diesel(sql_type = Text)]
     pub image: Option<String>,
 }
+
+
+#[derive(Deserialize, AsChangeset)]
+#[diesel(table_name = crate::schema::blogs)]
+pub struct UpdateBlog {
+    pub title: Option<String>,
+    pub content: Option<String>,
+    pub image: Option<String>,
+}
+
 
 #[derive(Insertable)]
 #[diesel(table_name = crate::schema::blogs)]

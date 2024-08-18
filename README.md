@@ -5,6 +5,7 @@ This website is created to introduce myself to the world.
 - Rust Programming Language for Backend
 - HTML/CSS for Frontend
 - Axum web framework
+- Diesel ORM
 - Sqlite Database
 
 

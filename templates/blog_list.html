@@ -7,14 +7,12 @@
         <div class="col-md-12">
             {% for blog in blog_list %}
             <div class="container mt-5">
-                <article>
-                    <h1 class="mb-4">{{ blog.title }}</h1>
+                <article class="card p-3">
+                    <h4 class="mb-4">{{ blog.title }}</h4>
                     {% if blog.image.as_ref().is_some() %}
+                    <hr>
                     <img src="/{{ blog.image.as_ref().unwrap() }}" alt="" class="img-fluid">
                     {% endif %}
-                    <div class="blog-content">
-                        {{ blog.content|safe }}
-                    </div>
                 </article>
             </div>
 

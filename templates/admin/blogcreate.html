@@ -1,0 +1,52 @@
+{% extends "admin/adminbase.html" %}
+
+
+{% block css %}
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+{% endblock %}
+
+
+{% block content %}
+
+<h4>Block create Page</h4>
+<form action="/blog/admin/create" method="POST" enctype="multipart/form-data">
+    <div>
+        <label for="title">Blog Title</label>
+        <input type="text" name="title" class="form-control" required>
+    </div>
+    <br>
+    <div>
+        <label for="image">Blog Image</label>
+        <input type="file" class="form-control" name="blog-image">
+    </div>
+    <br>
+    <div>
+        <label for="content">Content</label>
+        <textarea name="content" rows="10" class="form-control" id="summernote" required></textarea>
+    </div>
+    <br>
+    <button class="btn btn-primary">Save Blog</button>
+</form>
+
+{% endblock %}
+
+
+{% block js %}
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+<script>
+    $('#summernote').summernote({
+        placeholder: 'Hello stand alone ui',
+        tabsize: 2,
+        height: 120,
+        toolbar: [
+            ['style', ['style']],
+            ['font', ['bold', 'underline', 'clear']],
+            ['color', ['color']],
+            ['para', ['ul', 'ol', 'paragraph']],
+            ['table', ['table']],
+            ['insert', ['link', 'picture', 'video']],
+            ['view', ['fullscreen', 'codeview', 'help']]
+        ]
+    });
+</script>
+{% endblock %}
