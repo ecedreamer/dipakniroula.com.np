@@ -2,20 +2,27 @@
 
 
 {% block content %}
-<section>
-    <h3>Login Page</h3><hr>
-    <form action="/auth/login" method="POST">
-        <div>
-            <label for="email"> Admin Email: *</label><br>
-            <input type="email" name="email" required style="width: 300px; height: 30px; font-size: 16px;">
+<div class="section">
+    <div class="row">
+        <div class="col-md-4 mx-auto card p-3">
+            <h4 class="text-center">Login Page</h4>
+            <hr>
+            <form action="/auth/login" method="POST">
+                <div>
+                    <label for="email"> Email: *</label><br>
+                    <input type="email" name="email" required class="form-control">
+                </div>
+                <br>
+                <div>
+                    <label for="password"> Password: *</label><br>
+                    <input type="password" name="password" required class="form-control">
+                </div>
+                <br>
+                <button class="btn btn-primary w-100">Login</button>
+            </form>
         </div>
-        <br>
-        <div>
-            <label for="password"> Password: *</label><br>
-            <input type="password" name="password" required style="width: 300px; height: 30px; font-size: 16px;">
-        </div>
-        <br>
-        <button>Login</button>
-    </form>
-</section>
+    </div>
+
+</div>
+
 {% endblock %}

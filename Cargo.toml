@@ -29,3 +29,7 @@ ammonia = "4.0.0"
 indexmap = { version = "2.4.0", features = ["serde"] }
 # [build-dependencies]
 # diesel_cli = { version = "2.0", default-features = false, features = ["sqlite"] }
+
+
+[profile.dev.package.askama_derive]
+opt-level = 3

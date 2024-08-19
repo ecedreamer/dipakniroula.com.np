@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+<div class="section">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="title">
+                <h4>{{blog.title}}</h4>
+            </div>
+            <div class="image py-5">
+                {% if blog.image.as_ref().is_some() %}
+                <img src="/{{blog.image.as_ref().unwrap()}}" class="img-fluid" alt="{{blog.title}}">
+                {% endif %}
+            </div>
+            <div class="content">
+                {{blog.content|safe}}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

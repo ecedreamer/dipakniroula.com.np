@@ -1,0 +1,14 @@
+{% extends "admin/adminbase.html" %}
+
+{% block content %}
+
+<div>
+    <h4>Blog Delete</h4>
+    <form action="" method="POST">
+        <h5>Are you sure to delete the blog with ID: {{blog_id}}?</h5>
+        <button class="btn btn-danger">Confirm</button>
+        <a href="/blog/admin/list" class="btn btn-default">Cancel</a>
+    </form>
+</div>
+
+{% endblock %}
