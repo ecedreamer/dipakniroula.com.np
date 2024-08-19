@@ -14,3 +14,16 @@ This website is created to introduce myself to the world.
 - Contact Page
 - Blog List Page
 - Blog Detail Page
+
+
+## Diesel Command ##
+```bash
+
+diesel migration generate create_posts
+
+
+diesel migration run
+
+
+diesel migration redo
+```

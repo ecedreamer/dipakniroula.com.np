@@ -1,18 +1,20 @@
 use std::collections::HashMap;
 use indexmap::IndexMap;
 use askama::Template;
+use axum::Form;
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
+use chrono::Utc;
 
 
 use axum::http::StatusCode;
-use axum::response::{Html, IntoResponse};
+use axum::response::{Html, IntoResponse, Redirect};
 use serde::Deserialize;
 use serde_json::{from_str, Value};
 use tokio::fs::read_to_string;
 use crate::db::establish_connection;
-use crate::models::{SocialLink};
-
+use crate::models::{ContactMessage, SocialLink};
+use crate::schema::social_links;
 
 #[derive(Template, Deserialize)]
 #[template(path = "home.html")]
@@ -95,5 +97,40 @@ pub async fn contact_page() -> impl IntoResponse {
             "Failed to render HTML".to_string(),
         ).into_response(),
     }
+}
+
+
+#[derive(Deserialize, Debug)]
+pub struct ContactForm {
+    full_name: String,
+    email: String,
+    mobile: Option<String>,
+    subject: String,
+    message: String
+}
+
+pub async fn contact_form_handler(Form(form): Form<ContactForm>) -> impl IntoResponse {
+    tracing::info!("{} ------", form.full_name);
+    let date_time_str = Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+    let mobile = form.mobile.unwrap_or(String::new());
+
+    use crate::schema::messages;
+
+    let contact_message = crate::models::NewContactMessage {
+        full_name: form.full_name.as_str(),
+        email: form.email.as_str(),
+        mobile: Some(mobile.as_str()),
+        subject: form.subject.as_str(),
+        message: form.message.as_str(),
+        date_sent: date_time_str.as_str()
+    };
+    let conn = &mut establish_connection().await;
+
+    diesel::insert_into(messages::table)
+        .values(&contact_message)
+        .execute(conn)
+        .unwrap();
+
+    Redirect::to("/").into_response()
 }
 

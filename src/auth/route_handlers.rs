@@ -1,5 +1,7 @@
 use serde::Deserialize;
 
+use diesel::prelude::*;
+
 use askama::Template;
 use axum::{http::StatusCode, response::{Html, IntoResponse, Redirect}, routing::{get, post}, Form, Router};
 use diesel::RunQueryDsl;
@@ -7,6 +9,7 @@ use tower_sessions::Session;
 use crate::auth::models::NewSocialLink;
 use crate::db::establish_connection;
 use crate::middlewares::auth_middleware;
+use crate::models::{ContactMessage};
 use crate::schema::social_links;
 
 pub async fn auth_routes() -> Router {
@@ -66,18 +69,29 @@ pub async fn login_handler(session: Session, Form(form_data): Form<LoginForm>) -
 #[template(path = "admin/admin_home.html")]
 struct AdminHomeTemplate {
     page: String,
-    username: String
+    username: String,
+    messages: Vec<ContactMessage>
 }
 
 pub async fn admin_home_page(session: Session) -> impl IntoResponse {
 
     let username: Option<String> = session.get("username").await.unwrap();
+    
+    let conn = &mut establish_connection().await;
+
+    use crate::schema::messages::dsl::*;
+
+    let results = messages
+        .order(id.desc())
+        .load::<ContactMessage>(conn)
+        .expect("Error loading blogs");
 
     match username {
         Some(uname) => {
             let context = AdminHomeTemplate {
                 page: "Admin Home".to_owned(),
-                username: uname.to_string()
+                username: uname.to_string(),
+                messages: results
             };
 
 

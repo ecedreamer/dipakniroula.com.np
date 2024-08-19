@@ -12,7 +12,6 @@ use crate::models::{Blog, NewBlog, UpdateBlog};
 use diesel::RunQueryDsl;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
-use crate::filter::{truncate_words, strip_tags};
 use crate::middlewares::auth_middleware;
 use std::str::FromStr;
 
@@ -257,7 +256,7 @@ pub async fn blog_list_page_admin() -> impl IntoResponse {
         .load::<Blog>(&mut conn)
         .expect("Error loading blogs");
 
-    let context = crate::blog::route_handlers::AdminBlogListTemplate {
+    let context = AdminBlogListTemplate {
         blog_list: results.to_vec(),
     };
 

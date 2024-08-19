@@ -5,6 +5,32 @@
 <section>
     <h3>Admin Home Page</h3><hr>
     <p>Loggedin User: {{username}}</p>
+
+    <h4>Recent Messages</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>SN</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Subject</th>
+                <th>Message</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for message in messages %}
+            <tr>
+                <td>1</td>
+                <td>{{message.full_name}}</td>
+                <td>{{message.email}}</td>
+                <td>{{message.subject}}</td>
+                <td>{{message.message}}</td>
+                <td>{{message.date_sent}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
    
 </section>
 {% endblock %}

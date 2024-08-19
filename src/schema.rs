@@ -22,6 +22,18 @@ diesel::table! {
 }
 
 diesel::table! {
+    messages (id) {
+        id -> Nullable<Integer>,
+        full_name -> Text,
+        email -> Text,
+        mobile -> Nullable<Text>,
+        subject -> Text,
+        message -> Text,
+        date_sent -> Text,
+    }
+}
+
+diesel::table! {
     social_links (id) {
         id -> Nullable<Integer>,
         social_media -> Text,
@@ -32,5 +44,6 @@ diesel::table! {
 diesel::allow_tables_to_appear_in_same_query!(
     blogs,
     experiences,
+    messages,
     social_links,
 );

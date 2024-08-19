@@ -3,9 +3,49 @@
 
 
 {% block content %}
-<h3>Social Links</h3>
-{% for social_link in social_links %}
-<p>{{social_link.id.unwrap()}} {{social_link.social_media}}: <a href="{{social_link.social_link}}" target="_blank">{{social_link.social_link}}</a></p>
-{% endfor %}
+<div class="section">
+    <div class="row">
+        <div class="col-md-6">
+            <h3>Dipak Niroula</h3>
+            <p>Senior Software Engineer at <a href="https:://logpoint.com" target="_blank">Logpoint Nepal Pvt. Ltd</a></p>
+            <p>Engineer | Programmer | Developer | Learner | Mentor | Leader </p>
+            <p>8+ years of Experience in Software Engineering Field</p>
+            <h4>Social Links</h4>
+            {% for social_link in social_links %}
+            <p>{{social_link.id.unwrap()}} {{social_link.social_media}}: <a href="{{social_link.social_link}}" target="_blank">{{social_link.social_link}}</a></p>
+            {% endfor %}
+
+        </div>
+        <div class="col-md-6">
+            <h3>Contact Form</h3>
+            <form action="" method="POST">
+                <div class="field mb-2">
+                    <label for="full_name">Full Name</label>
+                    <input type="text" required name="full_name" class="form-control">
+                </div>
+                <div class="field mb-2">
+                    <label for="email">Email</label>
+                    <input type="email" required name="email" class="form-control">
+                </div>
+                <div class="field mb-2">
+                    <label for="mobile">Mobile</label>
+                    <input type="text" name="mobile" class="form-control">
+                </div>
+                <div class="field mb-2">
+                    <label for="subject">Subject</label>
+                    <input type="text" required name="subject" class="form-control">
+                </div>
+                <div class="field mb-2">
+                    <label for="message">Message</label>
+                    <textarea class="form-control" required name="message" rows="5"></textarea>
+                </div>
+                <div class="submit-button mt-3">
+                    <button class="btn btn-primary w-50"> Submit </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

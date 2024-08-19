@@ -6,10 +6,14 @@
 <div class="row">
     <div class="col-md-6">
 
-        <p><u>{{ current_position }}</u> at <a href="{{company_link}}">{{ current_company }}</a></p>
+        <h4>Dipak Niroula</h4>
+        <hr>
+        <p>Senior Software Engineer at <a href="https:://logpoint.com" target="_blank">Logpoint Nepal Pvt. Ltd</a></p>
+        <p>Engineer | Programmer | Developer | Learner | Mentor | Leader </p>
+        <p>8+ years of Experience in Software Engineering Field</p>
         <img src="/static/dni_profile.jpeg" alt="" style="height: 300px;">
 
-        <h3>Find me on Social Media</h3>
+        <h4>Find me on Social Media</h4>
         {% for social_link in social_links %}
         <p>{{social_link.id.unwrap()}} {{social_link.social_media}}: <a href="{{social_link.social_link}}" target="_blank">{{social_link.social_link}}</a></p>
         {% endfor %}
@@ -17,11 +21,12 @@
     </div>
 
     <div class="col-md-6">
-        <h2>Skills</h2>
+        <h4>Skills</h4>
+        <hr>
         <ul>
             {% for (skill_name, skills) in skills.iter() %}
             <li>
-                <h3>{{ skill_name }}</h3>
+                <h5>{{ skill_name }}</h5>
                 <ul>
                     {% for skill in skills %}
                     <li>{{ skill }}</li>

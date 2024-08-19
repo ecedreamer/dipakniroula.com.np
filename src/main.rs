@@ -9,6 +9,7 @@ mod filter;
 mod middlewares;
 
 use axum::{routing::get, Router};
+use axum::routing::post;
 use db::establish_connection;
 
 use tower_http::services::ServeDir;
@@ -17,10 +18,9 @@ use diesel_migrations::MigrationHarness;
 
 use time::Duration;
 
-use route_handlers::{home_page, contact_page};
+use route_handlers::{home_page, contact_page, contact_form_handler};
 
 use tower_sessions::{Expiry, MemoryStore, SessionManagerLayer};
-
 
 async fn handle_404() -> &'static str{
     "404 Page not found"
@@ -49,6 +49,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(home_page))
         .route("/contact", get(contact_page))
+        .route("/contact", post(contact_form_handler))
         .nest("/auth", auth::route_handlers::auth_routes().await)
         .nest("/blog", blog::route_handlers::blog_routes().await)
         .nest_service("/static", static_files_service)
