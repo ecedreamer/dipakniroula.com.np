@@ -19,6 +19,7 @@
         <div class="col-md-6">
             <h3>Contact Form</h3>
             <form action="" method="POST">
+                <input type="hidden" name="authenticity_token" value="{{ authenticity_token }}"/>
                 <div class="field mb-2">
                     <label for="full_name">Full Name</label>
                     <input type="text" required name="full_name" class="form-control">

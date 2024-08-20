@@ -5,12 +5,13 @@ mod db;
 mod embedded_migrations;
 mod auth;
 mod blog;
-mod filter;
 mod middlewares;
 
 use axum::{routing::get, Router};
 use axum::routing::post;
 use db::establish_connection;
+
+use axum_csrf::CsrfConfig;
 
 use tower_http::services::ServeDir;
 
@@ -32,6 +33,8 @@ async fn main() {
 
     tracing_subscriber::fmt::init();
 
+    let csrf_config = CsrfConfig::default();
+
     let session_store = MemoryStore::default();
 
     let session_layer = SessionManagerLayer::new(session_store)
@@ -48,8 +51,8 @@ async fn main() {
     let media_files_service = ServeDir::new("media");
     let app = Router::new()
         .route("/", get(home_page))
-        .route("/contact", get(contact_page))
-        .route("/contact", post(contact_form_handler))
+        .route("/contact", get(contact_page).post(contact_form_handler))
+        .with_state(csrf_config)
         .nest("/auth", auth::route_handlers::auth_routes().await)
         .nest("/blog", blog::route_handlers::blog_routes().await)
         .nest_service("/static", static_files_service)
