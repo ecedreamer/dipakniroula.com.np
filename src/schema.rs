@@ -1,6 +1,14 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    admin_users (id) {
+        id -> Integer,
+        email -> Text,
+        password -> Text,
+    }
+}
+
+diesel::table! {
     blogs (id) {
         id -> Nullable<Integer>,
         title -> Text,
@@ -42,6 +50,7 @@ diesel::table! {
 }
 
 diesel::allow_tables_to_appear_in_same_query!(
+    admin_users,
     blogs,
     experiences,
     messages,

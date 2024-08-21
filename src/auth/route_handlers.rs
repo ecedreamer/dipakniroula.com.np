@@ -1,3 +1,6 @@
+use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
+use argon2::password_hash::rand_core::OsRng;
+use argon2::password_hash::SaltString;
 use serde::Deserialize;
 
 use diesel::prelude::*;
@@ -9,7 +12,7 @@ use tower_sessions::Session;
 use crate::auth::models::NewSocialLink;
 use crate::db::establish_connection;
 use crate::middlewares::auth_middleware;
-use crate::models::{ContactMessage};
+use crate::models::{AdminUser, Blog, ContactMessage};
 use crate::schema::social_links;
 
 pub async fn auth_routes() -> Router {
@@ -47,7 +50,7 @@ pub async fn login_page() -> impl IntoResponse {
 
 
 #[derive(Deserialize, Debug)]
-struct LoginForm {
+pub struct LoginForm {
     email: String,
     password: String,
 }
@@ -55,13 +58,38 @@ struct LoginForm {
 
 pub async fn login_handler(session: Session, Form(form_data): Form<LoginForm>) -> impl IntoResponse {
 
-    // tracing::info!("Hello, {}! Your email is {}", form_data.email, form_data.password);
-    if form_data.email == "sangit.niroula@gmail.com".to_string() && form_data.password == "admin@123".to_string() {
-        session.insert("username", "sangit.niroula@gmail.com").await.unwrap();
-        Redirect::to("/auth/admin-panel")
-    } else{
-        Redirect::to("/auth/login")
+    let mut conn = establish_connection().await;
+
+
+    use crate::schema::admin_users::dsl::*;
+
+    let result = admin_users
+        .filter(email.eq(&form_data.email))
+        .limit(1)
+        .first::<AdminUser>(&mut conn);
+    
+    match result { 
+        Ok(admin_user) => {
+            let parsed_hash = PasswordHash::new(&admin_user.password).unwrap();
+            match Argon2::default().verify_password(&form_data.password.as_bytes(), &parsed_hash) {
+                Ok(_) => {
+                    session.insert("email", admin_user.email).await.unwrap();
+                    tracing::info!("Successfully logged in...");
+                    Redirect::to("/auth/admin-panel")
+                },
+                Err(e) => {
+                    tracing::error!("Invalid credentials...");
+                    Redirect::to("/auth/login")
+                }
+            }
+        },
+        Err(e) => {
+            tracing::error!("Invalid credentials...");
+            Redirect::to("/auth/login")
+        }
+        
     }
+
 }
 
 
@@ -75,7 +103,7 @@ struct AdminHomeTemplate {
 
 pub async fn admin_home_page(session: Session) -> impl IntoResponse {
 
-    let username: Option<String> = session.get("username").await.unwrap();
+    let user_email: Option<String> = session.get("email").await.unwrap();
     
     let conn = &mut establish_connection().await;
 
@@ -86,11 +114,11 @@ pub async fn admin_home_page(session: Session) -> impl IntoResponse {
         .load::<ContactMessage>(conn)
         .expect("Error loading blogs");
 
-    match username {
-        Some(uname) => {
+    match user_email {
+        Some(u_email) => {
             let context = AdminHomeTemplate {
                 page: "Admin Home".to_owned(),
-                username: uname.to_string(),
+                username: u_email.to_string(),
                 messages: results
             };
 

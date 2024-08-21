@@ -84,3 +84,13 @@ pub struct ContactMessage {
     pub message: String,
     pub date_sent: String,
 }
+
+
+#[derive(Queryable, Selectable, Serialize, Deserialize, Debug, Clone)]
+#[diesel(table_name = crate::schema::admin_users)]
+#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
+pub struct AdminUser {
+    pub id: i32,
+    pub email: String,
+    pub password: String
+}
