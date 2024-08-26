@@ -28,6 +28,11 @@
         <textarea name="content" rows="10" class="form-control" id="summernote">{{blog.content}}</textarea>
     </div>
     <br>
+    <div>
+        <label for="is_active">Active</label>
+        <input type="checkbox" name="is_active" {% if blog.is_active == 1 %}checked{% else %}{% endif %} id="is_active"/>
+    </div>
+    <br>
     <button class="btn btn-primary">Save Blog</button>
 </form>
 

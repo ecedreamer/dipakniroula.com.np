@@ -14,7 +14,8 @@ use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 use crate::middlewares::auth_middleware;
 use std::str::FromStr;
-
+use chrono::Utc;
+use crate::schema::blogs::is_active;
 
 pub async fn blog_routes() -> Router {
     Router::new()
@@ -63,6 +64,7 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
     let mut image_path = String::new();
     let mut title = String::new();
     let mut content = String::new();
+    let mut blog_status = 0;
     while let Some(mut field) = multipart.next_field().await.unwrap() {
         let field_name = field.name().unwrap().to_string();
         tracing::info!("{}", field_name);
@@ -82,6 +84,13 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
             title = field.text().await.unwrap();
         } else if field_name == "content" {
             content = field.text().await.unwrap();
+        } else if field_name == "is_active" {
+            let value = field.text().await.unwrap();
+            if value == "on" {
+                blog_status = 1;
+            } else {
+                blog_status = 0;
+            }
         }
     }
 
@@ -89,9 +98,12 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
 
     let conn = &mut establish_connection().await;
     let blog = NewBlog {
+        is_active: blog_status,
         title: &title,
         content: &content,
         image: (!image_path.is_empty()).then_some(image_path.as_str()),
+        published_date: Utc::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+        modified_date: None,
     };
 
     diesel::insert_into(blogs)
@@ -150,27 +162,28 @@ pub async fn blog_update_handler(Path(blog_id): Path<String>, mut multipart: Mul
         title: None,
         content: None,
         image: None,
+        modified_date: None,
+        is_active: Some(0),
+        view_count: None
     };
 
-    let mut image_path = String::new();
-    let mut new_title = String::new();
-    let mut new_content = String::new();
+
     while let Some(mut field) = multipart.next_field().await.unwrap() {
         let field_name = field.name().unwrap().to_string();
 
         if field_name == "title" {
-            new_title = field.text().await.unwrap_or(String::new());
+            let new_title = field.text().await.unwrap_or(String::new());
             if !new_title.is_empty() {
                 update_blog.title = Some(new_title);
             }
         } else if field_name == "content" {
-            new_content = field.text().await.unwrap_or(String::new());
+            let new_content = field.text().await.unwrap_or(String::new());
             if !new_content.is_empty() {
                 update_blog.content = Some(new_content);
             }
         } else if field_name == "blog-image" {
             let file_name = field.file_name().unwrap().to_string();
-            image_path = format!("{}{}", "media/", file_name);
+            let image_path = format!("{}{}", "media/", file_name);
 
 
             if !file_name.is_empty() {
@@ -180,8 +193,16 @@ pub async fn blog_update_handler(Path(blog_id): Path<String>, mut multipart: Mul
                 }
                 update_blog.image = Some(image_path);
             }
+        } else if field_name == "is_active" {
+            let value = field.text().await.unwrap();
+            tracing::info!("This field is present: {}", value);
+
+            if value == "on" {
+                update_blog.is_active = Some(1);
+            }
         }
     }
+    update_blog.modified_date = Some(Utc::now().format("%Y-%m-%d %H:%M:%S").to_string());
 
 
     let conn = &mut establish_connection().await;
@@ -316,6 +337,11 @@ pub async fn blog_detail_page(Path(blog_id): Path<String>) -> impl IntoResponse 
         .filter(id.eq(blog_id_num))
         .limit(1)
         .first::<Blog>(&mut conn);
+
+
+    diesel::update(blogs.filter(id.eq(blog_id_num)))
+        .set(view_count.eq(view_count + 1))
+        .execute(&mut conn);
 
 
     match result {

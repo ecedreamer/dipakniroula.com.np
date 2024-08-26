@@ -7,6 +7,7 @@
         <div class="col-md-12">
             <div class="title">
                 <h4>{{blog.title}}</h4>
+                <small>Published Date: {{ blog.published_date }}</small>
             </div>
             <div class="image py-5">
                 {% if blog.image.as_ref().is_some() %}

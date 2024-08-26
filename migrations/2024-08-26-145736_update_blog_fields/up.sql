@@ -1,0 +1,12 @@
+-- Your SQL goes here
+ALTER TABLE blogs
+ADD COLUMN published_date TEXT NOT NULL DEFAULT "";
+
+ALTER TABLE blogs
+ADD COLUMN modified_date TEXT;
+
+ALTER TABLE blogs
+ADD COLUMN view_count INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE blogs
+ADD COLUMN is_active INTEGER NOT NULL DEFAULT 0;

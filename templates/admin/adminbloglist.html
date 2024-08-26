@@ -12,6 +12,10 @@
                         <th>ID</th>
                         <th>Title</th>
                         <th>Image</th>
+                        <th>Published Date</th>
+                        <th>Modified Date</th>
+                        <th>Status</th>
+                        <th>View Count</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -25,6 +29,14 @@
                             {{blog.image.as_ref().unwrap()}}
                             {% endif %}
                         </td>
+                        <td>{{blog.published_date}}</td>
+                        <td>
+                            {% if blog.modified_date.as_ref().is_some() %}
+                            {{blog.modified_date.as_ref().unwrap()}}
+                            {% endif %}
+                        </td>
+                        <td>{{blog.is_active}}</td>
+                        <td>{{blog.view_count}}</td>
                         <th>
                             <a href="/blog/admin/{{blog.id.unwrap()}}/update">Update</a>
                             <a href="/blog/admin/{{blog.id.unwrap()}}/delete">Delete</a>

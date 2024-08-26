@@ -14,6 +14,10 @@ diesel::table! {
         title -> Text,
         content -> Text,
         image -> Nullable<Text>,
+        published_date -> Text,
+        modified_date -> Nullable<Text>,
+        view_count -> Integer,
+        is_active -> Integer,
     }
 }
 

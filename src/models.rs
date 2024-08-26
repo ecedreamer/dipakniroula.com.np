@@ -1,6 +1,6 @@
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
-use crate::schema::messages::full_name;
+use crate::schema::blogs::{is_active, view_count};
 
 #[derive(Queryable, Selectable, Serialize, Deserialize, Debug, Clone)]
 #[diesel(table_name = crate::schema::blogs)]
@@ -14,15 +14,26 @@ pub struct Blog {
     pub content: String,
     #[diesel(sql_type = Text)]
     pub image: Option<String>,
+    #[diesel(sql_type = Text)]
+    pub published_date: String,
+    #[diesel(sql_type = Text)]
+    pub modified_date: Option<String>,
+    #[diesel(sql_type = Integer)]
+    pub view_count: i32,
+    #[diesel(sql_type = Integer)]
+    pub is_active: i32,
 }
 
 
 #[derive(Deserialize, AsChangeset)]
 #[diesel(table_name = crate::schema::blogs)]
 pub struct UpdateBlog {
+    pub is_active: Option<i32>,
     pub title: Option<String>,
     pub content: Option<String>,
     pub image: Option<String>,
+    pub modified_date: Option<String>,
+    pub view_count: Option<i32>,
 }
 
 
@@ -31,7 +42,10 @@ pub struct UpdateBlog {
 pub struct NewBlog<'a> {
     pub title: &'a str,
     pub content: &'a str,
-    pub image: Option<&'a str>
+    pub image: Option<&'a str>,
+    pub is_active: i32,
+    pub published_date: String,
+    pub modified_date: Option<String>,
 }
 
 
