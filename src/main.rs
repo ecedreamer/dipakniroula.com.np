@@ -8,7 +8,6 @@ mod blog;
 mod middlewares;
 
 use axum::{routing::get, Router};
-use axum::routing::post;
 use db::establish_connection;
 
 use axum_csrf::CsrfConfig;

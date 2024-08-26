@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use indexmap::IndexMap;
 use askama::Template;
 use axum::Form;
@@ -10,7 +11,7 @@ use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse, Redirect};
 use axum_csrf::CsrfToken;
 use serde::Deserialize;
-use serde_json::{from_str, Value};
+use serde_json::{from_str, Map, Value};
 use tokio::fs::read_to_string;
 use crate::db::establish_connection;
 use crate::models::SocialLink;
@@ -25,6 +26,7 @@ struct HomeTemplate {
     company_link: String,
     skills: IndexMap<String, Vec<String>>,
     social_links: Vec<SocialLink>,
+    employment_history: IndexMap<String, IndexMap<String, String>>
 }
 
 pub async fn home_page() -> impl IntoResponse {
@@ -42,6 +44,13 @@ pub async fn home_page() -> impl IntoResponse {
             (k.clone(), v.as_array().unwrap().iter().map(|s| s.as_str().unwrap().to_string()).collect())
         })
         .collect();
+
+    let employment_history = content["employment_history"].as_object().unwrap().iter()
+        .map(|(k, v)| (k.clone(), v.as_object().unwrap().iter()
+            .map(|(ik, iv)| (ik.clone(), iv.as_str().unwrap().to_string()))
+            .collect()))
+        .collect();
+
     use crate::schema::social_links::dsl::social_links;
     let my_social_links = social_links
         .select(SocialLink::as_select())
@@ -56,6 +65,7 @@ pub async fn home_page() -> impl IntoResponse {
         company_link,
         skills,
         social_links: my_social_links,
+        employment_history
     };
 
 

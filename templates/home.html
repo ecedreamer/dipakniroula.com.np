@@ -5,37 +5,62 @@
 
 <div class="row">
     <div class="col-md-6">
+        <div class="">
 
-        <h4>Dipak Niroula</h4>
-        <hr>
-        <p>Senior Software Engineer at <a href="https:://logpoint.com" target="_blank">Logpoint Nepal Pvt. Ltd</a></p>
-        <p>Engineer | Programmer | Developer | Learner | Mentor | Leader </p>
-        <p>8+ years of Experience in Software Engineering Field</p>
-        <img src="/static/dni_profile.jpeg" alt="" style="height: 300px;">
+            <h5>Introduction</h5>
+            <hr>
+            <p>Senior Software Engineer at <a href="https:://logpoint.com" target="_blank">Logpoint Nepal Pvt. Ltd</a>
+            </p>
+            <p>Engineer | Programmer | Developer | Learner | Mentor | Leader </p>
+            <p>8+ years of Experience in Software Engineering Field</p>
+            <img src="/static/dni_profile.jpeg" alt="" class="img-fluid" style="width: 300px;">
+        </div>
 
-        <h4>Find me on Social Media</h4>
-        {% for social_link in social_links %}
-        <p>{{social_link.id.unwrap()}} {{social_link.social_media}}: <a href="{{social_link.social_link}}" target="_blank">{{social_link.social_link}}</a></p>
-        {% endfor %}
+        <div class="mt-3">
+            <h5>Skills</h5>
+            <hr>
+            <ul>
+                {% for (skill_name, skills) in skills.iter() %}
+                <li>
+                    <h6>{{ skill_name }}</h6>
+                    <ul>
+                        {% for skill in skills %}
+                        <li>{{ skill }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="mt-3">
+
+            <h5>Find me on Social Media</h5>
+            {% for social_link in social_links %}
+            <p>{{social_link.id.unwrap()}} {{social_link.social_media}}: <a href="{{social_link.social_link}}"
+                                                                            target="_blank">{{social_link.social_link}}</a>
+            </p>
+            {% endfor %}
+        </div>
+
 
     </div>
-
     <div class="col-md-6">
-        <h4>Skills</h4>
+        <h5>Employment History</h5>
         <hr>
         <ul>
-            {% for (skill_name, skills) in skills.iter() %}
-            <li>
-                <h5>{{ skill_name }}</h5>
-                <ul>
-                    {% for skill in skills %}
-                    <li>{{ skill }}</li>
-                    {% endfor %}
-                </ul>
-            </li>
+            {% for (company, details) in employment_history.iter() %}
+            <h6><strong> {{ company }} </strong></h6>
+            <ul>
+                {% for (key, value) in details %}
+                <p><strong>{{key}}:</strong> {{value}}</p>
+                {% endfor %}
+            </ul>
+
             {% endfor %}
         </ul>
     </div>
+
+
 </div>
 
 

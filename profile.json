@@ -5,60 +5,49 @@
     "current_position": "Senior Software Engineer",
     "company_link": "https://logpoint.com"
   },
-  "experiences": [
-    {
-      "company": "Prixa Technology Pvt. Ltd.",
-      "start_date": "2016-04",
-      "end_date": "2016-10",
+  "employment_history": {
+    "Prixa Technology Pvt. Ltd.": {
+      "start date": "2016-04",
+      "end date": "2016-10",
       "duration": "6 months",
       "position": "Web Developer",
-      "tech_stacks": [
-        "Python Programming Language",
-        "Django Web Framework",
-        "JavaScript"
-      ]
+      "tech stacks": "Python Programming Language, Django Web Framework, JavaScript"
     },
-    {
-      "company": "Sarobar Technology Pvt. Ltd.",
-      "start_date": "2016-01",
-      "end_date": "2016-01",
+    "Lecturer": {
+      "star date": "2016-01",
+      "end date": "2016-01",
+      "duration": "6+ years",
+      "colleges": "Cosmos College of Management & Technology , NCIT, Everest Engineering"
+    },
+    "Sarobar Technology Pvt. Ltd.": {
+      "start date": "2016-01",
+      "end date": "2022-01",
       "duration": "5 years 6 months",
       "position": "Web Developer",
-      "tech_stacks": [
-        "Python Programming Language",
-        "Django Web Framework",
-        "JavaScript"
-      ]
+      "tech stacks": "Python, Django, Django REST Framework, FastAPI, JavaScript, ReactJS"
     },
-    {
-      "company": "Logpoint Nepal Pvt. Ltd.",
-      "start_date": "2022-01",
-      "end_date": "present",
+    "Logpoint Nepal Pvt. Ltd.": {
+      "start date": "2022-01",
+      "end date": "present",
       "duration": "still working",
       "position": "Senior Software Engineer",
-      "tech_stacks": [
-        "Python Programming Language",
-        "Django Web Framework",
-        "JavaScript"
-      ]
+      "tech stacks": "Python, Java, Rust, ZeroMQ, Kafka, Network Programming"
     }
-  ],
+  },
   "skills": {
     "General Skills": [
       "Software Design and Development",
-      "OOP & Design Patterns",
       "Software Architecture Designing",
-      "Microservices and Distributed System Design",
-      "Concurrency, Multithreading, and Multiprocessing",
-      "Training and Mentoring",
-      "Cloud Computing using AWS",
-      "Agile Methodology"
+      "Distributed System & MicroService",
+      "Imperative, Functional, Object Oriented, Concurrent Programming",
+      "Fast Learning, Agile, Training and Mentoring"
     ],
     "Programming Language": [
       "Python Programming Language",
       "Rust Programming Language",
       "Java Programming Language",
       "JavaScript Programming Language",
+      "SQL",
       "C/C++",
       "can learn when needed"
     ],
@@ -68,7 +57,9 @@
       "Starlette/FastAPI Framework",
       "Axum Web Framework",
       "Message Brokers like ZeroMQ, Kafka, RabbitMQ, ActiveMQ, Redis",
-      "git VCS"
+      "git VCS",
+      "SQL/NoSQL databases",
+      "etc..."
     ]
   }
 }

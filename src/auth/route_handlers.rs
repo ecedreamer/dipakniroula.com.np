@@ -1,6 +1,4 @@
-use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
-use argon2::password_hash::rand_core::OsRng;
-use argon2::password_hash::SaltString;
+use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use serde::Deserialize;
 
 use diesel::prelude::*;
@@ -12,7 +10,7 @@ use tower_sessions::Session;
 use crate::auth::models::NewSocialLink;
 use crate::db::establish_connection;
 use crate::middlewares::auth_middleware;
-use crate::models::{AdminUser, Blog, ContactMessage};
+use crate::models::{AdminUser, ContactMessage};
 use crate::schema::social_links;
 
 pub async fn auth_routes() -> Router {

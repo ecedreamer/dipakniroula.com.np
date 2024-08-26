@@ -5,7 +5,7 @@ use serde::Deserialize;
 
 
 use askama::Template;
-use axum::{http::StatusCode, response::{Html, IntoResponse, Redirect}, routing::{get, post}, Form, Router};
+use axum::{http::StatusCode, response::{Html, IntoResponse, Redirect}, routing::{get, post}, Router};
 use axum::extract::{Multipart, Path};
 use crate::db::establish_connection;
 use crate::models::{Blog, NewBlog, UpdateBlog};
@@ -24,12 +24,15 @@ pub async fn blog_routes() -> Router {
 
         // admin side pages
         .route("/admin/list", get(blog_list_page_admin).layer(axum::middleware::from_fn(auth_middleware)))
-        .route("/admin/create", get(blog_create_page).layer(axum::middleware::from_fn(auth_middleware)))
-        .route("/admin/create", post(blog_create_handler).layer(axum::middleware::from_fn(auth_middleware)))
-        .route("/admin/:blog_id/update", get(blog_update_page).layer(axum::middleware::from_fn(auth_middleware)))
-        .route("/admin/:blog_id/update", post(blog_update_handler).layer(axum::middleware::from_fn(auth_middleware)))
-        .route("/admin/:blog_id/delete", get(blog_delete_page).layer(axum::middleware::from_fn(auth_middleware)))
-        .route("/admin/:blog_id/delete", post(blog_delete_handler).layer(axum::middleware::from_fn(auth_middleware)))
+        .route("/admin/create", get(blog_create_page)
+            .post(blog_create_handler)
+            .layer(axum::middleware::from_fn(auth_middleware)))
+        .route("/admin/:blog_id/update", get(blog_update_page)
+            .post(blog_update_handler)
+            .layer(axum::middleware::from_fn(auth_middleware)))
+        .route("/admin/:blog_id/delete", get(blog_delete_page)
+            .post(blog_delete_handler)
+            .layer(axum::middleware::from_fn(auth_middleware)))
 }
 
 
@@ -201,13 +204,13 @@ pub async fn blog_update_handler(Path(blog_id): Path<String>, mut multipart: Mul
 #[template(path = "admin/blogdelete.html")]
 struct BlogDeleteTemplate {
     page: String,
-    blog_id: i32
+    blog_id: i32,
 }
 
 async fn blog_delete_page(Path(blog_id): Path<String>) -> impl IntoResponse {
     let context = BlogDeleteTemplate {
         page: "Blog Delete".to_string(),
-        blog_id: i32::from_str(&blog_id).unwrap()
+        blog_id: i32::from_str(&blog_id).unwrap(),
     };
 
     match context.render() {
@@ -216,7 +219,6 @@ async fn blog_delete_page(Path(blog_id): Path<String>) -> impl IntoResponse {
             StatusCode::INTERNAL_SERVER_ERROR, "Failed to render HTML".to_string()
         ).into_response()
     }
-
 }
 
 
@@ -271,7 +273,6 @@ pub async fn blog_list_page_admin() -> impl IntoResponse {
 }
 
 
-
 pub async fn blog_list_page() -> impl IntoResponse {
     use crate::schema::blogs::dsl::*;
 
@@ -305,7 +306,6 @@ struct BlogDetailTemplate {
 
 
 pub async fn blog_detail_page(Path(blog_id): Path<String>) -> impl IntoResponse {
-
     let mut conn = establish_connection().await;
 
     let blog_id_num = i32::from_str(&blog_id).unwrap();
