@@ -1,0 +1,18 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - RUST_LOG=info
+    volumes:
+      - ./templates:/usr/src/app/templates
+      - ./static:/usr/src/app/static
+      - ./media:/usr/src/app/media
+      - ./dipakdb.sqlite3:/usr/src/app/dipakdb.sqlite3
+      - ./profile.json:/usr/src/app/profile.json
+      - ./.env:/usr/src/app/.env
