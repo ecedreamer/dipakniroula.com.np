@@ -1,6 +1,5 @@
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
-use crate::schema::blogs::{is_active, view_count};
 
 #[derive(Queryable, Selectable, Serialize, Deserialize, Debug, Clone)]
 #[diesel(table_name = crate::schema::blogs)]
@@ -59,7 +58,6 @@ pub struct Experience {
     pub start_date: String,
     pub end_date: Option<String>,
     pub responsibility: Option<String>,
-
 }
 
 

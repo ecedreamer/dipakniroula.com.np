@@ -1,41 +1,55 @@
 use diesel::prelude::*;
 
-
 use serde::Deserialize;
 
-
-use askama::Template;
-use axum::{http::StatusCode, response::{Html, IntoResponse, Redirect}, routing::{get, post}, Router};
-use axum::extract::{Multipart, Path};
-use crate::db::establish_connection;
+use crate::middlewares::auth_middleware;
 use crate::models::{Blog, NewBlog, UpdateBlog};
+use crate::{blog::blog_repository, db::establish_connection};
+use askama::Template;
+use axum::extract::{Multipart, Path};
+use axum::{
+    http::StatusCode,
+    response::{Html, IntoResponse, Redirect},
+    routing::{get, post},
+    Router,
+};
+use chrono::Utc;
 use diesel::RunQueryDsl;
+use std::str::FromStr;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
-use crate::middlewares::auth_middleware;
-use std::str::FromStr;
-use chrono::Utc;
-use crate::schema::blogs::is_active;
+
+use crate::blog::blog_repository::BlogRepository;
 
 pub async fn blog_routes() -> Router {
     Router::new()
         // client side pages
         .route("/list", get(blog_list_page))
         .route("/:id/detail", get(blog_detail_page))
-
         // admin side pages
-        .route("/admin/list", get(blog_list_page_admin).layer(axum::middleware::from_fn(auth_middleware)))
-        .route("/admin/create", get(blog_create_page)
-            .post(blog_create_handler)
-            .layer(axum::middleware::from_fn(auth_middleware)))
-        .route("/admin/:blog_id/update", get(blog_update_page)
-            .post(blog_update_handler)
-            .layer(axum::middleware::from_fn(auth_middleware)))
-        .route("/admin/:blog_id/delete", get(blog_delete_page)
-            .post(blog_delete_handler)
-            .layer(axum::middleware::from_fn(auth_middleware)))
+        .route(
+            "/admin/list",
+            get(blog_list_page_admin).layer(axum::middleware::from_fn(auth_middleware)),
+        )
+        .route(
+            "/admin/create",
+            get(blog_create_page)
+                .post(blog_create_handler)
+                .layer(axum::middleware::from_fn(auth_middleware)),
+        )
+        .route(
+            "/admin/:blog_id/update",
+            get(blog_update_page)
+                .post(blog_update_handler)
+                .layer(axum::middleware::from_fn(auth_middleware)),
+        )
+        .route(
+            "/admin/:blog_id/delete",
+            get(blog_delete_page)
+                .post(blog_delete_handler)
+                .layer(axum::middleware::from_fn(auth_middleware)),
+        )
 }
-
 
 #[derive(Template, Deserialize)]
 #[template(path = "admin/blogcreate.html")]
@@ -45,7 +59,7 @@ struct BlogCreateTemplate {
 
 pub async fn blog_create_page() -> impl IntoResponse {
     let context = BlogCreateTemplate {
-        page: "Blog Create".to_owned()
+        page: "Blog Create".to_owned(),
     };
 
     match context.render() {
@@ -54,10 +68,9 @@ pub async fn blog_create_page() -> impl IntoResponse {
             StatusCode::INTERNAL_SERVER_ERROR,
             "Failed to render HTML".to_string(),
         )
-            .into_response()
+            .into_response(),
     }
 }
-
 
 pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse {
     tracing::info!("Handling multipart request");
@@ -71,7 +84,6 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
 
         if field_name == "blog-image" {
             let file_name = field.file_name().unwrap().to_string();
-
 
             if !file_name.is_empty() {
                 image_path = format!("{}{}", "media/", file_name);
@@ -114,7 +126,6 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
     Redirect::to("/blog/admin/list").into_response()
 }
 
-
 #[derive(Template, Deserialize)]
 #[template(path = "admin/blogupdate.html")]
 struct BlogUpdateTemplate {
@@ -145,17 +156,17 @@ pub async fn blog_update_page(Path(blog_id): Path<String>) -> impl IntoResponse 
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "Failed to render HTML".to_string(),
                 )
-                    .into_response()
+                    .into_response(),
             }
         }
-        Err(e) => {
-            Redirect::to("/blog/admin/list").into_response()
-        }
+        Err(e) => Redirect::to("/blog/admin/list").into_response(),
     }
 }
 
-
-pub async fn blog_update_handler(Path(blog_id): Path<String>, mut multipart: Multipart) -> impl IntoResponse {
+pub async fn blog_update_handler(
+    Path(blog_id): Path<String>,
+    mut multipart: Multipart,
+) -> impl IntoResponse {
     use crate::schema::blogs::dsl::*;
 
     let mut update_blog = UpdateBlog {
@@ -164,9 +175,8 @@ pub async fn blog_update_handler(Path(blog_id): Path<String>, mut multipart: Mul
         image: None,
         modified_date: None,
         is_active: Some(0),
-        view_count: None
+        view_count: None,
     };
-
 
     while let Some(mut field) = multipart.next_field().await.unwrap() {
         let field_name = field.name().unwrap().to_string();
@@ -184,7 +194,6 @@ pub async fn blog_update_handler(Path(blog_id): Path<String>, mut multipart: Mul
         } else if field_name == "blog-image" {
             let file_name = field.file_name().unwrap().to_string();
             let image_path = format!("{}{}", "media/", file_name);
-
 
             if !file_name.is_empty() {
                 let mut file = File::create(image_path.clone()).await.unwrap();
@@ -204,22 +213,18 @@ pub async fn blog_update_handler(Path(blog_id): Path<String>, mut multipart: Mul
     }
     update_blog.modified_date = Some(Utc::now().format("%Y-%m-%d %H:%M:%S").to_string());
 
-
     let conn = &mut establish_connection().await;
     let blog_id_num = i32::from_str(&blog_id).unwrap();
 
     let target = blogs.filter(id.eq(blog_id_num));
-
 
     diesel::update(target)
         .set(&update_blog)
         .execute(conn)
         .unwrap();
 
-
     Redirect::to("/blog/admin/list").into_response()
 }
-
 
 #[derive(Template)]
 #[template(path = "admin/blogdelete.html")]
@@ -237,11 +242,12 @@ async fn blog_delete_page(Path(blog_id): Path<String>) -> impl IntoResponse {
     match context.render() {
         Ok(html) => Html(html).into_response(),
         Err(_) => (
-            StatusCode::INTERNAL_SERVER_ERROR, "Failed to render HTML".to_string()
-        ).into_response()
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Failed to render HTML".to_string(),
+        )
+            .into_response(),
     }
 }
-
 
 async fn blog_delete_handler(Path(blog_id): Path<String>) -> impl IntoResponse {
     let blog_id_num = i32::from_str(&blog_id).unwrap();
@@ -254,20 +260,17 @@ async fn blog_delete_handler(Path(blog_id): Path<String>) -> impl IntoResponse {
     Redirect::to("/blog/admin/list")
 }
 
-
 #[derive(Template)]
 #[template(path = "blog_list.html")]
 struct BlogListTemplate {
     blog_list: Vec<Blog>,
 }
 
-
 #[derive(Template)]
 #[template(path = "admin/adminbloglist.html")]
 struct AdminBlogListTemplate {
     blog_list: Vec<Blog>,
 }
-
 
 pub async fn blog_list_page_admin() -> impl IntoResponse {
     use crate::schema::blogs::dsl::*;
@@ -293,62 +296,15 @@ pub async fn blog_list_page_admin() -> impl IntoResponse {
     }
 }
 
-
 pub async fn blog_list_page() -> impl IntoResponse {
-    use crate::schema::blogs::dsl::*;
-
     let mut conn = establish_connection().await;
+    let blog_repo = BlogRepository::new(&mut conn);
 
-    let results = blogs
-        .order(id.desc())
-        .load::<Blog>(&mut conn)
-        .expect("Error loading blogs");
+    let results = blog_repo.find();
 
-    let context = BlogListTemplate {
-        blog_list: results.to_vec(),
-    };
-
-    match context.render() {
-        Ok(html) => Html(html).into_response(),
-        Err(_) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Failed to render HTML".to_string(),
-        )
-            .into_response(),
-    }
-}
-
-
-#[derive(Template)]
-#[template(path = "blogdetail.html")]
-struct BlogDetailTemplate {
-    blog: Blog,
-}
-
-
-pub async fn blog_detail_page(Path(blog_id): Path<String>) -> impl IntoResponse {
-    let mut conn = establish_connection().await;
-
-    let blog_id_num = i32::from_str(&blog_id).unwrap();
-
-    use crate::schema::blogs::dsl::*;
-
-    let result = blogs
-        .filter(id.eq(blog_id_num))
-        .limit(1)
-        .first::<Blog>(&mut conn);
-
-
-    diesel::update(blogs.filter(id.eq(blog_id_num)))
-        .set(view_count.eq(view_count + 1))
-        .execute(&mut conn);
-
-
-    match result {
-        Ok(blog) => {
-            let context = BlogDetailTemplate {
-                blog: blog,
-            };
+    match results {
+        Ok(blogs) => {
+            let context = BlogListTemplate { blog_list: blogs };
 
             match context.render() {
                 Ok(html) => Html(html).into_response(),
@@ -356,10 +312,56 @@ pub async fn blog_detail_page(Path(blog_id): Path<String>) -> impl IntoResponse 
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "Failed to render HTML".to_string(),
                 )
-                    .into_response()
+                    .into_response(),
             }
         }
-        Err(e) => {
+        Err(err) => {
+            tracing::warn!("Error in getting blog list; error: {:?}", err);
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Failed to render HTML".to_string(),
+            )
+                .into_response()
+        }
+    }
+}
+
+#[derive(Template)]
+#[template(path = "blogdetail.html")]
+struct BlogDetailTemplate {
+    blog: Blog,
+}
+
+pub async fn blog_detail_page(Path(blog_id): Path<String>) -> impl IntoResponse {
+    let mut conn = establish_connection().await;
+
+    let blog_id_num = i32::from_str(&blog_id).unwrap();
+
+    let blog_repo = BlogRepository::new(&mut conn);
+    let single_blog_result = blog_repo.find_by_id(blog_id_num);
+
+    let blog_repo = BlogRepository::new(&mut conn);
+    blog_repo.increase_view_count(blog_id_num);
+
+    match single_blog_result {
+        Ok(blog) => {
+            let context = BlogDetailTemplate { blog: blog };
+
+            match context.render() {
+                Ok(html) => Html(html).into_response(),
+                Err(_) => (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Failed to render HTML".to_string(),
+                )
+                    .into_response(),
+            }
+        }
+        Err(err) => {
+            tracing::warn!(
+                "Blog with the id: {} does not exist; error: {:?}",
+                blog_id,
+                err
+            );
             Redirect::to("/blog/list").into_response()
         }
     }
