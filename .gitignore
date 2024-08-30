@@ -4,3 +4,4 @@
 dipakdb.sqlite3
 .code/
 /media
+.postgres_data/
