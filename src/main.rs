@@ -21,6 +21,7 @@ use time::Duration;
 use route_handlers::{home_page, contact_page, contact_form_handler};
 
 use tower_sessions::{Expiry, MemoryStore, SessionManagerLayer};
+use crate::route_handlers::resume_page;
 
 async fn handle_404() -> &'static str{
     "404 Page not found"
@@ -50,6 +51,7 @@ async fn main() {
     let media_files_service = ServeDir::new("media");
     let app = Router::new()
         .route("/", get(home_page))
+        .route("/my-resume", get(resume_page))
         .route("/contact", get(contact_page).post(contact_form_handler))
         .with_state(csrf_config)
         .nest("/auth", auth::route_handlers::auth_routes().await)

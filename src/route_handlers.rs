@@ -26,7 +26,7 @@ struct HomeTemplate {
     company_link: String,
     skills: IndexMap<String, Vec<String>>,
     social_links: Vec<SocialLink>,
-    employment_history: IndexMap<String, IndexMap<String, String>>
+    employment_history: IndexMap<String, IndexMap<String, String>>,
 }
 
 pub async fn home_page() -> impl IntoResponse {
@@ -65,7 +65,7 @@ pub async fn home_page() -> impl IntoResponse {
         company_link,
         skills,
         social_links: my_social_links,
-        employment_history
+        employment_history,
     };
 
 
@@ -151,3 +151,24 @@ pub async fn contact_form_handler(token: CsrfToken, Form(form): Form<ContactForm
     }
 }
 
+
+#[derive(Template)]
+#[template(path = "resume.html")]
+pub struct ResumeTemplate {
+    page: String,
+}
+
+
+pub async fn resume_page() -> impl IntoResponse {
+    let context = ResumeTemplate {
+        page: "My Resume".to_string(),
+    };
+
+    match context.render() {
+        Ok(html) => Html(html).into_response(),
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Failed to render HTML".to_string(),
+        ).into_response(),
+    }
+}
