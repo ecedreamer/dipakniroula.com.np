@@ -3,15 +3,25 @@
 
 {% block resume %}active{% endblock %}
 
+{% block css %}
+
+<style>
+    /*p {*/
+    /*    font-size: 12px;*/
+    /*    margin: 3px 1px;*/
+    /*}*/
+</style>
+{% endblock %}
+
 
 {% block content %}
 <div class="section">
-    <div class="row">
+    <div class="row" id="printable">
         <div class="col-md-12">
             <div class="card p-3">
                 <div class="row">
                     <div class="col-md-12">
-                        <h3>Dipak Niroula</h3>
+                        <h4>Dipak Niroula</h4>
                         <p>Software Engineer | Programmer | Developer | Mentor | Leader | Learner </p>
                     </div>
                 </div>
@@ -35,33 +45,102 @@
                 <hr>
                 <div class="row">
                     <div class="col-md-12">
-                        <h4>Skills</h4>
+                        <h5> Skills </h5>
                         <div class="row">
-                            <div class="col-md-6">
-                                <h5>Programming Language</h5>
-                                <ol>
-                                    <li>Python Programming Language</li>
-                                    <li>Rust Programming Language</li>
-                                    <li>JavaScript Programming Language</li>
-                                    <li>Java Programming Language</li>
-                                    <li>Shell Scripting</li>
-                                    <li>C Programming Language</li>
-                                    <li>C++ Programming Language</li>
-                                    <li>SQL</li>
-                                </ol>
+                            <div class="col-md-6 mt-2">
+                                <div class="card p-2">
+                                    <div class="card-header">
+                                        <p>Software Engineering</p>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Custom Software Design & Development</p>
+                                        <p>Web Application Development</p>
+                                        <p>Microservices Architecture Design and Development</p>
+                                        <p>Distributed System Design and Development</p>
+                                        <p>Object-Oriented & Functional Programming</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <h5>Frameworks Language</h5>
-                                <ol>
-                                    <li>Django Web Framework</li>
-                                    <li>FastAPI & Starlette Framework</li>
-                                    <li>Axum Web Framework</li>
-                                    <li>Express/Node JS Framework</li>
-                                    <li>React JS Framework</li>
-                                </ol>
+                            <div class="col-md-6 mt-2">
+                                <div class="card p-2">
+                                    <div class="card-header">
+                                        <p>Programming Languages & Frameworks</p>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Major Experience: Python, Rust, JavaScript, Shell Scripting, SQL</p>
+                                        <p>Minor Experience: Java, Go, C, C++, etc.</p>
+                                        <p>Python Based: Django, FastAPI, Starlette, etc. </p>
+                                        <p>Rust Based: Axum, Actix</p>
+                                        <p>JavaScript based: NodeJS, ExpressJS, ReactJS etc.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mt-2">
+                                <div class="card p-2">
+                                    <div class="card-header">
+                                        <p>Tools/Technologies & others</p>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Message Broker: Kafka, Redis, ZeroMQ, RabbitMQ, ActiveMQ etc.</p>
+                                        <p>Databases: Postgres, MySQL, SQLite, MongoDB, Redis, etc.</p>
+                                        <p>ORMs: SQLAlchemy, Django ORM, Diesel ORM, Prisma ORM, etc.</p>
+                                        <p>GIT vcs, Jira, Trello, Aha, etc. </p>
+                                        <p>Docker, Kubernetes, nginx</p>
+                                        <p>REST API, GraphQL, GRPC, etc. </p>
+                                        <p>Network Programming</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mt-2">
+                                <div class="card p-2">
+                                    <div class="card-header">
+                                        <p>Soft Skills</p>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Clear Verbal and Written Communication in English & Nepali Language</p>
+                                        <p>Problem-Solving & Fast Learning Ability</p>
+                                        <p>Dedicated and Committed</p>
+                                        <p>Leadership, Ownership, Agile</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-12">
+                        <h5>Experiences (8+ years in Software Engineering)</h5>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card p-2 mt-1">
+                                    <h6>Logpoint Nepal Pvt. Ltd</h6>
+                                    <div>
+                                        <p>Senior Software Engineer | January 2022 - Present( 2 years 8 months)</p>
+                                        <p>Responsibility: Maintain the Core Engine of Logpoing SIEM</p>
+                                        <p>Skills: Python, Java, Rust, Kafka, ZMQ, MongoDB, Ubuntu, Framework
+                                            Design/Development, etc. </p>
+                                    </div>
+                                </div>
+                                <div class="card p-2 mt-1">
+                                    <h6>Sarobar Technology Pvt. Ltd</h6>
+                                    <div>
+                                        <p>Co-founder & Lead Software Engineer | November 2016 - January 2022( 5 years 2
+                                            months)</p>
+                                        <p>Responsibility: Design, Develop Web Applications, Lead Team, Mentoring,
+                                            Handle complex issue & blockers</p>
+                                        <p>Skills: Python, JavaScript, Django, FastAPI, ReactJS, Postgres, MongoDB,
+                                            RabbitMQ, Redis, Celery</p>
+                                    </div>
+                                    <div>
+                                        <p>Web Development Trainer | November 2016 - January 2022( 5 years 2 months)</p>
+                                        <p>Responsibility: Training Web Application Development</p>
+                                        <p>Skills: Python, Django, JavaScript, etc. </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -69,9 +148,24 @@
     </div>
     <div class="row mt-3">
         <div class="col-md-12">
-            <a href="" class="btn btn-primary mx-auto">Download</a>
+            <button href="" class="btn btn-primary mx-auto" id="download-resume">Download</button>
         </div>
     </div>
 </div>
+
+<script>
+    const btn = document.getElementById("download-resume");
+    btn.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        alert("Downloading")
+        var printableContent = document.getElementById('printable').innerHTML;
+        var originalContent = document.body.innerHTML;
+
+        document.body.innerHTML = printableContent;
+        window.print();
+
+        document.body.innerHTML = originalContent;
+    })
+</script>
 
 {% endblock %}

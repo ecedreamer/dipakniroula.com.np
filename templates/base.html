@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/static/style.css">
+    {% block css %}
+
+    {% endblock %}
 </head>
 <body class="d-flex flex-column min-vh-100">
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -27,9 +30,9 @@
                 <li class="nav-item">
                     <a class="nav-link {% block contact %}{% endblock %}" href="/contact"><i class="bi bi-envelope me-1"></i>Contact</a>
                 </li>
-<!--                <li class="nav-item">-->
-<!--                    <a class="nav-link {% block resume %}{% endblock %}" href="/my-resume"><i class="bi bi-file-arrow-down me-1"></i>My Resume</a>-->
-<!--                </li>-->
+                <li class="nav-item">
+                    <a class="nav-link {% block resume %}{% endblock %}" href="/my-resume"><i class="bi bi-file-arrow-down me-1"></i>My Resume</a>
+                </li>
             </ul>
         </div>
     </div>
