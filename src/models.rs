@@ -48,19 +48,6 @@ pub struct NewBlog<'a> {
 }
 
 
-#[derive(Queryable, Selectable, Debug)]
-#[diesel(table_name = crate::schema::experiences)]
-#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
-pub struct Experience {
-    pub id: Option<i32>,
-    pub company_name: String,
-    pub position: String,
-    pub start_date: String,
-    pub end_date: Option<String>,
-    pub responsibility: Option<String>,
-}
-
-
 #[derive(Queryable, Selectable, Debug, Deserialize)]
 #[diesel(table_name = crate::schema::social_links)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]

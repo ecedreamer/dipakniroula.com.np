@@ -25,11 +25,12 @@ diesel::table! {
     experiences (id) {
         id -> Nullable<Integer>,
         company_name -> Text,
-        position -> Text,
+        your_position -> Text,
         start_date -> Text,
         end_date -> Nullable<Text>,
         responsibility -> Nullable<Text>,
         skills -> Nullable<Text>,
+        company_link -> Text,
     }
 }
 

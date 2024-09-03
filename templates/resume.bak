@@ -117,23 +117,98 @@
                         <hr>
                         <div class="row">
                             <div class="col-md-12">
-                                {% for experience in experiences %}
                                 <div class="row">
                                     <div class="col-md-3">
-                                        <h6><a href="{{experience.company_link}}" target="_blank">{{experience.company_name}}</a>
+                                        <h6><a href="https://logpoint.com" target="_blank">Logpoint Nepal Pvt. Ltd</a>
                                         </h6>
                                     </div>
                                     <div class="col-md-9">
                                         <div class="col-md-9">
-                                            <h6>{{experience.your_position}} | {{experience.start_date}} - {{experience.end_date.as_ref().unwrap()}}( 2 years 8
+                                            <h6>Senior Software Engineer | January 2022 - Present( 2 years 8
                                                 months)</h6>
-                                            <p><strong>Responsibilities:</strong> {{experience.responsibility.as_ref().unwrap()}}</p>
-                                            <p><strong>Skills:</strong> {{experience.skills.as_ref().unwrap()}} </p>
+                                            <p><strong>Responsibility:</strong> Maintain Core Engine of Logpoint SIEM, Enhance the Performance of the Services, Add new Features to it</p>
+                                            <p><strong>Skills:</strong> Python, Java, Rust, Kafka, ZMQ, MongoDB, Ubuntu, Framework Design/Development, etc. </p>
                                         </div>
                                     </div>
 
                                 </div>
-                                {% endfor %}
+                                <hr>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <h6><a href="https://sarobartech.com" target="_blank">Sarobar Technology Pvt. Ltd.</a></h6>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="row">
+                                            <h6>Co-founder & Lead Software Engineer | December 2016 - January 2022( 5 years 2 months)</h6>
+                                            <p><strong>Responsibility:</strong> Design, Develop Web Applications, Lead
+                                                Team, Mentoring,
+                                                Handle complex issue & blockers</p>
+                                            <p><strong>Skills:</strong> Python, JavaScript, Django, FastAPI, ReactJS,
+                                                Postgres, MongoDB,
+                                                RabbitMQ, Redis, Celery</p>
+                                        </div>
+                                        <hr>
+                                        <div class="col-md-9">
+                                            <h6>Web Development Trainer | December 2016 - January 2022( 5+ years)</h6>
+                                            <p>Responsibility: Training Web Application Development</p>
+                                            <p><strong>Skills:</strong> Python, Django, JavaScript, etc. </p>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <h6><a href="https://prixa.net/" target="_blank">Prixa Technology Pvt. Ltd.</a>
+                                        </h6>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="row">
+                                            <h6>Software Engineer | July 2016 - December 2016( 6 months)</h6>
+                                            <p><strong>Responsibility:</strong> Design, Develop Web Applications </p>
+                                            <p><strong>Skills:</strong> Python, JavaScript, Django, Postgres, Celery</p>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <h6><a href="https://facebook.com/raitnepal">RAIT Pvt. Ltd</a></h6>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="row">
+                                            <h6>Co-founder and Electronics Engineer | April 2015 - July 2016( 1 Year 4
+                                                months)</h6>
+                                            <p><strong>Responsibility:</strong> Electronics, Robotics, Training </p>
+                                            <p><strong>Skills:</strong> Programming for Microcontroller using C++,
+                                                Electronics
+                                                Engineering, Python</p>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <p><a href="https://softwarica.edu.np/" target="_blank">Softwarica College</a></p>
+                                        <p><a href="https://cosmoscollege.edu.np/" target="_blank">Cosmos College</a></p>
+                                        <p><a href="https://ncit.edu.np/" target="_blank">NCIT College</a></p>
+                                        <p><a href="https://www.eemc.edu.np/" target="_blank">Everest College</a></p>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="row">
+                                            <h6>Part-time Lecturer | September 2016 - September 2024 ( 7+ years)</h6>
+                                            <p>Taught Software Design, Object-Oriented Programming in C++</p>
+                                            <p>MicroProcessor, Embedded System, etc. </p>
+                                            <p>Electronic Devices & Circuits, Industrial Electronics and Drivers,
+                                                etc.</p>
+
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
