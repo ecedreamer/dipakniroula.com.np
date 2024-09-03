@@ -19,7 +19,7 @@ pub struct Experience {
 }
 
 
-#[derive(Insertable)]
+#[derive(Insertable, Deserialize)]
 #[diesel(table_name = crate::schema::experiences)]
 pub struct NewExperience {
     pub company_name: String,

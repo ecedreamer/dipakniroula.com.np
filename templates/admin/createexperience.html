@@ -1,0 +1,46 @@
+{% extends "admin/adminbase.html" %}
+
+
+{% block content %}
+
+<h4>Block create Page</h4>
+<form action="/experience/admin/create" method="POST">
+    <div>
+        <label for="company_name">Company Name</label>
+        <input type="text" name="company_name" class="form-control" required>
+    </div>
+    <br>
+    <div>
+        <label for="company_link">Company Link</label>
+        <input type="text" name="company_link" class="form-control" required>
+    </div>
+    <br>
+    <div>
+        <label for="your_position">Your Position</label>
+        <input type="text" name="your_position" class="form-control" required>
+    </div>
+    <br>
+    <div>
+        <label for="start_date">Start Date</label>
+        <input type="date" name="start_date" class="form-control" required>
+    </div>
+    <br>
+    <div>
+        <label for="end_date">Start Date</label>
+        <input type="date" name="end_date" class="form-control">
+    </div>
+    <br>
+    <div>
+        <label for="responsibility">Responsibilities</label>
+        <input type="text" name="responsibility" class="form-control" required>
+    </div>
+    <br>
+    <div>
+        <label for="skills">Skills</label>
+        <input type="text" name="skills" class="form-control" required>
+    </div>
+    <br>
+    <button class="btn btn-primary">Save Blog</button>
+</form>
+
+{% endblock %}

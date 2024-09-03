@@ -15,18 +15,20 @@ use crate::schema::social_links;
 
 pub async fn auth_routes() -> Router {
     Router::new()
-    .route("/login", get(login_page))
-    .route("/login", post(login_handler))
-    .route("/admin-panel", get(admin_home_page).layer(axum::middleware::from_fn(auth_middleware)))
-    .route("/add-social-link", get(social_link_create_page).layer(axum::middleware::from_fn(auth_middleware)))
-    .route("/add-social-link", post(social_link_create_handler).layer(axum::middleware::from_fn(auth_middleware)))
+        .route("/login", get(login_page))
+        .route("/login", post(login_handler))
+        .route("/admin-panel", get(admin_home_page).layer(axum::middleware::from_fn(auth_middleware)))
+        .route("/add-social-link",
+               get(social_link_create_page)
+                   .post(social_link_create_handler)
+                   .layer(axum::middleware::from_fn(auth_middleware)))
 }
 
 
 #[derive(Template, Deserialize)]
 #[template(path = "login.html")]
 struct LoginTemplate {
-    page: String
+    page: String,
 }
 
 pub async fn login_page() -> impl IntoResponse {
@@ -43,7 +45,6 @@ pub async fn login_page() -> impl IntoResponse {
         )
             .into_response()
     }
-
 }
 
 
@@ -55,7 +56,6 @@ pub struct LoginForm {
 
 
 pub async fn login_handler(session: Session, Form(form_data): Form<LoginForm>) -> impl IntoResponse {
-
     let mut conn = establish_connection().await;
 
 
@@ -65,8 +65,8 @@ pub async fn login_handler(session: Session, Form(form_data): Form<LoginForm>) -
         .filter(email.eq(&form_data.email))
         .limit(1)
         .first::<AdminUser>(&mut conn);
-    
-    match result { 
+
+    match result {
         Ok(admin_user) => {
             let parsed_hash = PasswordHash::new(&admin_user.password).unwrap();
             match Argon2::default().verify_password(&form_data.password.as_bytes(), &parsed_hash) {
@@ -74,20 +74,18 @@ pub async fn login_handler(session: Session, Form(form_data): Form<LoginForm>) -
                     session.insert("email", admin_user.email).await.unwrap();
                     tracing::info!("Successfully logged in...");
                     Redirect::to("/auth/admin-panel")
-                },
+                }
                 Err(e) => {
                     tracing::error!("Invalid credentials...");
                     Redirect::to("/auth/login")
                 }
             }
-        },
+        }
         Err(e) => {
             tracing::error!("Invalid credentials...");
             Redirect::to("/auth/login")
         }
-        
     }
-
 }
 
 
@@ -96,13 +94,12 @@ pub async fn login_handler(session: Session, Form(form_data): Form<LoginForm>) -
 struct AdminHomeTemplate {
     page: String,
     username: String,
-    messages: Vec<ContactMessage>
+    messages: Vec<ContactMessage>,
 }
 
 pub async fn admin_home_page(session: Session) -> impl IntoResponse {
-
     let user_email: Option<String> = session.get("email").await.unwrap();
-    
+
     let conn = &mut establish_connection().await;
 
     use crate::schema::messages::dsl::*;
@@ -117,7 +114,7 @@ pub async fn admin_home_page(session: Session) -> impl IntoResponse {
             let context = AdminHomeTemplate {
                 page: "Admin Home".to_owned(),
                 username: u_email.to_string(),
-                messages: results
+                messages: results,
             };
 
 
@@ -129,7 +126,7 @@ pub async fn admin_home_page(session: Session) -> impl IntoResponse {
                 )
                     .into_response()
             }
-        },
+        }
         None => {
             Redirect::to("/auth/login").into_response()
         }
@@ -159,7 +156,7 @@ pub async fn social_link_create_page() -> impl IntoResponse {
 #[derive(Deserialize, Debug)]
 pub struct SocialMediaForm {
     social_media: String,
-    social_link: String
+    social_link: String,
 }
 
 
