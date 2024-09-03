@@ -5,3 +5,4 @@ dipakdb.sqlite3
 .code/
 /media
 .postgres_data/
+.DS_Store
