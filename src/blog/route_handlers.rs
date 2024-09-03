@@ -16,6 +16,7 @@ use axum::{
 use chrono::Utc;
 use diesel::RunQueryDsl;
 use std::str::FromStr;
+use diesel::dsl::date;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 
@@ -216,12 +217,8 @@ pub async fn blog_update_handler(
     let conn = &mut establish_connection().await;
     let blog_id_num = i32::from_str(&blog_id).unwrap();
 
-    let target = blogs.filter(id.eq(blog_id_num));
-
-    diesel::update(target)
-        .set(&update_blog)
-        .execute(conn)
-        .unwrap();
+    let blog_repo = BlogRepository::new(conn);
+    blog_repo.update(blog_id_num, &update_blog);
 
     Redirect::to("/blog/admin/list").into_response()
 }
@@ -260,11 +257,6 @@ async fn blog_delete_handler(Path(blog_id): Path<String>) -> impl IntoResponse {
     Redirect::to("/blog/admin/list")
 }
 
-#[derive(Template)]
-#[template(path = "blog_list.html")]
-struct BlogListTemplate {
-    blog_list: Vec<Blog>,
-}
 
 #[derive(Template)]
 #[template(path = "admin/adminbloglist.html")]
@@ -276,31 +268,48 @@ pub async fn blog_list_page_admin() -> impl IntoResponse {
     use crate::schema::blogs::dsl::*;
 
     let mut conn = establish_connection().await;
+    let blog_repo = BlogRepository::new(&mut conn);
 
-    let results = blogs
-        .order(id.desc())
-        .load::<Blog>(&mut conn)
-        .expect("Error loading blogs");
+    let results = blog_repo.find();
 
-    let context = AdminBlogListTemplate {
-        blog_list: results.to_vec(),
-    };
+    match results {
+        Ok(blog_list) => {
+            let context = AdminBlogListTemplate {
+                blog_list,
 
-    match context.render() {
-        Ok(html) => Html(html).into_response(),
-        Err(_) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Failed to render HTML".to_string(),
-        )
-            .into_response(),
+            };
+            match context.render() {
+                Ok(html) => Html(html).into_response(),
+                Err(_) => (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Failed to render HTML".to_string(),
+                )
+                    .into_response(),
+            }
+        },
+        Err(err) => {
+            tracing::warn!("Error in getting blog list; error: {:?}", err);
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Failed to render HTML".to_string(),
+            )
+                .into_response()
+        }
     }
+}
+
+
+#[derive(Template)]
+#[template(path = "blog_list.html")]
+struct BlogListTemplate {
+    blog_list: Vec<Blog>,
 }
 
 pub async fn blog_list_page() -> impl IntoResponse {
     let mut conn = establish_connection().await;
     let blog_repo = BlogRepository::new(&mut conn);
 
-    let results = blog_repo.find();
+    let results = blog_repo.find_active_only();
 
     match results {
         Ok(blogs) => {

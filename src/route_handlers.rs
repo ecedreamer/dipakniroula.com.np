@@ -152,23 +152,3 @@ pub async fn contact_form_handler(token: CsrfToken, Form(form): Form<ContactForm
 }
 
 
-#[derive(Template)]
-#[template(path = "resume.html")]
-pub struct ResumeTemplate {
-    page: String,
-}
-
-
-pub async fn resume_page() -> impl IntoResponse {
-    let context = ResumeTemplate {
-        page: "My Resume".to_string(),
-    };
-
-    match context.render() {
-        Ok(html) => Html(html).into_response(),
-        Err(_) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Failed to render HTML".to_string(),
-        ).into_response(),
-    }
-}
