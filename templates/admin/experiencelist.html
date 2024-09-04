@@ -1,0 +1,42 @@
+{% extends "admin/adminbase.html" %}
+
+
+{% block content %}
+
+<div>
+    <h4>Experience List</h4>
+    <div class="row">
+        <div class="col-md-12">
+            <a href="/admin/experience/create">Create Experience</a>
+
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>Company Name</th>
+                    <th>Position</th>
+                    <th>Start Date</th>
+                    <th>Order</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for experience in experience_list %}
+                <tr>
+                    <td><a href="{{experience.company_link}}">{{experience.company_name}}</a></td>
+
+                    <td>{{experience.your_position}}</td>
+                    <td>{{experience.start_date}}</td>
+                    <td>{{experience.order}}</td>
+                    <th>
+                        <a href="/admin/experience/{{experience.id.unwrap()}}/update">Update</a>
+                        <a href="/admin/experience/{{experience.id.unwrap()}}/delete">Delete</a>
+                    </th>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

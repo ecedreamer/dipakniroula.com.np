@@ -14,9 +14,9 @@ impl<'a> BlogRepository<'a> {
         Self { conn }
     }
 
-    pub fn find_by_id(self, blog_id: i32) -> QueryResult<Blog> {
+    pub fn find_by_id(self, data_id: i32) -> QueryResult<Blog> {
         let result = blogs
-            .filter(id.eq(blog_id))
+            .filter(id.eq(data_id))
             .first::<Blog>(self.conn);
         result
     }

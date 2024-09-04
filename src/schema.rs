@@ -31,6 +31,7 @@ diesel::table! {
         responsibility -> Nullable<Text>,
         skills -> Nullable<Text>,
         company_link -> Text,
+        order -> Integer,
     }
 }
 

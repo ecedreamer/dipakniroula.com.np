@@ -5,21 +5,13 @@ use serde::{Deserialize, Serialize};
 #[diesel(table_name = crate::schema::blogs)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct Blog {
-    #[diesel(sql_type = Nullable<Integer>)]
     pub id: Option<i32>,
-    #[diesel(sql_type = Text)]
     pub title: String,
-    #[diesel(sql_type = Text)]
     pub content: String,
-    #[diesel(sql_type = Text)]
     pub image: Option<String>,
-    #[diesel(sql_type = Text)]
     pub published_date: String,
-    #[diesel(sql_type = Text)]
     pub modified_date: Option<String>,
-    #[diesel(sql_type = Integer)]
     pub view_count: i32,
-    #[diesel(sql_type = Integer)]
     pub is_active: i32,
 }
 

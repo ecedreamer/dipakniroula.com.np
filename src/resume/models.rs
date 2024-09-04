@@ -3,7 +3,7 @@ use diesel::{Queryable, Selectable};
 use serde::{Deserialize, Serialize};
 
 
-#[derive(Queryable, Selectable, Debug, Deserialize)]
+#[derive(Queryable, Selectable, Serialize, Deserialize, Debug, Clone)]
 #[diesel(table_name = crate::schema::experiences)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct Experience {
@@ -12,10 +12,10 @@ pub struct Experience {
     pub company_link: String,
     pub your_position: String,
     pub start_date: String,
-    #[diesel(sql_type = Text)]
     pub end_date: Option<String>,
     pub responsibility: Option<String>,
     pub skills: Option<String>,
+    pub order: i32
 }
 
 
@@ -29,6 +29,7 @@ pub struct NewExperience {
     pub end_date: Option<String>,
     pub responsibility: Option<String>,
     pub skills: Option<String>,
+    pub order: i32
 }
 
 
@@ -42,4 +43,5 @@ pub struct UpdateExperience {
     pub end_date: Option<String>,
     pub responsibility: Option<String>,
     pub skills: Option<String>,
+    pub order: Option<i32>
 }
