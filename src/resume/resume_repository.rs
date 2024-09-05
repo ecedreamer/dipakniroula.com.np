@@ -24,7 +24,6 @@ impl<'a> ExperienceRepository<'a> {
 
     pub fn find(self) -> Result<Vec<Experience>, diesel::result::Error> {
         let result = experiences
-            .select(Experience::as_select())
             .order(order.desc())
             .load::<Experience>(self.conn);
         result

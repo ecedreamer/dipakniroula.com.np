@@ -1,6 +1,6 @@
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
-use crate::models::{Blog, UpdateBlog};
+use super::models::{Blog, UpdateBlog};
 use crate::schema::blogs::dsl::*;
 
 

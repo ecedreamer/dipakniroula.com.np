@@ -9,12 +9,12 @@ use serde::{Deserialize, Serialize};
 pub struct Experience {
     pub id: Option<i32>,
     pub company_name: String,
-    pub company_link: String,
     pub your_position: String,
     pub start_date: String,
     pub end_date: Option<String>,
     pub responsibility: Option<String>,
     pub skills: Option<String>,
+    pub company_link: String,
     pub order: i32
 }
 

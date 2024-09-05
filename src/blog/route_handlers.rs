@@ -3,7 +3,7 @@ use diesel::prelude::*;
 use serde::Deserialize;
 
 use crate::middlewares::auth_middleware;
-use crate::models::{Blog, NewBlog, UpdateBlog};
+use super::models::{Blog, NewBlog, UpdateBlog};
 use crate::{blog::blog_repository, db::establish_connection};
 use askama::Template;
 use axum::extract::{Multipart, Path};
