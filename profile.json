@@ -5,35 +5,7 @@
     "current_position": "Senior Software Engineer",
     "company_link": "https://logpoint.com"
   },
-  "employment_history": {
-    "Prixa Technology Pvt. Ltd.": {
-      "start date": "2016-04",
-      "end date": "2016-10",
-      "duration": "6 months",
-      "position": "Web Developer",
-      "tech stacks": "Python Programming Language, Django Web Framework, JavaScript"
-    },
-    "Lecturer": {
-      "star date": "2016-01",
-      "end date": "2016-01",
-      "duration": "6+ years",
-      "colleges": "Cosmos College of Management & Technology , NCIT, Everest Engineering"
-    },
-    "Sarobar Technology Pvt. Ltd.": {
-      "start date": "2016-01",
-      "end date": "2022-01",
-      "duration": "5 years 6 months",
-      "position": "Web Developer",
-      "tech stacks": "Python, Django, Django REST Framework, FastAPI, JavaScript, ReactJS"
-    },
-    "Logpoint Nepal Pvt. Ltd.": {
-      "start date": "2022-01",
-      "end date": "present",
-      "duration": "still working",
-      "position": "Senior Software Engineer",
-      "tech stacks": "Python, Java, Rust, ZeroMQ, Kafka, Network Programming"
-    }
-  },
+
   "skills": {
     "General Skills": [
       "Software Design and Development",

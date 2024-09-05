@@ -24,9 +24,7 @@ struct HomeTemplate {
     current_company: String,
     current_position: String,
     company_link: String,
-    skills: IndexMap<String, Vec<String>>,
     social_links: Vec<SocialLink>,
-    employment_history: IndexMap<String, IndexMap<String, String>>,
 }
 
 pub async fn home_page() -> impl IntoResponse {
@@ -39,17 +37,6 @@ pub async fn home_page() -> impl IntoResponse {
     let current_company = content["general_introduction"]["current_company"].as_str().unwrap().to_string();
     let current_position = content["general_introduction"]["current_position"].as_str().unwrap().to_string();
     let company_link = content["general_introduction"]["company_link"].as_str().unwrap().to_string();
-    let skills = content["skills"].as_object().unwrap().iter()
-        .map(|(k, v)| {
-            (k.clone(), v.as_array().unwrap().iter().map(|s| s.as_str().unwrap().to_string()).collect())
-        })
-        .collect();
-
-    let employment_history = content["employment_history"].as_object().unwrap().iter()
-        .map(|(k, v)| (k.clone(), v.as_object().unwrap().iter()
-            .map(|(ik, iv)| (ik.clone(), iv.as_str().unwrap().to_string()))
-            .collect()))
-        .collect();
 
     use crate::schema::social_links::dsl::social_links;
     let my_social_links = social_links
@@ -63,9 +50,7 @@ pub async fn home_page() -> impl IntoResponse {
         current_company,
         current_position,
         company_link,
-        skills,
         social_links: my_social_links,
-        employment_history,
     };
 
 
