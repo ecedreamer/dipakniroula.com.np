@@ -8,6 +8,8 @@ mod blog;
 mod middlewares;
 mod resume;
 
+mod filters;
+
 use axum::{routing::get, Router};
 use db::establish_connection;
 

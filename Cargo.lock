@@ -521,6 +521,7 @@ dependencies = [
  "diesel_migrations",
  "dotenvy",
  "indexmap",
+ "regex",
  "serde",
  "serde_json",
  "time",
