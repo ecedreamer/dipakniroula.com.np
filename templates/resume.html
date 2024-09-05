@@ -143,7 +143,7 @@ modern DevOps practices.
                                     </div>
                                     <div class="col-md-9">
                                         <div class="col-md-9">
-                                            <h6>{{experience.your_position}} | {{experience.start_date}} - {{experience.end_date.as_ref().unwrap()}}</h6>
+                                            <h6>{{experience.your_position}} | {{experience.start_date}} - {% if experience.end_date.as_ref().is_some() %} {{experience.end_date.as_ref().unwrap()}} {% else %}Still Working {% endif %}</h6>
                                             <p><strong>Responsibilities:</strong> {{experience.responsibility.as_ref().unwrap()}}</p>
                                             <p><strong>Skills:</strong> {{experience.skills.as_ref().unwrap()}} </p>
                                         </div>
