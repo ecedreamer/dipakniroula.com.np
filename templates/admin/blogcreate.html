@@ -9,7 +9,7 @@
 {% block content %}
 
 <h4>Block create Page</h4>
-<form action="/blog/admin/create" method="POST" enctype="multipart/form-data">
+<form action="/admin/blog/create" method="POST" enctype="multipart/form-data">
     <div>
         <label for="title">Blog Title</label>
         <input type="text" name="title" class="form-control" required>
@@ -46,7 +46,32 @@
             ['table', ['table']],
             ['insert', ['link', 'picture', 'video']],
             ['view', ['fullscreen', 'codeview', 'help']]
-        ]
+        ],
+        callbacks: {
+            onImageUpload: function(files) {
+                uploadImage(files[0]);
+            }
+        }
     });
+    function uploadImage(file) {
+        var data = new FormData();
+        data.append("file", file);
+
+        $.ajax({
+            url: '/summernote-upload',
+            type: 'POST',
+            data: data,
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                console.log(response)
+                $('#summernote').summernote('insertImage', response.image_path);
+            },
+            error: function(data) {
+                console.log('Error uploading image');
+            }
+        });
+    }
 </script>
 {% endblock %}

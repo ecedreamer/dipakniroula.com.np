@@ -27,27 +27,27 @@ use crate::filters;
 pub async fn blog_routes() -> Router {
     Router::new()
         // client side pages
-        .route("/list", get(blog_list_page))
-        .route("/:id/detail", get(blog_detail_page))
+        .route("/blog/list", get(blog_list_page))
+        .route("/blog/:id/detail", get(blog_detail_page))
         // admin side pages
         .route(
-            "/admin/list",
+            "/admin/blog/list",
             get(blog_list_page_admin).layer(axum::middleware::from_fn(auth_middleware)),
         )
         .route(
-            "/admin/create",
+            "/admin/blog/create",
             get(blog_create_page)
                 .post(blog_create_handler)
                 .layer(axum::middleware::from_fn(auth_middleware)),
         )
         .route(
-            "/admin/:blog_id/update",
+            "/admin/blog/:blog_id/update",
             get(blog_update_page)
                 .post(blog_update_handler)
                 .layer(axum::middleware::from_fn(auth_middleware)),
         )
         .route(
-            "/admin/:blog_id/delete",
+            "/admin/blog/:blog_id/delete",
             get(blog_delete_page)
                 .post(blog_delete_handler)
                 .layer(axum::middleware::from_fn(auth_middleware)),
@@ -89,7 +89,8 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
             let file_name = field.file_name().unwrap().to_string();
 
             if !file_name.is_empty() {
-                image_path = format!("{}{}", "media/", file_name);
+                let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
+                image_path = format!("{}{}_{}", "media/summernote/", timestamp, file_name);
                 let mut file = File::create(image_path.clone()).await.unwrap();
                 while let Some(chunk) = field.chunk().await.unwrap() {
                     file.write_all(&chunk).await.unwrap();
@@ -126,7 +127,7 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
         .execute(conn)
         .unwrap();
 
-    Redirect::to("/blog/admin/list").into_response()
+    Redirect::to("/admin/blog/list").into_response()
 }
 
 #[derive(Template, Deserialize)]
@@ -162,7 +163,7 @@ pub async fn blog_update_page(Path(blog_id): Path<String>) -> impl IntoResponse 
                     .into_response(),
             }
         }
-        Err(e) => Redirect::to("/blog/admin/list").into_response(),
+        Err(e) => Redirect::to("/admin/blog/list").into_response(),
     }
 }
 
@@ -196,7 +197,8 @@ pub async fn blog_update_handler(
             }
         } else if field_name == "blog-image" {
             let file_name = field.file_name().unwrap().to_string();
-            let image_path = format!("{}{}", "media/", file_name);
+            let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
+            let image_path = format!("{}{}_{}", "media/summernote/", timestamp, file_name);
 
             if !file_name.is_empty() {
                 let mut file = File::create(image_path.clone()).await.unwrap();
@@ -222,7 +224,7 @@ pub async fn blog_update_handler(
     let blog_repo = BlogRepository::new(conn);
     blog_repo.update(blog_id_num, &update_blog);
 
-    Redirect::to("/blog/admin/list").into_response()
+    Redirect::to("/admin/blog/list").into_response()
 }
 
 #[derive(Template)]
@@ -256,7 +258,7 @@ async fn blog_delete_handler(Path(blog_id): Path<String>) -> impl IntoResponse {
     diesel::delete(blogs.filter(id.eq(blog_id_num)))
         .execute(connection)
         .expect("Error deleting posts");
-    Redirect::to("/blog/admin/list")
+    Redirect::to("/admin/blog/list")
 }
 
 

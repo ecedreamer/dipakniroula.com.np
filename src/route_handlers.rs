@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 use indexmap::IndexMap;
 use askama::Template;
-use axum::Form;
+use axum::extract::Multipart;
+use axum::{Form, Json};
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
 use chrono::Utc;
@@ -11,8 +12,9 @@ use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse, Redirect};
 use axum_csrf::CsrfToken;
 use serde::Deserialize;
-use serde_json::{from_str, Map, Value};
-use tokio::fs::read_to_string;
+use serde_json::{from_str, json, Map, Value};
+use tokio::fs::{read_to_string, File};
+use tokio::io::AsyncWriteExt;
 use crate::db::establish_connection;
 use crate::models::SocialLink;
 
@@ -137,3 +139,24 @@ pub async fn contact_form_handler(token: CsrfToken, Form(form): Form<ContactForm
 }
 
 
+pub async fn summernote_upload(mut multipart: Multipart) -> Result<Json<serde_json::Value>, StatusCode> {
+    let mut image_path = String::new();
+    while let Some(mut field) = multipart.next_field().await.unwrap() {
+        let field_name = field.name().unwrap().to_string();
+        tracing::info!("{}", field_name);
+
+        if field_name == "file" {
+            let file_name = field.file_name().unwrap().to_string();
+
+            if !file_name.is_empty() {
+                let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
+                image_path = format!("{}{}_{}", "media/summernote/", timestamp, file_name);
+                let mut file = File::create(image_path.clone()).await.unwrap();
+                while let Some(chunk) = field.chunk().await.unwrap() {
+                    file.write_all(&chunk).await.unwrap();
+                }
+            }
+        }
+    }
+    Ok(Json(json!({"image_path": "/".to_owned() + &*image_path})))
+}

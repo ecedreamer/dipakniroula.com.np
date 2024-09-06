@@ -11,6 +11,7 @@ mod resume;
 mod filters;
 
 use axum::{routing::get, Router};
+use axum::routing::post;
 use db::establish_connection;
 
 use axum_csrf::CsrfConfig;
@@ -21,7 +22,7 @@ use diesel_migrations::MigrationHarness;
 
 use time::Duration;
 
-use route_handlers::{home_page, contact_page, contact_form_handler};
+use route_handlers::{home_page, contact_page, contact_form_handler, summernote_upload};
 
 use tower_sessions::{Expiry, MemoryStore, SessionManagerLayer};
 
@@ -54,9 +55,10 @@ async fn main() {
     let app = Router::new()
         .route("/", get(home_page))
         .route("/contact", get(contact_page).post(contact_form_handler))
+        .route("/summernote-upload", post(summernote_upload))
         .with_state(csrf_config)
         .nest("/auth", auth::route_handlers::auth_routes().await)
-        .nest("/blog", blog::route_handlers::blog_routes().await)
+        .nest("/", blog::route_handlers::blog_routes().await)
         .nest("/", resume::route_handlers::resume_routes().await)
         .nest_service("/static", static_files_service)
         .nest_service("/media", media_files_service)

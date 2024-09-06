@@ -6,7 +6,7 @@
     <h4>Blog List</h4>
     <div class="row">
         <div class="col-md-12">
-            <a href="/blog/admin/create">Create Blog</a>
+            <a href="/admin/blog/create">Create Blog</a>
             <table class="table table-bordered">
                 <thead>
                     <tr>
@@ -39,8 +39,8 @@
                         <td>{{blog.is_active}}</td>
                         <td>{{blog.view_count}}</td>
                         <th>
-                            <a href="/blog/admin/{{blog.id.unwrap()}}/update">Update</a>
-                            <a href="/blog/admin/{{blog.id.unwrap()}}/delete">Delete</a>
+                            <a href="/admin/blog/{{blog.id.unwrap()}}/update">Update</a>
+                            <a href="/admin/blog/{{blog.id.unwrap()}}/delete">Delete</a>
                         </th>
                     </tr>
                     {% endfor %}
