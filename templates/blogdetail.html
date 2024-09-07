@@ -3,6 +3,11 @@
 {% block title %} {{blog.title}} {% endblock %}
 {% block description %} {{blog.content|strip_tags|truncate(200)|trim}} {% endblock %}
 
+{% block metatags %}
+<meta property="og:image" content="https://dipakniroula.com.np/{{blog.image.as_ref().unwrap()}}">
+<meta property="og:image:alt" content="{{blog.title}}">
+{% endblock %}
+
 
 {% block content %}
 <div class="section">
