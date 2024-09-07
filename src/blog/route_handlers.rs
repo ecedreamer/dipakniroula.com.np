@@ -90,7 +90,7 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
 
             if !file_name.is_empty() {
                 let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
-                image_path = format!("{}{}_{}", "media/summernote/", timestamp, file_name);
+                image_path = format!("{}{}_{}", "media/", timestamp, file_name);
                 let mut file = File::create(image_path.clone()).await.unwrap();
                 while let Some(chunk) = field.chunk().await.unwrap() {
                     file.write_all(&chunk).await.unwrap();
