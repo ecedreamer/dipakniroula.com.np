@@ -11,7 +11,8 @@ pub async fn auth_middleware(req: Request<Body>, next: Next) -> Result<Response,
         if auth_header.to_str().unwrap().contains("id=") {
             Ok(next.run(req).await)
         } else {
-            Err(StatusCode::FORBIDDEN)
+
+            Ok(Redirect::to("/auth/login").into_response())
         }
     } else {
         Ok(Redirect::to("/auth/login").into_response())

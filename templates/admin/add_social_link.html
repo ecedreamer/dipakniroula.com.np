@@ -3,22 +3,25 @@
 
 {% block content %}
 
-<section>
-    <h3>Add Social Links</h3>
-    <form action="/auth/add-social-link" method="POST">
-        <div>
-            <label for="social_media">Social Media</label><br>
-            <input type="text" name="social_media" placeholder="Social Media Name..." required>
-        </div>
-        <br>
-        <div>
-            <label for="social_link">Social Media Link</label><br>
-            <input type="text" name="social_link" placeholder="Social Media Link..." required>
-        </div>
-        <br>
-        <button>Submit</button>
+<div class="row mt-3">
+    <div class="col-md-4 mx-auto">
 
-    </form>
-</section>
+        <h3>Add Social Links</h3>
+        <form action="/auth/add-social-link" method="POST">
+            <div>
+                <label for="social_media">Social Media</label><br>
+                <input type="text" class="form-control" name="social_media" placeholder="Social Media Name..." required>
+            </div>
+            <br>
+            <div>
+                <label for="social_link">Social Media Link</label><br>
+                <input type="text" class="form-control" name="social_link" placeholder="Social Media Link..." required>
+            </div>
+            <br>
+            <button class="btn btn-primary">Submit</button>
+
+        </form>
+    </div>
+</div>
 
 {% endblock %}

@@ -1,6 +1,6 @@
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
-use super::models::{Blog, UpdateBlog};
+use super::models::{Blog, NewBlog, UpdateBlog};
 use crate::schema::blogs::dsl::*;
 
 
@@ -40,7 +40,14 @@ impl<'a> BlogRepository<'a> {
         .execute(self.conn);
     }
 
-    pub fn update(self, blog_id: i32, data: &UpdateBlog) {
+    pub fn insert_one(self, data: &NewBlog) {
+        diesel::insert_into(blogs)
+            .values(data)
+            .execute(self.conn)
+            .unwrap();
+    }
+
+    pub fn update_one(self, blog_id: i32, data: &UpdateBlog) {
         let target = blogs.filter(id.eq(blog_id));
 
         diesel::update(target)

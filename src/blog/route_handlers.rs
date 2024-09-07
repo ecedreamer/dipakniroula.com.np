@@ -112,7 +112,6 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
 
     use crate::schema::blogs::dsl::blogs;
 
-    let conn = &mut establish_connection().await;
     let blog = NewBlog {
         is_active: blog_status,
         title: &title,
@@ -122,10 +121,10 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
         modified_date: None,
     };
 
-    diesel::insert_into(blogs)
-        .values(&blog)
-        .execute(conn)
-        .unwrap();
+    let conn = &mut establish_connection().await;
+    let blog_repo = BlogRepository::new(conn);
+
+    blog_repo.insert_one(&blog);
 
     Redirect::to("/admin/blog/list").into_response()
 }
@@ -222,7 +221,7 @@ pub async fn blog_update_handler(
     let blog_id_num = i32::from_str(&blog_id).unwrap();
 
     let blog_repo = BlogRepository::new(conn);
-    blog_repo.update(blog_id_num, &update_blog);
+    blog_repo.update_one(blog_id_num, &update_blog);
 
     Redirect::to("/admin/blog/list").into_response()
 }
