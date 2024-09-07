@@ -11,8 +11,8 @@ use crate::resume::models::{Experience, NewExperience, UpdateExperience};
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
 use crate::auth::route_handlers::SocialMediaForm;
+use crate::auth::models::SocialLink;
 use crate::middlewares::auth_middleware;
-use crate::models::SocialLink;
 use crate::resume::models;
 use crate::resume::resume_repository::ExperienceRepository;
 use crate::schema::{experiences, social_links};
@@ -40,22 +40,31 @@ pub async fn resume_routes() -> Router {
 #[template(path = "resume.html")]
 pub struct ResumeTemplate {
     page: String,
-    experiences: Vec<Experience>
+    experiences: Vec<Experience>,
+    social_links: Vec<SocialLink>,
 }
 
 
 pub async fn resume_page() -> impl IntoResponse {
     let conn = &mut establish_connection().await;
+
+
+    use crate::schema::social_links::dsl::social_links;
+    let my_social_links = social_links
+        .select(SocialLink::as_select())
+        .load(conn)
+        .expect("Error loading social links");
+
     let repo = ExperienceRepository::new(conn);
-
-
     let result = repo.find();
+
 
     match result {
         Ok(experience_list) => {
             let context = ResumeTemplate {
                 page: "My Resume".to_string(),
-                experiences: experience_list
+                experiences: experience_list,
+                social_links: my_social_links
             };
 
             match context.render() {

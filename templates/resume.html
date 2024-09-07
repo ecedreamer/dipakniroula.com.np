@@ -52,13 +52,10 @@ modern DevOps practices.
                     </div>
                     <div class="col-md-6">
                         <h4 class="text-primary">Professional Accounts</h4>
-                        <p>Website: <a href="https://dipakniroula.com.np"
-                                       target="_blank">https://dipakniroula.com.np</a></p>
-                        <p>Github Profile: <a href="https://github.com/ecedreamer" target="_blank">https://github.com/ecedreamer</a>
-                        </p>
-                        <p>Linkedin Profile: <a href="https://linkedin.com/in/dipak-niroula-90b11610b/" target="_blank">https://linkedin.com/in/dipak-niroula-90b11610b/</a>
-                        <p>Youtube Channel: <a href="https://www.youtube.com/@sangitniroula/videos" target="_blank">https://youtube.com/@sangitniroula</a>
-                        </p>
+                        {% for social_link in social_links %}
+                        <p>{{social_link.social_media}}: <a href="{{social_link.social_link}}" target="_blank">{{social_link.social_link}}</a></p>
+                        {% endfor %}
+
                     </div>
                 </div>
                 <hr>

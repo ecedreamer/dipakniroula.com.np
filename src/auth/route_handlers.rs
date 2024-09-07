@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use serde::Deserialize;
 
@@ -5,13 +6,17 @@ use diesel::prelude::*;
 
 use askama::Template;
 use axum::{http::StatusCode, response::{Html, IntoResponse, Redirect}, routing::{get, post}, Form, Router};
+use axum::extract::Path;
+use diesel::associations::HasTable;
 use diesel::RunQueryDsl;
 use tower_sessions::Session;
-use crate::auth::models::NewSocialLink;
+use crate::auth::models::{NewSocialLink, SocialLink, UpdateSocialLink};
 use crate::db::establish_connection;
 use crate::middlewares::auth_middleware;
 use crate::models::{AdminUser, ContactMessage};
-use crate::schema::social_links;
+use crate::schema::admin_users::dsl::admin_users;
+use crate::schema::admin_users::email;
+
 
 pub async fn auth_routes() -> Router {
     Router::new()
@@ -21,6 +26,10 @@ pub async fn auth_routes() -> Router {
         .route("/add-social-link",
                get(social_link_create_page)
                    .post(social_link_create_handler)
+                   .layer(axum::middleware::from_fn(auth_middleware)))
+        .route("/update-social-link/:data_id",
+               get(social_link_update_page)
+                   .post(social_link_update_handler)
                    .layer(axum::middleware::from_fn(auth_middleware)))
 }
 
@@ -162,13 +171,68 @@ pub struct SocialMediaForm {
 
 pub async fn social_link_create_handler(Form(form_data): Form<SocialMediaForm>) -> impl IntoResponse {
     tracing::info!("{} - {}", form_data.social_media, form_data.social_link);
-    let social_link = NewSocialLink {
+    let new_social_link = NewSocialLink {
         social_media: form_data.social_media.as_str(),
         social_link: form_data.social_link.as_str(),
     };
     let conn = &mut establish_connection().await;
-    diesel::insert_into(social_links::table)
-        .values(&social_link)
+    use crate::schema::social_links::dsl::*;
+    diesel::insert_into(social_links)
+        .values(&new_social_link)
         .execute(conn).unwrap();
+    Redirect::to("/auth/admin-panel").into_response()
+}
+
+
+#[derive(Template, Deserialize)]
+#[template(path = "admin/update_social_link.html")]
+struct SocialLinkUpdateTemplate {
+    page: String,
+    social_link: SocialLink
+}
+
+pub async fn social_link_update_page(Path(data_id): axum::extract::Path<String>) -> impl IntoResponse {
+    let conn = &mut establish_connection().await;
+    use crate::schema::social_links::dsl::*;
+    let data_id_num = i32::from_str(data_id.as_str()).unwrap();
+    let this_social_link = social_links
+        .filter(id.eq(data_id_num))
+        .limit(1)
+        .first::<SocialLink>(conn)
+        .expect("Could not find social link");
+
+    let context = SocialLinkUpdateTemplate {
+        page: "Social Link Create".to_string(),
+        social_link: this_social_link
+    };
+    match context.render() {
+        Ok(html) => Html(html).into_response(),
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR, "Failed to render HTML".to_string()
+        ).into_response()
+    }
+}
+
+
+
+pub async fn social_link_update_handler(Path(data_id): Path<String>, Form(form_data): Form<SocialMediaForm>) -> impl IntoResponse {
+    tracing::info!("{} - {}", form_data.social_media, form_data.social_link);
+
+    let conn = &mut establish_connection().await;
+    use crate::schema::social_links::dsl::*;
+
+    let update_social_link = UpdateSocialLink {
+        social_media: Some(form_data.social_media),
+        social_link: Some(form_data.social_link)
+    };
+
+    let data_id_num = i32::from_str(data_id.as_str()).unwrap();
+
+    let target = social_links.filter(id.eq(data_id_num));
+
+    diesel::update(target)
+        .set(update_social_link)
+        .execute(conn)
+        .unwrap();
     Redirect::to("/auth/admin-panel").into_response()
 }

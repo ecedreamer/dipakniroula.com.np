@@ -15,8 +15,8 @@ use serde::Deserialize;
 use serde_json::{from_str, json, Map, Value};
 use tokio::fs::{read_to_string, File};
 use tokio::io::AsyncWriteExt;
+use crate::auth::models::SocialLink;
 use crate::db::establish_connection;
-use crate::models::SocialLink;
 
 
 #[derive(Template, Deserialize)]

@@ -1,0 +1,39 @@
+{% extends "admin/adminbase.html" %}
+
+
+{% block content %}
+<div>
+    <h4>Blog List</h4>
+    <div class="row">
+        <div class="col-md-12">
+            <a href="/admin/blog/create">Create Blog</a>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Social Media</th>
+                        <th>Social Link</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for social_link in social_links %}
+                    <tr>
+                        <td>{{social_link.id.unwrap()}}</td>
+                        <td>{{social_link.social_media}}</td>
+
+                        <td>{{social_link.social_link}}</td>
+
+                        <th>
+                            <a href="/admin/social-links/{{blog.id.unwrap()}}/update">Update</a>
+                            <a href="/admin/social-links/{{blog.id.unwrap()}}/delete">Delete</a>
+                        </th>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

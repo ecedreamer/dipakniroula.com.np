@@ -1,2 +1,2 @@
 pub mod route_handlers;
-mod models;
+pub mod models;

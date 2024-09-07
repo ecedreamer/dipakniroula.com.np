@@ -3,16 +3,6 @@ use serde::{Deserialize, Serialize};
 
 
 
-#[derive(Queryable, Selectable, Debug, Deserialize)]
-#[diesel(table_name = crate::schema::social_links)]
-#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
-pub struct SocialLink {
-    pub id: Option<i32>,
-    pub social_media: String,
-    pub social_link: String,
-}
-
-
 #[derive(Insertable)]
 #[diesel(table_name = crate::schema::messages)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
