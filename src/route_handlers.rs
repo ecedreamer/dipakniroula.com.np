@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-use indexmap::IndexMap;
 use askama::Template;
 use axum::extract::Multipart;
 use axum::{Form, Json};
@@ -12,8 +10,8 @@ use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse, Redirect};
 use axum_csrf::CsrfToken;
 use serde::Deserialize;
-use serde_json::{from_str, json, Map, Value};
-use tokio::fs::{read_to_string, File};
+use serde_json::json;
+use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 use crate::auth::models::SocialLink;
 use crate::db::establish_connection;
@@ -22,23 +20,12 @@ use crate::db::establish_connection;
 #[derive(Template, Deserialize)]
 #[template(path = "home.html")]
 struct HomeTemplate {
-    name: String,
-    current_company: String,
-    current_position: String,
-    company_link: String,
     social_links: Vec<SocialLink>,
 }
 
 pub async fn home_page() -> impl IntoResponse {
-    let json_str = read_to_string("profile.json").await.unwrap();
-    let content: Value = from_str(&json_str).unwrap();
 
     let connection = &mut establish_connection().await;
-
-    let name = content["general_introduction"]["name"].as_str().unwrap().to_string();
-    let current_company = content["general_introduction"]["current_company"].as_str().unwrap().to_string();
-    let current_position = content["general_introduction"]["current_position"].as_str().unwrap().to_string();
-    let company_link = content["general_introduction"]["company_link"].as_str().unwrap().to_string();
 
     use crate::schema::social_links::dsl::social_links;
     let my_social_links = social_links
@@ -48,10 +35,6 @@ pub async fn home_page() -> impl IntoResponse {
 
 
     let context = HomeTemplate {
-        name,
-        current_company,
-        current_position,
-        company_link,
         social_links: my_social_links,
     };
 

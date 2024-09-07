@@ -7,15 +7,12 @@ use diesel::prelude::*;
 use askama::Template;
 use axum::{http::StatusCode, response::{Html, IntoResponse, Redirect}, routing::{get, post}, Form, Router};
 use axum::extract::Path;
-use diesel::associations::HasTable;
 use diesel::RunQueryDsl;
 use tower_sessions::Session;
 use crate::auth::models::{NewSocialLink, SocialLink, UpdateSocialLink};
 use crate::db::establish_connection;
 use crate::middlewares::auth_middleware;
 use crate::models::{AdminUser, ContactMessage};
-use crate::schema::admin_users::dsl::admin_users;
-use crate::schema::admin_users::email;
 
 
 pub async fn auth_routes() -> Router {
@@ -37,12 +34,10 @@ pub async fn auth_routes() -> Router {
 #[derive(Template, Deserialize)]
 #[template(path = "login.html")]
 struct LoginTemplate {
-    page: String,
 }
 
 pub async fn login_page() -> impl IntoResponse {
     let context = LoginTemplate {
-        page: "Login".to_owned()
     };
 
 
@@ -84,14 +79,14 @@ pub async fn login_handler(session: Session, Form(form_data): Form<LoginForm>) -
                     tracing::info!("Successfully logged in...");
                     Redirect::to("/auth/admin-panel")
                 }
-                Err(e) => {
+                Err(_) => {
                     tracing::error!("Invalid credentials...");
                     Redirect::to("/auth/login")
                 }
             }
         }
         Err(e) => {
-            tracing::error!("Invalid credentials...");
+            tracing::error!("Invalid credentials; Error: {}", e);
             Redirect::to("/auth/login")
         }
     }
@@ -101,7 +96,6 @@ pub async fn login_handler(session: Session, Form(form_data): Form<LoginForm>) -
 #[derive(Template, Deserialize)]
 #[template(path = "admin/admin_home.html")]
 struct AdminHomeTemplate {
-    page: String,
     username: String,
     messages: Vec<ContactMessage>,
 }
@@ -121,7 +115,6 @@ pub async fn admin_home_page(session: Session) -> impl IntoResponse {
     match user_email {
         Some(u_email) => {
             let context = AdminHomeTemplate {
-                page: "Admin Home".to_owned(),
                 username: u_email.to_string(),
                 messages: results,
             };
@@ -146,12 +139,10 @@ pub async fn admin_home_page(session: Session) -> impl IntoResponse {
 #[derive(Template, Deserialize)]
 #[template(path = "admin/add_social_link.html")]
 struct SocialLinkCreateTemplate {
-    page: String,
 }
 
 pub async fn social_link_create_page() -> impl IntoResponse {
     let context = SocialLinkCreateTemplate {
-        page: "Social Link Create".to_string()
     };
     match context.render() {
         Ok(html) => Html(html).into_response(),
@@ -187,7 +178,6 @@ pub async fn social_link_create_handler(Form(form_data): Form<SocialMediaForm>) 
 #[derive(Template, Deserialize)]
 #[template(path = "admin/update_social_link.html")]
 struct SocialLinkUpdateTemplate {
-    page: String,
     social_link: SocialLink
 }
 
@@ -202,7 +192,6 @@ pub async fn social_link_update_page(Path(data_id): axum::extract::Path<String>)
         .expect("Could not find social link");
 
     let context = SocialLinkUpdateTemplate {
-        page: "Social Link Create".to_string(),
         social_link: this_social_link
     };
     match context.render() {

@@ -10,12 +10,9 @@ use crate::resume::models::{Experience, NewExperience, UpdateExperience};
 
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
-use crate::auth::route_handlers::SocialMediaForm;
 use crate::auth::models::SocialLink;
 use crate::middlewares::auth_middleware;
-use crate::resume::models;
 use crate::resume::resume_repository::ExperienceRepository;
-use crate::schema::{experiences, social_links};
 
 pub async fn resume_routes() -> Router {
     let routes = Router::new()
@@ -39,7 +36,6 @@ pub async fn resume_routes() -> Router {
 #[derive(Template)]
 #[template(path = "resume.html")]
 pub struct ResumeTemplate {
-    page: String,
     experiences: Vec<Experience>,
     social_links: Vec<SocialLink>,
 }
@@ -62,7 +58,6 @@ pub async fn resume_page() -> impl IntoResponse {
     match result {
         Ok(experience_list) => {
             let context = ResumeTemplate {
-                page: "My Resume".to_string(),
                 experiences: experience_list,
                 social_links: my_social_links
             };
@@ -75,7 +70,7 @@ pub async fn resume_page() -> impl IntoResponse {
                 ).into_response(),
             }
         },
-        Err(e) => {
+        Err(_) => {
             tracing::error!("Error fetching experiences");
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
@@ -90,7 +85,6 @@ pub async fn resume_page() -> impl IntoResponse {
 #[derive(Template)]
 #[template(path = "admin/experiencelist.html")]
 pub struct AdminExperienceListTemplate {
-    page: String,
     experience_list: Vec<Experience>
 }
 
@@ -105,7 +99,6 @@ pub async fn admin_experience_list_page() -> impl IntoResponse {
     match result {
         Ok(experience_list) => {
             let context = AdminExperienceListTemplate {
-                page: "Experience List".to_string(),
                 experience_list
             };
             match context.render() {
@@ -132,12 +125,11 @@ pub async fn admin_experience_list_page() -> impl IntoResponse {
 #[derive(Template)]
 #[template(path = "admin/createexperience.html")]
 pub struct CreateExperienceTemplate {
-    page: String,
+
 }
 
 pub async fn create_experience_page() -> impl IntoResponse {
     let context = CreateExperienceTemplate {
-        page: "Create Experience".to_string(),
     };
     match context.render() {
         Ok(html) => Html(html).into_response(),
@@ -177,7 +169,6 @@ pub async fn handle_create_experience(Form(form_data): Form<NewExperience>) -> i
 #[derive(Template)]
 #[template(path = "admin/updateexperience.html")]
 pub struct UpdateExperienceTemplate {
-    page: String,
     experience: Experience
 }
 
@@ -193,7 +184,6 @@ pub async fn update_experience_page(Path(data_id): Path<String>) -> impl IntoRes
     match result {
         Ok(experience) => {
             let context = UpdateExperienceTemplate {
-                page: "Create Experience".to_string(),
                 experience
             };
             match context.render() {
@@ -204,7 +194,7 @@ pub async fn update_experience_page(Path(data_id): Path<String>) -> impl IntoRes
                 ).into_response(),
             }
         },
-        Err(e) => {
+        Err(_) => {
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Failed to render HTML".to_string(),

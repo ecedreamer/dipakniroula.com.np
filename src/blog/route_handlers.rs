@@ -4,19 +4,18 @@ use serde::Deserialize;
 
 use crate::middlewares::auth_middleware;
 use super::models::{Blog, NewBlog, UpdateBlog};
-use crate::{blog::blog_repository, db::establish_connection};
+use crate::db::establish_connection;
 use askama::Template;
 use axum::extract::{Multipart, Path};
 use axum::{
     http::StatusCode,
     response::{Html, IntoResponse, Redirect},
-    routing::{get, post},
+    routing::get,
     Router,
 };
 use chrono::Utc;
 use diesel::RunQueryDsl;
 use std::str::FromStr;
-use diesel::dsl::date;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 
@@ -57,12 +56,10 @@ pub async fn blog_routes() -> Router {
 #[derive(Template, Deserialize)]
 #[template(path = "admin/blogcreate.html")]
 struct BlogCreateTemplate {
-    page: String,
 }
 
 pub async fn blog_create_page() -> impl IntoResponse {
     let context = BlogCreateTemplate {
-        page: "Blog Create".to_owned(),
     };
 
     match context.render() {
@@ -110,7 +107,7 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
         }
     }
 
-    use crate::schema::blogs::dsl::blogs;
+    
 
     let blog = NewBlog {
         is_active: blog_status,
@@ -132,7 +129,6 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
 #[derive(Template, Deserialize)]
 #[template(path = "admin/blogupdate.html")]
 struct BlogUpdateTemplate {
-    page: String,
     blog: Blog,
 }
 
@@ -149,7 +145,6 @@ pub async fn blog_update_page(Path(blog_id): Path<String>) -> impl IntoResponse 
     match result {
         Ok(blog) => {
             let context = BlogUpdateTemplate {
-                page: "Blog Update".to_owned(),
                 blog: blog,
             };
 
@@ -162,15 +157,16 @@ pub async fn blog_update_page(Path(blog_id): Path<String>) -> impl IntoResponse 
                     .into_response(),
             }
         }
-        Err(e) => Redirect::to("/admin/blog/list").into_response(),
+        Err(_) => Redirect::to("/admin/blog/list").into_response(),
     }
 }
+
 
 pub async fn blog_update_handler(
     Path(blog_id): Path<String>,
     mut multipart: Multipart,
 ) -> impl IntoResponse {
-    use crate::schema::blogs::dsl::*;
+    
 
     let mut update_blog = UpdateBlog {
         title: None,
@@ -229,13 +225,11 @@ pub async fn blog_update_handler(
 #[derive(Template)]
 #[template(path = "admin/blogdelete.html")]
 struct BlogDeleteTemplate {
-    page: String,
     blog_id: i32,
 }
 
 async fn blog_delete_page(Path(blog_id): Path<String>) -> impl IntoResponse {
     let context = BlogDeleteTemplate {
-        page: "Blog Delete".to_string(),
         blog_id: i32::from_str(&blog_id).unwrap(),
     };
 
@@ -268,7 +262,7 @@ struct AdminBlogListTemplate {
 }
 
 pub async fn blog_list_page_admin() -> impl IntoResponse {
-    use crate::schema::blogs::dsl::*;
+    
 
     let mut conn = establish_connection().await;
     let blog_repo = BlogRepository::new(&mut conn);
