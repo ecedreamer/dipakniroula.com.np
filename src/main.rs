@@ -10,7 +10,10 @@ mod resume;
 
 mod filters;
 
+use askama::{Template};
 use axum::{routing::get, Router};
+use axum::http::StatusCode;
+use axum::response::{Html, IntoResponse};
 use axum::routing::post;
 use db::establish_connection;
 
@@ -26,8 +29,24 @@ use route_handlers::{home_page, contact_page, contact_form_handler, summernote_u
 
 use tower_sessions::{Expiry, MemoryStore, SessionManagerLayer};
 
-async fn handle_404() -> &'static str{
-    "404 Page not found"
+
+
+#[derive(Template)]
+#[template(path = "404.html")]
+struct FourZeroFourTemplate {
+
+}
+
+async fn handle_404() -> impl IntoResponse {
+    let context = FourZeroFourTemplate {};
+    match context.render() {
+        Ok(html) => Html(html).into_response(),
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Failed to render HTML".to_string(),
+        )
+        .into_response(),
+    }
 }
 
 

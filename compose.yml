@@ -12,7 +12,6 @@ services:
             - ./static:/usr/src/app/static
             - ./media:/usr/src/app/media
             - ./dipakdb.sqlite3:/usr/src/app/dipakdb.sqlite3
-            - ./profile.json:/usr/src/app/profile.json
             - ./.env:/usr/src/app/.env
         depends_on:
             - database

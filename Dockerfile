@@ -10,7 +10,6 @@ COPY migrations ./migrations
 COPY templates ./templates
 COPY static ./static
 COPY .env ./.env
-COPY profile.json ./profile.json
 COPY diesel.toml ./diesel.toml
 
 RUN cargo build --release
