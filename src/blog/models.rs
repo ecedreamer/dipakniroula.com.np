@@ -39,3 +39,19 @@ pub struct NewBlog<'a> {
     pub published_date: String,
     pub modified_date: Option<String>,
 }
+
+
+#[derive(Queryable, Insertable, Debug)]
+#[diesel(table_name = crate::schema::categories)]
+pub struct Category {
+    pub id: i32,
+    pub name: String,
+}
+
+// Join table for the many-to-many relationship between blogs and tags
+#[derive(Queryable, Insertable, Debug)]
+#[diesel(table_name = crate::schema::blog_categories)]
+pub struct BlogCategory {
+    pub blog_id: i32,
+    pub category_id: i32,
+}

@@ -9,6 +9,13 @@ diesel::table! {
 }
 
 diesel::table! {
+    blog_categories (blog_id, category_id) {
+        blog_id -> Nullable<Integer>,
+        category_id -> Nullable<Integer>,
+    }
+}
+
+diesel::table! {
     blogs (id) {
         id -> Nullable<Integer>,
         title -> Text,
@@ -18,6 +25,13 @@ diesel::table! {
         modified_date -> Nullable<Text>,
         view_count -> Integer,
         is_active -> Integer,
+    }
+}
+
+diesel::table! {
+    categories (id) {
+        id -> Integer,
+        name -> Text,
     }
 }
 
@@ -55,9 +69,14 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(blog_categories -> blogs (blog_id));
+diesel::joinable!(blog_categories -> categories (category_id));
+
 diesel::allow_tables_to_appear_in_same_query!(
     admin_users,
+    blog_categories,
     blogs,
+    categories,
     experiences,
     messages,
     social_links,
