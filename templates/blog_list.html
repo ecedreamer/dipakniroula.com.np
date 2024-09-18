@@ -15,6 +15,7 @@
                     {% endfor %}
                 </div>
             </div>
+            {% if blog_list.len() > 0 %}
             {% for blog in blog_list %}
             <div class="row">
 
@@ -40,6 +41,13 @@
                 </div>
             </div>
             {% endfor %}
+            {% else %}
+            <div class="row mt-5">
+                <div class="col-md-12">
+                    <p class="text-secondary"> -> No blogs in this category</p>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
