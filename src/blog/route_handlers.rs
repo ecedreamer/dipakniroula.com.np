@@ -3,23 +3,18 @@ use diesel::prelude::*;
 use serde::Deserialize;
 
 use crate::middlewares::auth_middleware;
-use super::models::{Blog, NewBlog, UpdateBlog};
+use super::models::{Blog, Category, NewBlog, NewCategory, UpdateBlog};
 use crate::db::establish_connection;
 use askama::Template;
-use axum::extract::{Multipart, Path};
-use axum::{
-    http::StatusCode,
-    response::{Html, IntoResponse, Redirect},
-    routing::get,
-    Router,
-};
+use axum::extract::{Multipart, Path, Query};
+use axum::{http::StatusCode, response::{Html, IntoResponse, Redirect}, routing::get, Form, Router};
 use chrono::Utc;
 use diesel::RunQueryDsl;
 use std::str::FromStr;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
-
-use crate::blog::blog_repository::BlogRepository;
+use crate::blog::blog_repository::blog_repository::BlogRepository;
+use crate::blog::blog_repository::category_repository::CategoryRepository;
 use crate::filters;
 
 
@@ -31,35 +26,40 @@ pub async fn blog_routes() -> Router {
         // admin side pages
         .route(
             "/admin/blog/list",
-            get(blog_list_page_admin).layer(axum::middleware::from_fn(auth_middleware)),
-        )
+            get(blog_list_page_admin).layer(axum::middleware::from_fn(auth_middleware)))
         .route(
             "/admin/blog/create",
             get(blog_create_page)
                 .post(blog_create_handler)
-                .layer(axum::middleware::from_fn(auth_middleware)),
-        )
+                .layer(axum::middleware::from_fn(auth_middleware)))
         .route(
             "/admin/blog/:blog_id/update",
             get(blog_update_page)
                 .post(blog_update_handler)
-                .layer(axum::middleware::from_fn(auth_middleware)),
-        )
+                .layer(axum::middleware::from_fn(auth_middleware)))
         .route(
             "/admin/blog/:blog_id/delete",
             get(blog_delete_page)
                 .post(blog_delete_handler)
-                .layer(axum::middleware::from_fn(auth_middleware)),
-        )
+                .layer(axum::middleware::from_fn(auth_middleware)))
+        .route(
+            "/admin/category/create",
+            get(category_create_page)
+                .post(category_create_handler)
+                .layer(axum::middleware::from_fn(auth_middleware)))
 }
 
-#[derive(Template, Deserialize)]
+#[derive(Template)]
 #[template(path = "admin/blogcreate.html")]
 struct BlogCreateTemplate {
+    categories: Vec<Category>
 }
 
 pub async fn blog_create_page() -> impl IntoResponse {
+    let conn = &mut establish_connection().await;
+    let category_repo = CategoryRepository::new(conn);
     let context = BlogCreateTemplate {
+        categories: category_repo.find().await.unwrap()
     };
 
     match context.render() {
@@ -78,6 +78,7 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
     let mut title = String::new();
     let mut content = String::new();
     let mut blog_status = 0;
+    let mut categories = Vec::new();
     while let Some(mut field) = multipart.next_field().await.unwrap() {
         let field_name = field.name().unwrap().to_string();
         tracing::info!("{}", field_name);
@@ -95,6 +96,8 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
             }
         } else if field_name == "title" {
             title = field.text().await.unwrap();
+        } else if field_name == "category" {
+            categories.push(i32::from_str(field.text().await.unwrap().as_str()).unwrap())
         } else if field_name == "content" {
             content = field.text().await.unwrap();
         } else if field_name == "is_active" {
@@ -121,7 +124,7 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
     let conn = &mut establish_connection().await;
     let blog_repo = BlogRepository::new(conn);
 
-    blog_repo.insert_one(&blog);
+    blog_repo.insert_one(&blog, &categories);
 
     Redirect::to("/admin/blog/list").into_response()
 }
@@ -300,17 +303,33 @@ pub async fn blog_list_page_admin() -> impl IntoResponse {
 #[template(path = "blog_list.html")]
 struct BlogListTemplate {
     blog_list: Vec<Blog>,
+    categories_list: Vec<Category>,
 }
 
-pub async fn blog_list_page() -> impl IntoResponse {
+
+#[derive(Debug, Deserialize)]
+pub struct BlogQuery {
+    cat_id: Option<i32>,
+}
+
+pub async fn blog_list_page(Query(query): Query<BlogQuery>) -> impl IntoResponse {
+
     let mut conn = establish_connection().await;
     let blog_repo = BlogRepository::new(&mut conn);
 
-    let results = blog_repo.find_active_only();
+
+    let results = blog_repo.find_active_only(query.cat_id);
+
+    let mut conn = establish_connection().await;
+    let category_repo = CategoryRepository::new(&mut conn);
+    let categories = category_repo.find().await.unwrap();
 
     match results {
         Ok(blogs) => {
-            let context = BlogListTemplate { blog_list: blogs };
+            let context = BlogListTemplate {
+                blog_list: blogs,
+                categories_list: categories
+            };
 
             match context.render() {
                 Ok(html) => Html(html).into_response(),
@@ -371,4 +390,43 @@ pub async fn blog_detail_page(Path(blog_id): Path<String>) -> impl IntoResponse 
             Redirect::to("/blog/list").into_response()
         }
     }
+}
+
+
+#[derive(Template)]
+#[template(path = "admin/admincategorycreate.html")]
+struct CategoryCreatePageTemplate {
+
+}
+
+pub async fn category_create_page() -> impl IntoResponse {
+    let context = CategoryCreatePageTemplate {};
+
+    match context.render() {
+        Ok(html) => Html(html).into_response(),
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Failed to render HTML".to_string(),
+        ).into_response()
+    }
+}
+
+
+#[derive(Debug, Deserialize)]
+pub struct CategoryForm {
+    name: String,
+}
+
+
+pub async fn category_create_handler(Form(form_data): Form<CategoryForm>) -> impl IntoResponse {
+    let conn = &mut establish_connection().await;
+    let repo = CategoryRepository::new(conn);
+
+    let new_category = NewCategory {
+        name: form_data.name,
+    };
+
+    repo.insert_one(&new_category).await;
+
+    Redirect::to("/admin/blog/list").into_response()
 }

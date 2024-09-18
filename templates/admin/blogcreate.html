@@ -16,6 +16,17 @@
     </div>
     <br>
     <div>
+
+        <label for="category">Category</label>
+        <select name="category" class="form-select">
+            <option value="" selected>Select a category</option>
+            {% for cat in categories %}
+            <option value="{{cat.id}}">{{cat.name}}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <br>
+    <div>
         <label for="image">Blog Image</label>
         <input type="file" class="form-control" name="blog-image">
     </div>
@@ -48,11 +59,12 @@
             ['view', ['fullscreen', 'codeview', 'help']]
         ],
         callbacks: {
-            onImageUpload: function(files) {
+            onImageUpload: function (files) {
                 uploadImage(files[0]);
             }
         }
     });
+
     function uploadImage(file) {
         var data = new FormData();
         data.append("file", file);
@@ -64,11 +76,11 @@
             cache: false,
             contentType: false,
             processData: false,
-            success: function(response) {
+            success: function (response) {
                 console.log(response)
                 $('#summernote').summernote('insertImage', response.image_path);
             },
-            error: function(data) {
+            error: function (data) {
                 console.log('Error uploading image');
             }
         });

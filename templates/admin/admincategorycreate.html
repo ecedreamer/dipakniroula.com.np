@@ -1,0 +1,29 @@
+{% extends "admin/adminbase.html" %}
+
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h5>Category Create</h5>
+        <hr>
+        <div class="row">
+            <div class="col-md-12">
+                <form action="" method="POST">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <label for="name">Category Name</label>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-primary">Save</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

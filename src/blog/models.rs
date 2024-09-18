@@ -41,7 +41,7 @@ pub struct NewBlog<'a> {
 }
 
 
-#[derive(Queryable, Insertable, Debug)]
+#[derive(Queryable, Deserialize, Debug)]
 #[diesel(table_name = crate::schema::categories)]
 pub struct Category {
     pub id: i32,
@@ -54,4 +54,11 @@ pub struct Category {
 pub struct BlogCategory {
     pub blog_id: i32,
     pub category_id: i32,
+}
+
+
+#[derive(Insertable, Debug)]
+#[diesel(table_name = crate::schema::categories)]
+pub struct NewCategory {
+    pub name: String
 }
