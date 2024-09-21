@@ -64,8 +64,15 @@ pub mod blog_repository {
                 .execute(self.conn)
                 .unwrap();
 
+            let created_blog = blogs::dsl::blogs
+                .order(blogs::dsl::id.desc())
+                .first::<Blog>(self.conn)
+                .unwrap();
+
+            println!("{:?}", created_blog);
+
             let blog_cat_data = BlogCategory {
-                blog_id: 46,
+                blog_id: created_blog.id.unwrap(),
                 category_id: categories[0],
             };
 
