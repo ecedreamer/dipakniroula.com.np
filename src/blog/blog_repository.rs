@@ -39,6 +39,7 @@ pub mod blog_repository {
                     blogs::dsl::blogs
                         .inner_join(blog_categories::dsl::blog_categories.on(blog_categories::dsl::blog_id.eq(blogs::id)))
                         .filter(blog_categories::category_id.eq(category_id))
+                        .order(blogs::id.desc())
                         .select(blogs::all_columns) // Select all columns from blogs
                         .load::<Blog>(self.conn)
                 },
