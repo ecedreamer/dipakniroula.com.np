@@ -1,5 +1,6 @@
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
+use chrono::{NaiveDateTime};
 
 
 
@@ -38,3 +39,15 @@ pub struct AdminUser {
     pub email: String,
     pub password: String
 }
+
+
+#[derive(Queryable, Selectable, Insertable, Serialize, Deserialize, Debug, Clone)]
+#[diesel(table_name = crate::schema::sessions)]
+pub struct CustomSession {
+    pub id: Option<i32>,
+    pub session_id: String,
+    pub user_id: String,
+    pub data: Option<String>,
+    pub expires_at: NaiveDateTime,
+}
+

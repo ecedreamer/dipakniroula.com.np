@@ -2,7 +2,7 @@ use diesel::prelude::*;
 
 use serde::Deserialize;
 
-use crate::middlewares::auth_middleware;
+use crate::middlewares::{auth_middleware, session_middleware};
 use super::models::{Blog, Category, NewBlog, NewCategory, UpdateBlog};
 use crate::db::establish_connection;
 use askama::Template;
@@ -26,27 +26,27 @@ pub async fn blog_routes() -> Router {
         // admin side pages
         .route(
             "/admin/blog/list",
-            get(blog_list_page_admin).layer(axum::middleware::from_fn(auth_middleware)))
+            get(blog_list_page_admin).layer(axum::middleware::from_fn(session_middleware)))
         .route(
             "/admin/blog/create",
             get(blog_create_page)
                 .post(blog_create_handler)
-                .layer(axum::middleware::from_fn(auth_middleware)))
+                .layer(axum::middleware::from_fn(session_middleware)))
         .route(
             "/admin/blog/:blog_id/update",
             get(blog_update_page)
                 .post(blog_update_handler)
-                .layer(axum::middleware::from_fn(auth_middleware)))
+                .layer(axum::middleware::from_fn(session_middleware)))
         .route(
             "/admin/blog/:blog_id/delete",
             get(blog_delete_page)
                 .post(blog_delete_handler)
-                .layer(axum::middleware::from_fn(auth_middleware)))
+                .layer(axum::middleware::from_fn(session_middleware)))
         .route(
             "/admin/category/create",
             get(category_create_page)
                 .post(category_create_handler)
-                .layer(axum::middleware::from_fn(auth_middleware)))
+                .layer(axum::middleware::from_fn(session_middleware)))
 }
 
 #[derive(Template)]

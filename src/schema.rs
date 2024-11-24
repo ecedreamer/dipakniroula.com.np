@@ -62,6 +62,16 @@ diesel::table! {
 }
 
 diesel::table! {
+    sessions (id) {
+        id -> Nullable<Integer>,
+        session_id -> Text,
+        user_id -> Text,
+        data -> Nullable<Text>,
+        expires_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     social_links (id) {
         id -> Nullable<Integer>,
         social_media -> Text,
@@ -79,5 +89,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     categories,
     experiences,
     messages,
+    sessions,
     social_links,
 );

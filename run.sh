@@ -4,4 +4,6 @@ export RUST_LOG=info
 
 #cargo clean
 
-cargo watch -x run
+#cargo watch --ignore dipakdb.* -x run
+
+cargo run

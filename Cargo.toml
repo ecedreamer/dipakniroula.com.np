@@ -6,15 +6,15 @@ edition = "2021"
 [dependencies]
 askama = "0.12.1"
 axum = { version = "0.7.7" , features = ["multipart"]}
-tokio = { version = "1.40.0", features = ["full"] }
+tokio = { version = "1.41.1", features = ["full"] }
 futures = "0.3.31"
 serde = { version = "1.0.215", features = ["derive"] }
-serde_json = "1.0.132"
+serde_json = "1.0.133"
 
-tower-http = { version = "0.6.1", features = ["fs"] }
+tower-http = { version = "0.6.2", features = ["fs"] }
 tower = "0.5.1"
 tower-sessions = "0.13.0"
-axum_csrf = "0.10.1"
+axum_csrf = "0.10.2"
 
 chrono = { version = "0.4.38", features = ["serde"] }
 
@@ -22,7 +22,7 @@ tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 
 
-diesel = { version = "2.2.4", default-features = false, features = ["sqlite", "r2d2"] }
+diesel = { version = "2.2.5", default-features = false, features = ["sqlite", "r2d2", "chrono"] }
 diesel_migrations = "2.2.0"
 dotenvy = "0.15.7"
 time = "0.3.36"
@@ -31,6 +31,8 @@ regex = "1.11.1"
 ammonia = "4.0.0"
 indexmap = { version = "2.6.0", features = ["serde"] }
 argon2 = "0.6.0-pre.1"
+uuid = { version = "1.11.0", features = ["v4"] }
+cookie = "0.18.1"
 # [build-dependencies]
 # diesel_cli = { version = "2.0", default-features = false, features = ["sqlite"] }
 

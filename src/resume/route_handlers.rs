@@ -11,7 +11,7 @@ use crate::resume::models::{Experience, NewExperience, UpdateExperience};
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
 use crate::auth::models::SocialLink;
-use crate::middlewares::auth_middleware;
+use crate::middlewares::{auth_middleware, session_middleware};
 use crate::resume::resume_repository::ExperienceRepository;
 
 pub async fn resume_routes() -> Router {
@@ -21,13 +21,13 @@ pub async fn resume_routes() -> Router {
 
         // admin side pages
         .route("/admin/experience/list",
-               get(admin_experience_list_page).layer(axum::middleware::from_fn(auth_middleware)))
+               get(admin_experience_list_page).layer(axum::middleware::from_fn(session_middleware)))
         .route("/admin/experience/create",
                get(create_experience_page)
-                   .post(handle_create_experience).layer(axum::middleware::from_fn(auth_middleware)))
+                   .post(handle_create_experience).layer(axum::middleware::from_fn(session_middleware)))
         .route("/admin/experience/:exp_id/update",
                get(update_experience_page)
-                   .post(handle_update_experience).layer(axum::middleware::from_fn(auth_middleware)));
+                   .post(handle_update_experience).layer(axum::middleware::from_fn(session_middleware)));
     routes
 
 }

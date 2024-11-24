@@ -9,6 +9,7 @@ mod middlewares;
 mod resume;
 
 mod filters;
+mod session_backend;
 
 use askama::{Template};
 use axum::{routing::get, Router};
@@ -27,7 +28,7 @@ use time::Duration;
 
 use route_handlers::{home_page, contact_page, contact_form_handler, summernote_upload};
 
-use tower_sessions::{Expiry, MemoryStore, SessionManagerLayer};
+use tower_sessions::{Expiry, MemoryStore, SessionManagerLayer, };
 
 
 

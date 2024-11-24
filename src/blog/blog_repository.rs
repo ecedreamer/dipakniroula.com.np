@@ -70,8 +70,6 @@ pub mod blog_repository {
                 .first::<Blog>(self.conn)
                 .unwrap();
 
-            println!("{:?}", created_blog);
-
             let blog_cat_data = BlogCategory {
                 blog_id: created_blog.id.unwrap(),
                 category_id: categories[0],
