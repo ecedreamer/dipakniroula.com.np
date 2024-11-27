@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+{% block blogs %} active {% endblock %}
 {% block title %} {{blog.title}} {% endblock %}
 {% block description %} {{blog.content|strip_tags|truncate(200)|trim}} {% endblock %}
 
