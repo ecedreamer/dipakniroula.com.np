@@ -48,6 +48,7 @@ pub mod blog_repository {
                         "view_count" => blogs::dsl::blogs
                             .filter(blogs::is_active.eq(1))
                             .order(blogs::view_count.desc())
+                            .limit(limit)
                             .load::<Blog>(self.conn),
                         _ => blogs::dsl::blogs
                             .filter(blogs::is_active.eq(1))
