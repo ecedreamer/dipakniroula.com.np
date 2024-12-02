@@ -86,7 +86,7 @@ async fn main() {
         .layer(session_layer);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
-    tracing::info!("Server listening on {}", listener.local_addr().unwrap());
+    tracing::info!("Server listening on http://{}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap();
 }
 

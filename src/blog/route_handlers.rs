@@ -318,7 +318,7 @@ pub async fn blog_list_page(Query(query): Query<BlogQuery>) -> impl IntoResponse
     let blog_repo = BlogRepository::new(&mut conn);
 
 
-    let results = blog_repo.find_active_only(query.cat_id);
+    let results = blog_repo.find_active_only(query.cat_id, "id");
 
     let mut conn = establish_connection().await;
     let category_repo = CategoryRepository::new(&mut conn);

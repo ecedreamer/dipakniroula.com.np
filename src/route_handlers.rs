@@ -14,18 +14,27 @@ use serde_json::json;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 use crate::auth::models::SocialLink;
+use crate::blog::blog_repository::blog_repository::BlogRepository;
+use crate::blog::models::Blog;
 use crate::db::establish_connection;
+
 
 
 #[derive(Template, Deserialize)]
 #[template(path = "home.html")]
 struct HomeTemplate {
     social_links: Vec<SocialLink>,
+    popular_blogs: Vec<Blog>
 }
 
 pub async fn home_page() -> impl IntoResponse {
 
     let connection = &mut establish_connection().await;
+
+    let blog_repo = BlogRepository::new(connection);
+
+    let results = blog_repo.find_active_only(None, "view_count");
+
 
     use crate::schema::social_links::dsl::social_links;
     let my_social_links = social_links
@@ -36,6 +45,7 @@ pub async fn home_page() -> impl IntoResponse {
 
     let context = HomeTemplate {
         social_links: my_social_links,
+        popular_blogs: results.unwrap()
     };
 
 

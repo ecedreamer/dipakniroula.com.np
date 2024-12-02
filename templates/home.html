@@ -24,9 +24,12 @@
                 <br>
                 <br>
                 <p>
-                    I am Dipak Niroula, Senior software engineer with over 8 years of experience in designing, developing, and scaling Software.
-                    I have expertise in Python, Rust, Kafka, and PostgreSQL, etc. with a focus on building secure, high-performance backend
-                    systems. I have experience in completing complex projects from concept to deployemnt, leading cross-functional teams,
+                    I am Dipak Niroula, Senior software engineer with over 8 years of experience in designing,
+                    developing, and scaling Software.
+                    I have expertise in Python, Rust, Kafka, and PostgreSQL, etc. with a focus on building secure,
+                    high-performance backend
+                    systems. I have experience in completing complex projects from concept to deployemnt, leading
+                    cross-functional teams,
                     mentoring junior engineers, and driving innovation through modern DevOps practices.
                 </p>
 
@@ -48,6 +51,30 @@
         </div>
     </div>
 </div>
+<div class="row">
+    <div class="col-md-12">
+        <h5>Popular Blogs</h5>
+        <div class="row">
+            {% for blog in popular_blogs %}
+            <div class="col-md-4">
+                <div class="card h-100">
+                    {% if blog.image.is_some() %}
+                    <img src="/{{ blog.image.as_ref().unwrap() }}" class="card-img-top" alt="Blog 1 Image">
+                    {% else %}
+                    <img src="https://via.placeholder.com/350x200" class="card-img-top" alt="Blog 3 Image">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{blog.title}}</h5>
+                        <p>Published On: {{blog.published_date}}</p>
+                        <p>Viewed: {{blog.view_count}} times</p>
+                        <a href="/blog/{{ blog.id.unwrap() }}/detail" class="btn btn-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
 
+    </div>
+</div>
 
 {% endblock %}
