@@ -33,7 +33,7 @@ pub mod blog_repository {
                 .load::<Blog>(self.conn)
         }
 
-        pub fn find_active_only(self, category_option: Option<i32>, order_by: &str) -> Result<Vec<Blog>, diesel::result::Error> {
+        pub fn find_active_only(self, category_option: Option<i32>, order_by: &str, limit: i64) -> Result<Vec<Blog>, diesel::result::Error> {
             match category_option {
                 Some(category_id) => {
                     blogs::dsl::blogs
@@ -52,6 +52,7 @@ pub mod blog_repository {
                         _ => blogs::dsl::blogs
                             .filter(blogs::is_active.eq(1))
                             .order(blogs::id.desc())
+                            .limit(limit)
                             .load::<Blog>(self.conn)
                     }
                 }

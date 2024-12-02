@@ -33,7 +33,7 @@ pub async fn home_page() -> impl IntoResponse {
 
     let blog_repo = BlogRepository::new(connection);
 
-    let results = blog_repo.find_active_only(None, "view_count");
+    let results = blog_repo.find_active_only(None, "view_count", 3);
 
 
     use crate::schema::social_links::dsl::social_links;
