@@ -35,8 +35,8 @@
 
                 <h5>Find me on Social Media</h5>
                 <hr>
-                {% for social_link in social_links %}
-                <p>{{social_link.id.unwrap()}} {{social_link.social_media}}: <a href="{{social_link.social_link}}"
+                {% for (count, social_link) in social_links.iter().enumerate() %}
+                <p> {{count+1}}) {{social_link.social_media}}: <a href="{{social_link.social_link}}"
                                                                                 target="_blank">{{social_link.social_link}}</a>
                 </p>
 
@@ -57,17 +57,19 @@
         <hr>
         <div class="row">
             {% for blog in popular_blogs %}
-            <div class="col-md-4">
-                <div class="card h-100">
+            <div class="col-md-4 mt-2">
+                <div class="card h-200">
                     {% if blog.image.is_some() %}
-                    <img src="/{{ blog.image.as_ref().unwrap() }}" class="card-img-top" alt="Blog 1 Image">
+                    <img src="/{{ blog.image.as_ref().unwrap() }}" class="card-img-top" alt="{{blog.title}}">
                     {% else %}
-                    <img src="https://via.placeholder.com/350x200" class="card-img-top" alt="Blog 3 Image">
+                    <img src="https://via.placeholder.com/350x200" class="card-img-top" alt="{{blog.title}}">
                     {% endif %}
                     <div class="card-body">
                         <h5 class="card-title">{{blog.title}}</h5>
                         <p>Published On: {{blog.published_date}}</p>
                         <p>Viewed: {{blog.view_count}} times</p>
+                    </div>
+                    <div class="card-footer">
                         <a href="/blog/{{ blog.id.unwrap() }}/detail" class="btn btn-primary">View Details</a>
                     </div>
                 </div>
