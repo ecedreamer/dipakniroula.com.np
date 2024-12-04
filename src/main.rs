@@ -11,6 +11,7 @@ mod resume;
 mod filters;
 mod session_backend;
 
+use std::time::Duration;
 use askama::{Template};
 use axum::{routing::get, Router};
 use axum::http::StatusCode;
@@ -24,12 +25,7 @@ use tower_http::services::ServeDir;
 
 use diesel_migrations::MigrationHarness;
 
-use time::Duration;
-
 use route_handlers::{home_page, contact_page, contact_form_handler, summernote_upload};
-
-use tower_sessions::{Expiry, MemoryStore, SessionManagerLayer, };
-
 
 
 #[derive(Template)]
@@ -58,13 +54,6 @@ async fn main() {
 
     let csrf_config = CsrfConfig::default();
 
-    let session_store = MemoryStore::default();
-
-    let session_layer = SessionManagerLayer::new(session_store)
-        .with_secure(false)
-        .with_expiry(Expiry::OnInactivity(Duration::minutes(15)));
-
-
     let mut connection = establish_connection().await;
     connection.run_pending_migrations(embedded_migrations::MIGRATIONS)
         .expect("Error running migrations");
@@ -82,8 +71,7 @@ async fn main() {
         .nest("/", resume::route_handlers::resume_routes().await)
         .nest_service("/static", static_files_service)
         .nest_service("/media", media_files_service)
-        .fallback(handle_404)
-        .layer(session_layer);
+        .fallback(handle_404);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
     tracing::info!("Server listening on http://{}", listener.local_addr().unwrap());

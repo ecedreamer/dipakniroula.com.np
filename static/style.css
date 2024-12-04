@@ -33,19 +33,26 @@ body {
 
 
 .navbar {
-    background-color: #f8f9fa;
+    background-color: #b9e6da;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    min-height: 100px;
 }
 .navbar-brand {
     font-weight: bold;
     color: #007bff;
+    font-size: 30px;
 }
+.navbar-brand:hover {
+    color: #1e76b0;
+}
+
 .nav-link {
     color: #333;
     font-weight: 500;
     transition: color 0.3s ease, background-color 0.3s ease;
     border-radius: 5px;
     padding: 0.5rem 1rem;
+    font-size: 20px;
     margin: 0 0.2rem;
 }
 .nav-link:hover {

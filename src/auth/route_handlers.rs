@@ -15,7 +15,6 @@ use axum::{
     Extension
 };
 use diesel::RunQueryDsl;
-use tower_sessions::Session;
 use crate::auth::models::{NewSocialLink, SocialLink, UpdateSocialLink};
 use crate::db::establish_connection;
 use crate::middlewares::{auth_middleware, session_middleware};
@@ -64,7 +63,7 @@ pub struct LoginForm {
 }
 
 
-pub async fn login_handler(session: Session, Form(form_data): Form<LoginForm>) -> impl IntoResponse {
+pub async fn login_handler(Form(form_data): Form<LoginForm>) -> impl IntoResponse {
     let mut conn = establish_connection().await;
 
 
