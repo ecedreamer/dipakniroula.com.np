@@ -39,11 +39,20 @@ body {
 }
 .navbar-brand {
     font-weight: bold;
-    color: #007bff;
+    color: #FFFFFF;
     font-size: 30px;
 }
 .navbar-brand:hover {
     color: #1e76b0;
+}
+
+.brand-teal {
+    background-color: #2d9a97; /* Teal color */
+    color: white; /* Ensure text is visible */
+    padding: 0 15px; /* Add padding for aesthetic */
+    height: 100%; /* Match the navbar height */
+    display: flex;
+    align-items: center; /* Vertically center the text */
 }
 
 .nav-link {
@@ -52,7 +61,7 @@ body {
     transition: color 0.3s ease, background-color 0.3s ease;
     border-radius: 5px;
     padding: 0.5rem 1rem;
-    font-size: 20px;
+    font-size: 18px;
     margin: 0 0.2rem;
 }
 .nav-link:hover {
