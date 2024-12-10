@@ -11,11 +11,12 @@ use crate::resume::models::{Experience, NewExperience, UpdateExperience};
 use diesel::prelude::*;
 use diesel::RunQueryDsl;
 use crate::auth::models::SocialLink;
-use crate::middlewares::{auth_middleware, session_middleware};
+use crate::middlewares::session_middleware;
 use crate::resume::resume_repository::ExperienceRepository;
 
 pub async fn resume_routes() -> Router {
-    let routes = Router::new()
+    
+    Router::new()
         // client side pages
         .route("/my-resume", get(resume_page))
 
@@ -27,8 +28,7 @@ pub async fn resume_routes() -> Router {
                    .post(handle_create_experience).layer(axum::middleware::from_fn(session_middleware)))
         .route("/admin/experience/:exp_id/update",
                get(update_experience_page)
-                   .post(handle_update_experience).layer(axum::middleware::from_fn(session_middleware)));
-    routes
+                   .post(handle_update_experience).layer(axum::middleware::from_fn(session_middleware)))
 
 }
 
@@ -42,6 +42,11 @@ pub struct ResumeTemplate {
 
 
 pub async fn resume_page() -> impl IntoResponse {
+    tracing::trace!("Resume Page");
+    tracing::debug!("Resume Page");
+    tracing::info!("Resume Page");
+    tracing::warn!("Resume Page");
+    tracing::error!("Resume Page");
     let conn = &mut establish_connection().await;
 
 

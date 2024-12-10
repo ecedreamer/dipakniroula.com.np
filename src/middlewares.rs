@@ -1,12 +1,11 @@
 use axum::{
     body::Body,
-    http::{Request, StatusCode, HeaderMap},
+    http::{Request, StatusCode},
     middleware::Next,
     response::{Response, IntoResponse, Redirect},
 };
-use chrono::{NaiveDateTime, Utc};
+use chrono::Utc;
 use cookie::Cookie;
-use uuid::Uuid;
 use crate::db::establish_connection;
 use crate::session_backend::{delete_expired_sessions, get_session};
 
@@ -36,7 +35,7 @@ pub async fn session_middleware(mut req: Request<Body>, next: Next) -> Result<Re
             let session_id = session_cookie.value();
 
             let conn = &mut establish_connection().await;
-            if let Ok(Some(session)) = get_session(conn, &session_id) {
+            if let Ok(Some(session)) = get_session(conn, session_id) {
                 let current_time = Utc::now().naive_utc(); // Current datetime in UTC
                 tracing::info!("{:?}", session);
                 if current_time < session.expires_at {

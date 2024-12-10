@@ -3,7 +3,7 @@ use diesel::RunQueryDsl;
 use super::models::{Category, NewBlog, UpdateBlog};
 
 
-pub mod blog_repository {
+pub mod blog_repo {
     use super::*;
     use crate::blog::models::{Blog, BlogCategory};
     use crate::schema::blog_categories;
@@ -21,10 +21,10 @@ pub mod blog_repository {
         }
 
         pub fn find_by_id(self, data_id: i32) -> QueryResult<Blog> {
-            let result = blogs::dsl::blogs
+            
+            blogs::dsl::blogs
                 .filter(blogs::dsl::id.eq(data_id))
-                .first::<Blog>(self.conn);
-            result
+                .first::<Blog>(self.conn)
         }
 
         pub fn find(self) -> Result<Vec<Blog>, diesel::result::Error> {
@@ -67,7 +67,7 @@ pub mod blog_repository {
                 .execute(self.conn);
         }
 
-        pub fn insert_one(self, data: &NewBlog, categories: &Vec<i32>) {
+        pub fn insert_one(self, data: &NewBlog, categories: &[i32]) {
             diesel::insert_into(blogs::dsl::blogs)
                 .values(data)
                 .execute(self.conn)
@@ -93,7 +93,7 @@ pub mod blog_repository {
             let target = blogs::dsl::blogs.filter(blogs::dsl::id.eq(blog_id));
 
             diesel::update(target)
-                .set(&*data)
+                .set(data)
                 .execute(self.conn)
                 .unwrap();
         }

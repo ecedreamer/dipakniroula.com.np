@@ -2,7 +2,7 @@ use diesel::prelude::*;
 
 use serde::Deserialize;
 
-use crate::middlewares::{auth_middleware, session_middleware};
+use crate::middlewares::session_middleware;
 use super::models::{Blog, Category, NewBlog, NewCategory, UpdateBlog};
 use crate::db::establish_connection;
 use askama::Template;
@@ -13,7 +13,7 @@ use diesel::RunQueryDsl;
 use std::str::FromStr;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
-use crate::blog::blog_repository::blog_repository::BlogRepository;
+use crate::blog::blog_repository::blog_repo::BlogRepository;
 use crate::blog::blog_repository::category_repository::CategoryRepository;
 use crate::filters;
 
@@ -148,7 +148,7 @@ pub async fn blog_update_page(Path(blog_id): Path<String>) -> impl IntoResponse 
     match result {
         Ok(blog) => {
             let context = BlogUpdateTemplate {
-                blog: blog,
+                blog,
             };
 
             match context.render() {
@@ -370,7 +370,7 @@ pub async fn blog_detail_page(Path(blog_id): Path<String>) -> impl IntoResponse 
 
     match single_blog_result {
         Ok(blog) => {
-            let context = BlogDetailTemplate { blog: blog };
+            let context = BlogDetailTemplate { blog };
 
             match context.render() {
                 Ok(html) => Html(html).into_response(),

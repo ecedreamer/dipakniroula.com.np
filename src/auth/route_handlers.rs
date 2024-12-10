@@ -17,7 +17,7 @@ use axum::{
 use diesel::RunQueryDsl;
 use crate::auth::models::{NewSocialLink, SocialLink, UpdateSocialLink};
 use crate::db::establish_connection;
-use crate::middlewares::{auth_middleware, session_middleware};
+use crate::middlewares::session_middleware;
 use crate::models::{AdminUser, ContactMessage, CustomSession};
 use crate::session_backend::create_session;
 
@@ -77,7 +77,7 @@ pub async fn login_handler(Form(form_data): Form<LoginForm>) -> impl IntoRespons
     match result {
         Ok(admin_user) => {
             let parsed_hash = PasswordHash::new(&admin_user.password).unwrap();
-            match Argon2::default().verify_password(&form_data.password.as_bytes(), &parsed_hash) {
+            match Argon2::default().verify_password(form_data.password.as_bytes(), &parsed_hash) {
                 Ok(_) => {
                     // session.insert("email", admin_user.email).await.unwrap();
                     let session_obj = create_session(&mut conn, admin_user.email).expect("Failed to create session");

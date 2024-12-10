@@ -1,34 +1,41 @@
 use askama::Template;
-use axum::extract::Multipart;
-use axum::{Form, Json};
-use diesel::prelude::*;
-use diesel::RunQueryDsl;
+use diesel::{
+    prelude::*,
+    RunQueryDsl,
+};
+
+use axum::{
+    extract::Multipart,
+    http::StatusCode,
+    Form,
+    Json,
+    response::{Html, IntoResponse, Redirect},
+};
+use tokio::{
+    fs::File,
+    io::AsyncWriteExt,
+};
+
+
 use chrono::Utc;
-
-
-use axum::http::StatusCode;
-use axum::response::{Html, IntoResponse, Redirect};
 use axum_csrf::CsrfToken;
 use serde::Deserialize;
 use serde_json::json;
-use tokio::fs::File;
-use tokio::io::AsyncWriteExt;
+
 use crate::auth::models::SocialLink;
-use crate::blog::blog_repository::blog_repository::BlogRepository;
+use crate::blog::blog_repository::blog_repo::BlogRepository;
 use crate::blog::models::Blog;
 use crate::db::establish_connection;
-
 
 
 #[derive(Template, Deserialize)]
 #[template(path = "home.html")]
 struct HomeTemplate {
     social_links: Vec<SocialLink>,
-    popular_blogs: Vec<Blog>
+    popular_blogs: Vec<Blog>,
 }
 
 pub async fn home_page() -> impl IntoResponse {
-
     let connection = &mut establish_connection().await;
 
     let blog_repo = BlogRepository::new(connection);
@@ -45,7 +52,7 @@ pub async fn home_page() -> impl IntoResponse {
 
     let context = HomeTemplate {
         social_links: my_social_links,
-        popular_blogs: results.unwrap()
+        popular_blogs: results.unwrap(),
     };
 
 
