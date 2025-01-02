@@ -35,3 +35,8 @@ cookie = "0.18.1"
 
 [profile.dev.package.askama_derive]
 opt-level = 3
+
+
+[profile.release]
+debug = false
+lto = true
