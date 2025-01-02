@@ -22,7 +22,7 @@ pub async fn blog_routes() -> Router {
     Router::new()
         // client side pages
         .route("/blog/list", get(blog_list_page))
-        .route("/blog/:id/detail", get(blog_detail_page))
+        .route("/blog/{id}/detail", get(blog_detail_page))
         // admin side pages
         .route(
             "/admin/blog/list",
@@ -33,12 +33,12 @@ pub async fn blog_routes() -> Router {
                 .post(blog_create_handler)
                 .layer(axum::middleware::from_fn(session_middleware)))
         .route(
-            "/admin/blog/:blog_id/update",
+            "/admin/blog/{blog_id}/update",
             get(blog_update_page)
                 .post(blog_update_handler)
                 .layer(axum::middleware::from_fn(session_middleware)))
         .route(
-            "/admin/blog/:blog_id/delete",
+            "/admin/blog/{blog_id}/delete",
             get(blog_delete_page)
                 .post(blog_delete_handler)
                 .layer(axum::middleware::from_fn(session_middleware)))

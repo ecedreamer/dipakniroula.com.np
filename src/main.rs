@@ -104,8 +104,8 @@ async fn main() {
         .with_state(csrf_config)
         .route("/summernote-upload", post(summernote_upload))
         .nest("/auth", auth::route_handlers::auth_routes().await)
-        .nest("/", blog::route_handlers::blog_routes().await)
-        .nest("/", resume::route_handlers::resume_routes().await)
+        .merge(blog::route_handlers::blog_routes().await)
+        .merge(resume::route_handlers::resume_routes().await)
         .nest_service("/static", static_files_service)
         .nest_service("/media", media_files_service)
         .fallback(handle_404);

@@ -26,7 +26,7 @@ pub async fn resume_routes() -> Router {
         .route("/admin/experience/create",
                get(create_experience_page)
                    .post(handle_create_experience).layer(axum::middleware::from_fn(session_middleware)))
-        .route("/admin/experience/:exp_id/update",
+        .route("/admin/experience/{exp_id}/update",
                get(update_experience_page)
                    .post(handle_update_experience).layer(axum::middleware::from_fn(session_middleware)))
 

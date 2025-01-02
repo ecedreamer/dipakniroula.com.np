@@ -6,3 +6,4 @@ dipakdb.sqlite3
 /media
 .postgres_data/
 .DS_Store
+AxumCSRF

@@ -30,7 +30,7 @@ pub async fn auth_routes() -> Router {
                get(social_link_create_page)
                    .post(social_link_create_handler)
                    .layer(axum::middleware::from_fn(session_middleware)))
-        .route("/update-social-link/:data_id",
+        .route("/update-social-link/{data_id}",
                get(social_link_update_page)
                    .post(social_link_update_handler)
                    .layer(axum::middleware::from_fn(session_middleware)))
