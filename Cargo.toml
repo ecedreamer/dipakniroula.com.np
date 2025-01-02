@@ -38,5 +38,11 @@ opt-level = 3
 
 
 [profile.release]
-debug = false
-lto = true
+opt-level = 3  # Max optimizations for performance
+lto = true       # Enable Link Time Optimization
+debug = false    # No debug symbols
+panic = "abort"  # Abort on panic to reduce size
+codegen-units = 1  # Improve cross-crate optimizations
+strip = "debuginfo"  # Strip debug symbols
+incremental = false  # Disable incremental compilation
+target-cpu = "native"  # Optimize for the current machine's CPU
