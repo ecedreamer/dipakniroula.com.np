@@ -11,7 +11,7 @@ futures = "0.3.31"
 serde = { version = "1.0.217", features = ["derive"] }
 serde_json = "1.0.134"
 
-tower-http = { version = "0.6.2", features = ["fs"] }
+tower-http = { version = "0.6.2", features = ["fs", "cors"] }
 axum_csrf = "0.11.0"
 
 chrono = { version = "0.4.39", features = ["serde"] }

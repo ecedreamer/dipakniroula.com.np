@@ -20,11 +20,13 @@ use axum::{
     response::{Html, IntoResponse},
     http::StatusCode,
 };
+use axum::http::{HeaderValue, Method};
 use db::establish_connection;
 
 use axum_csrf::CsrfConfig;
 
 use tower_http::services::ServeDir;
+use tower_http::cors::{Any, CorsLayer};
 
 use diesel_migrations::MigrationHarness;
 use tracing::Level;
@@ -94,7 +96,9 @@ async fn main() {
     connection.run_pending_migrations(embedded_migrations::MIGRATIONS)
         .expect("Error running migrations");
 
-
+    let cors = CorsLayer::new()
+        .allow_methods([Method::GET, Method::POST])
+        .allow_origin("https://dipakniroula.com.np".parse::<HeaderValue>().expect("Invalid origin URL"));
 
     let static_files_service = ServeDir::new("static");
     let media_files_service = ServeDir::new("media");
@@ -108,9 +112,10 @@ async fn main() {
         .merge(resume::route_handlers::resume_routes().await)
         .nest_service("/static", static_files_service)
         .nest_service("/media", media_files_service)
-        .fallback(handle_404);
+        .fallback(handle_404)
+        .layer(cors);
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
+    let listener = tokio::net::TcpListener::bind(&"0.0.0.0:8080").await.unwrap();
     tracing::debug!("Server listening on http://{}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap();
 }
