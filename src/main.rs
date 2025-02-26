@@ -20,13 +20,14 @@ use axum::{
     response::{Html, IntoResponse},
     http::StatusCode,
 };
+use axum::handler::Handler;
 use axum::http::{HeaderValue, Method};
 use db::establish_connection;
 
 use axum_csrf::CsrfConfig;
 
 use tower_http::services::ServeDir;
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::CorsLayer;
 
 use diesel_migrations::MigrationHarness;
 use tracing::Level;
@@ -57,26 +58,30 @@ async fn handle_404() -> impl IntoResponse {
 }
 
 
-
 #[tokio::main]
 async fn main() {
     dotenv().ok();
 
-    let log_dir = env::var("LOG_DIRECTORY").expect("LOG_DIRECTORY not set");
+
+    // Tracing Configuration Start
     let console_layer = fmt::layer()
         .with_writer(std::io::stdout)
         .with_filter(EnvFilter::new("trace"));
 
+
+    let log_dir = env::var("LOG_DIRECTORY").expect("LOG_DIRECTORY not set");
+
     let app_file = tracing_appender::rolling::daily(&log_dir, "app.log");
+    let error_file = tracing_appender::rolling::daily(&log_dir, "error.log");
+
     let (app_file_writer, _app_guard) = tracing_appender::non_blocking(app_file);
+    let (error_file_writer, _err_guard) = tracing_appender::non_blocking(error_file);
+
     let app_layer = fmt::layer()
         .with_writer(app_file_writer)
         .with_filter(filter::filter_fn(|metadata| {
             [&Level::DEBUG, &Level::INFO].contains(&metadata.level())
         }));
-
-    let error_file = tracing_appender::rolling::daily(&log_dir, "error.log");
-    let (error_file_writer, _err_guard) = tracing_appender::non_blocking(error_file);
     let error_layer = fmt::layer()
         .with_writer(error_file_writer)
         .with_filter(filter::LevelFilter::WARN);
@@ -89,6 +94,9 @@ async fn main() {
 
     tracing::subscriber::set_global_default(subscriber)
         .expect("Failed to set global subscriber");
+
+
+    // Tracing Configuration End
 
     let csrf_config = CsrfConfig::default();
 

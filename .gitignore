@@ -1,6 +1,7 @@
 /target
 .idea/
 .env
+monitoring/.env
 dipakdb.sqlite3
 .code/
 /media

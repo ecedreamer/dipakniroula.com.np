@@ -26,3 +26,7 @@ services:
         volumes:
             - ./.env:/usr/src/app/.env
             - ./.postgres_data:/var/lib/postgresql/data
+
+
+
+# docker run --name postgres-container -e POSTGRES_USER=ecedreamer -e POSTGRES_PASSWORD=ece@9886Dreamer -e POSTGRES_DB=dipaksite_db -p 5432:5432 -d postgres:latest

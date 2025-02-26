@@ -1,15 +1,15 @@
 [package]
 name = "dipak_site"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 askama = "0.12.1"
 axum = { version = "0.8.1" , features = ["multipart"]}
 tokio = { version = "1.43.0", features = ["full"] }
 futures = "0.3.31"
-serde = { version = "1.0.217", features = ["derive"] }
-serde_json = "1.0.135"
+serde = { version = "1.0.218", features = ["derive"] }
+serde_json = "1.0.139"
 
 tower-http = { version = "0.6.2", features = ["fs", "cors"] }
 axum_csrf = "0.11.0"
@@ -20,14 +20,21 @@ tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 tracing-appender = {version = "0.2.3"}
 
+# observability
+tracing-opentelemetry = "0.29.0"
+opentelemetry_sdk = { version = "0.28.0", features = ["trace"] }
+opentelemetry = { version = "0.28.0", features = ["metrics"] }
+opentelemetry-prometheus = "0.28.0"
+prometheus = "0.13.4"
 
-diesel = { version = "2.2.6", default-features = false, features = ["sqlite", "r2d2", "chrono"] }
+
+diesel = { version = "2.2.7", default-features = false, features = ["sqlite", "r2d2", "chrono"] }
 diesel_migrations = "2.2.0"
 dotenvy = "0.15.7"
 regex = "1.11.1"
 
 argon2 = "0.6.0-pre.1"
-uuid = { version = "1.12.0", features = ["v4"] }
+uuid = { version = "1.14.0", features = ["v4"] }
 cookie = "0.18.1"
 # [build-dependencies]
 # diesel_cli = { version = "2.0", default-features = false, features = ["sqlite"] }
