@@ -1,0 +1,19 @@
+FROM rust:latest AS builder
+
+WORKDIR /usr/src/app
+
+COPY media .
+COPY migrations .
+COPY src .
+COPY static .
+COPY templates .
+COPY .env .
+COPY Cargo.* .
+COPY diesel.* .
+COPY dipakdb.sqlite3 .
+COPY run.sh .
+
+RUN cargo install cargo-watch
+
+
+CMD ["./run.sh"]

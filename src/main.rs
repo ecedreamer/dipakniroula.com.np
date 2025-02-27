@@ -12,6 +12,7 @@ mod filters;
 mod session_backend;
 
 use std::env;
+use std::sync::{Arc, Mutex};
 use dotenvy::dotenv;
 use askama::Template;
 use axum::{
@@ -20,8 +21,9 @@ use axum::{
     response::{Html, IntoResponse},
     http::StatusCode,
 };
-use axum::handler::Handler;
+use axum::body::Body;
 use axum::http::{HeaderValue, Method};
+use axum::response::Response;
 use db::establish_connection;
 
 use axum_csrf::CsrfConfig;
@@ -30,6 +32,9 @@ use tower_http::services::ServeDir;
 use tower_http::cors::CorsLayer;
 
 use diesel_migrations::MigrationHarness;
+use lazy_static::lazy_static;
+use prometheus::{Encoder, Gauge, Registry, TextEncoder};
+use rand::Rng;
 use tracing::Level;
 use tracing_subscriber::{filter, fmt, EnvFilter, Layer};
 use tracing_subscriber::layer::SubscriberExt;
@@ -95,7 +100,6 @@ async fn main() {
     tracing::subscriber::set_global_default(subscriber)
         .expect("Failed to set global subscriber");
 
-
     // Tracing Configuration End
 
     let csrf_config = CsrfConfig::default();
@@ -113,6 +117,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(home_page))
         .route("/contact", get(contact_page).post(contact_form_handler))
+        .route("/metrics", get(prom_metrics_handler))
         .with_state(csrf_config)
         .route("/summernote-upload", post(summernote_upload))
         .nest("/auth", auth::route_handlers::auth_routes().await)
@@ -129,3 +134,52 @@ async fn main() {
 }
 
 
+pub fn collect_metrics() -> String {
+    r#"
+        # HELP http_requests_total Total number of HTTP requests
+        # TYPE http_requests_total counter
+        http_requests_total 10
+
+        # HELP http_requests_by_status Number of HTTP requests by status code
+        # TYPE http_requests_by_status counter
+        http_requests_by_status{status="200"} 50
+
+        # HELP current_active_users Number of active users
+        # TYPE current_active_users gauge
+        current_active_users 30
+
+        go_threads{instance="localhost:9090", job="prometheus"}
+    "#
+        .to_string()
+}
+
+async fn prom_metrics_handler() -> impl IntoResponse {
+    // Generate dynamic data for metrics
+    let mut rng = rand::rng();
+    let status_code_200 = rng.random_range(0..300); // Random status 200 requests count between 0 and 300
+
+    // Lock the mutex to update the metric value
+    let mut requests_by_status = REQUESTS_BY_STATUS.lock().unwrap();
+    requests_by_status.set(status_code_200 as f64); // Update the metric with the new value
+
+    // Prepare Prometheus response
+    let encoder = TextEncoder::new();
+    let mut buffer = Vec::new();
+    let registry = Registry::new();
+
+    // Register the metric in the registry
+    registry.register(Box::new(requests_by_status.clone())).unwrap();
+
+    encoder.encode(&registry.gather(), &mut buffer).unwrap();
+
+    // Return the response with metrics as body
+    Response::builder()
+        .status(200)
+        .header("Content-Type", "text/plain; version=0.0.4")
+        .body(Body::from(buffer))
+        .unwrap()
+}
+
+lazy_static::lazy_static! {
+    static ref REQUESTS_BY_STATUS: Arc<Mutex<Gauge>> = Arc::new(Mutex::new(Gauge::new("http_requests_by_status", "Number of HTTP requests by status code").unwrap()));
+}

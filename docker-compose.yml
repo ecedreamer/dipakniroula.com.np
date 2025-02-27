@@ -1,0 +1,65 @@
+services:
+    webapp:
+        build:
+            context: .
+            dockerfile: Dockerfile_dev # change for production
+        ports:
+            - "8080:8080"
+        env_file:
+            - .env
+        volumes:
+            - ./:/usr/src/app
+        restart: unless-stopped
+        networks:
+            - monitoring
+
+    prometheus:
+        image: prom/prometheus:latest
+        container_name: prometheus
+        volumes:
+            - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+            - prometheus_data:/prometheus
+        networks:
+            - monitoring
+        ports:
+            - "9090:9090"
+        restart: unless-stopped
+
+    grafana:
+        image: grafana/grafana:latest
+        container_name: grafana
+        env_file:
+            - .env
+        volumes:
+            - grafana_data:/var/lib/grafana
+        ports:
+            - "9081:3000"
+        depends_on:
+            - prometheus
+        networks:
+            - monitoring
+        restart: unless-stopped
+
+    node-exporter:
+        image: prom/node-exporter:latest
+        container_name: node-exporter
+        restart: unless-stopped
+        networks:
+            - monitoring
+        ports:
+            - "9100:9100"
+        command:
+            - "--path.procfs=/host/proc"
+            - "--path.sysfs=/host/sys"
+            - "--collector.filesystem.ignored-mount-points"
+            - "^/(sys|proc|dev|host|etc)($|/)"
+        volumes:
+            - /proc:/host/proc:ro
+            - /sys:/host/sys:ro
+
+volumes:
+    prometheus_data:
+    grafana_data:
+
+networks:
+    monitoring:

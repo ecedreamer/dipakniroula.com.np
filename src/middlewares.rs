@@ -9,17 +9,17 @@ use cookie::Cookie;
 use crate::db::establish_connection;
 use crate::session_backend::{delete_expired_sessions, get_session};
 
-pub async fn auth_middleware(req: Request<Body>, next: Next) -> Result<Response, StatusCode> {
-    if let Some(auth_header) = req.headers().get("Cookie") {
-        if auth_header.to_str().unwrap().contains("session_id=") {
-            Ok(next.run(req).await)
-        } else {
-            Ok(Redirect::to("/auth/login").into_response())
-        }
-    } else {
-        Ok(Redirect::to("/auth/login").into_response())
-    }
-}
+// pub async fn auth_middleware(req: Request<Body>, next: Next) -> Result<Response, StatusCode> {
+//     if let Some(auth_header) = req.headers().get("Cookie") {
+//         if auth_header.to_str().unwrap().contains("session_id=") {
+//             Ok(next.run(req).await)
+//         } else {
+//             Ok(Redirect::to("/auth/login").into_response())
+//         }
+//     } else {
+//         Ok(Redirect::to("/auth/login").into_response())
+//     }
+// }
 
 
 pub async fn session_middleware(mut req: Request<Body>, next: Next) -> Result<Response, StatusCode> {

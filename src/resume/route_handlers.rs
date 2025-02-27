@@ -42,11 +42,6 @@ pub struct ResumeTemplate {
 
 
 pub async fn resume_page() -> impl IntoResponse {
-    tracing::trace!("Resume Page");
-    tracing::debug!("Resume Page");
-    tracing::info!("Resume Page");
-    tracing::warn!("Resume Page");
-    tracing::error!("Resume Page");
     let conn = &mut establish_connection().await;
 
 
