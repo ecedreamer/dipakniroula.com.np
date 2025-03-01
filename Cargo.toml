@@ -23,11 +23,10 @@ tracing-appender = {version = "0.2.3"}
 
 # observability
 tracing-opentelemetry = "0.29.0"
-opentelemetry_sdk = { version = "0.28.0", features = ["trace"] }
 opentelemetry = { version = "0.28.0", features = ["metrics"] }
-opentelemetry-prometheus = "0.28.0"
-prometheus = "0.13.4"
-
+opentelemetry_sdk = { version = "0.28.0", features = ["trace"] }
+opentelemetry-otlp = "0.28"
+opentelemetry-stdout = "0.28"
 
 diesel = { version = "2.2.7", default-features = false, features = ["sqlite", "r2d2", "chrono"] }
 diesel_migrations = "2.2.0"
