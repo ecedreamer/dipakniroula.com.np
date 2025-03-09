@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd /opt/dipak/dipakniroula.com.np
+cd /opt/dipak_site/dipakniroula.com.np
 
 git pull
 
