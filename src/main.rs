@@ -33,8 +33,9 @@ use tower_http::cors::CorsLayer;
 
 use diesel_migrations::MigrationHarness;
 use lazy_static::lazy_static;
+use opentelemetry::global;
 use rand::Rng;
-use tracing::Level;
+use tracing::{span, Level};
 use tracing_subscriber::{filter, fmt, EnvFilter, Layer, Registry};
 use tracing_subscriber::layer::SubscriberExt;
 use route_handlers::{
@@ -50,11 +51,10 @@ use route_handlers::{
 struct FourZeroFourTemplate {}
 
 async fn handle_404() -> impl IntoResponse {
-    tracing::trace!("This is a trace message for error page");
-    tracing::debug!("This is a debug message for error page");
-    tracing::info!("This is a info message for error page");
-    tracing::warn!("This is a warn message for error page");
     tracing::error!("This is a error message for error page");
+    let otel_tracer = global::tracer("otel_tracer");
+    let otel_tracer_span = otel_tracer.start("This is the otel tracer");
+    tracing::error!("This is a error message for error page new tracer");
     let context = FourZeroFourTemplate {};
     match context.render() {
         Ok(html) => Html(html).into_response(),
@@ -69,11 +69,10 @@ async fn handle_404() -> impl IntoResponse {
 
 use opentelemetry_sdk::trace::SdkTracerProvider;
 use opentelemetry::trace::{Tracer, TracerProvider as _};
-
+use tracing_opentelemetry::MetricsLayer;
 
 fn init_tracing() -> (tracing_appender::non_blocking::WorkerGuard, tracing_appender::non_blocking::WorkerGuard) {
 
-    // Tracing Configuration Start
     let console_layer = fmt::layer()
         .with_writer(std::io::stdout)
         .with_filter(EnvFilter::new("trace"));
@@ -89,33 +88,38 @@ fn init_tracing() -> (tracing_appender::non_blocking::WorkerGuard, tracing_appen
 
     let app_layer = fmt::layer()
         .with_writer(app_file_writer)
+        .with_line_number(true)
         .with_filter(filter::filter_fn(|metadata| {
             [&Level::DEBUG, &Level::INFO].contains(&metadata.level())
         }));
     let error_layer = fmt::layer()
         .with_writer(error_file_writer)
+        .with_line_number(true)
+        .with_thread_ids(true)
+        .json()
         .with_filter(filter::LevelFilter::WARN);
 
-
+    // otel configuration
     let provider = SdkTracerProvider::builder()
         .with_simple_exporter(opentelemetry_stdout::SpanExporter::default())
         .build();
+    opentelemetry::global::set_tracer_provider(provider.clone());
 
-    let tracer = provider.tracer("readme_example");
+    let tracer = provider.tracer("otel_tracer");
 
-    let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+    let telemetry_layer = tracing_opentelemetry::layer().with_tracer(tracer);
 
 
     let subscriber = tracing_subscriber::registry()
         .with(console_layer)
         .with(app_layer)
         .with(error_layer)
-        .with(telemetry)
+        .with(telemetry_layer)
         ;
-
 
     tracing::subscriber::set_global_default(subscriber)
         .expect("Failed to set global subscriber");
+
     (_app_guard, _err_guard)
 }
 
@@ -124,7 +128,8 @@ fn init_tracing() -> (tracing_appender::non_blocking::WorkerGuard, tracing_appen
 async fn main() {
     dotenv().ok();
 
-    let guards = init_tracing();
+    let _guards = init_tracing();
+
 
     let csrf_config = CsrfConfig::default();
 

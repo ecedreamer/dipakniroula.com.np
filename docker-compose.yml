@@ -57,6 +57,20 @@ services:
             - /proc:/host/proc:ro
             - /sys:/host/sys:ro
 
+    otel-collector:
+        image: otel/opentelemetry-collector:latest
+        container_name: otel-collector
+        command: [ "--config=/etc/otel-collector-config.yml" ]
+        volumes:
+            - ./monitoring/otel-collector-config.yml:/etc/otel-collector-config.yml
+        ports:
+            - "4317:4317"   # OTLP gRPC
+            - "4318:4318"   # OTLP HTTP
+            - "55679:55679" # zPages
+        networks:
+            - monitoring
+        restart: unless-stopped
+
 volumes:
     prometheus_data:
     grafana_data:
