@@ -1,6 +1,6 @@
 use diesel::prelude::*;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::middlewares::session_middleware;
 use super::models::{Blog, Category, NewBlog, NewCategory, UpdateBlog};

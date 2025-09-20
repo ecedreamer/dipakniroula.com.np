@@ -1,8 +1,8 @@
 use diesel::{AsChangeset, Insertable, Queryable, Selectable};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 
-#[derive(Queryable, Selectable, Deserialize, Debug)]
+#[derive(Debug, Queryable, Deserialize)]
 #[diesel(table_name = crate::schema::blogs)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct Blog {

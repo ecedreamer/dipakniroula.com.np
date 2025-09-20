@@ -1,22 +1,25 @@
+use askama::Result;
 use regex::Regex;
+use askama::Values;
 
 
-// pub fn truncate_words(value: &str, num_words: usize) -> askama::Result<String, Error> {
-//     let words: Vec<&str> = value.split_whitespace().collect();
-//     if words.len() <= num_words {
-//         Ok(value.to_string())
-//     } else {
-//         let truncated: String = words[..num_words].join(" ");
-//         Ok(format!("{}...", truncated))
-//     }
-// }
+pub fn truncate_words(value: &str, num_words: usize) -> askama::Result<String> {
+    let words: Vec<&str> = value.split_whitespace().collect();
+    if words.len() <= num_words {
+        Ok(value.to_string())
+    } else {
+        let truncated: String = words[..num_words].join(" ");
+        Ok(format!("{}...", truncated))
+    }
+}
 
 
-pub fn strip_tags(s: &str) -> askama::Result<String> {
+
+
+pub fn strip_html_tags(s: &str, _: &dyn Values) -> Result<String> {
     let re = Regex::new(r"<[^>]*>").unwrap();
     let without_tags = re.replace_all(s, "").to_string();
 
-    // Replace common HTML entities
     let replacements = [
         ("&nbsp;", " "),
         ("&lt;", "<"),

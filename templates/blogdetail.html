@@ -2,7 +2,7 @@
 
 {% block blogs %} active {% endblock %}
 {% block title %} {{blog.title}} {% endblock %}
-{% block description %} {{blog.content|strip_tags|truncate(200)|trim}} {% endblock %}
+{% block description %} {{blog.content | strip_html_tags | truncate(180)}} {% endblock %}
 
 {% block metatags %}
 {% if blog.image.is_some() %}
