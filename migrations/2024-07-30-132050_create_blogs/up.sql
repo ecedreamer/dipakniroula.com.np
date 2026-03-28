@@ -1,6 +1,6 @@
 -- Your SQL goes here
 CREATE TABLE blogs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,
     content TEXT NOT NULL
 );

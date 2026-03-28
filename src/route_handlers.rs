@@ -1,8 +1,6 @@
 use askama::Template;
-use diesel::{
-    prelude::*,
-    RunQueryDsl,
-};
+use diesel::prelude::*;
+use diesel_async::RunQueryDsl;
 
 use axum::{
     extract::Multipart,
@@ -40,13 +38,14 @@ pub async fn home_page() -> impl IntoResponse {
 
     let blog_repo = BlogRepository::new(connection);
 
-    let results = blog_repo.find_active_only(None, "view_count", 3);
+    let results = blog_repo.find_active_only(None, "view_count", 3).await;
 
 
     use crate::schema::social_links::dsl::social_links;
     let my_social_links = social_links
         .select(SocialLink::as_select())
         .load(connection)
+        .await
         .expect("Error loading social links");
 
 
@@ -81,6 +80,7 @@ pub async fn contact_page(token: CsrfToken) -> impl IntoResponse {
     let results = social_links
         .select(SocialLink::as_select())
         .load(connection)
+        .await
         .expect("Error loading social links");
 
 
@@ -132,6 +132,7 @@ pub async fn contact_form_handler(token: CsrfToken, Form(form): Form<ContactForm
         diesel::insert_into(messages::table)
             .values(&contact_message)
             .execute(conn)
+            .await
             .unwrap();
 
         Redirect::to("/").into_response()

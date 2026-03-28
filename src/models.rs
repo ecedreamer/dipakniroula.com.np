@@ -6,7 +6,7 @@ use chrono::{NaiveDateTime};
 
 #[derive(Insertable)]
 #[diesel(table_name = crate::schema::messages)]
-#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
+#[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct NewContactMessage<'a> {
     pub full_name: &'a str,
     pub email: &'a str,
@@ -19,7 +19,7 @@ pub struct NewContactMessage<'a> {
 
 #[derive(Queryable, Selectable, Serialize, Deserialize, Debug, Clone)]
 #[diesel(table_name = crate::schema::messages)]
-#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
+#[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct ContactMessage {
     pub id: Option<i32>,
     pub full_name: String,
@@ -33,7 +33,7 @@ pub struct ContactMessage {
 
 #[derive(Queryable, Selectable, Serialize, Deserialize, Debug, Clone)]
 #[diesel(table_name = crate::schema::admin_users)]
-#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
+#[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct AdminUser {
     pub id: i32,
     pub email: String,

@@ -10,70 +10,28 @@ services:
         volumes:
             - ./:/usr/src/app
         restart: unless-stopped
+        depends_on:
+            - db
         networks:
-            - monitoring
+            - internal
 
-    prometheus:
-        image: prom/prometheus:latest
-        container_name: prometheus
-        volumes:
-            - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-            - prometheus_data:/prometheus
-        networks:
-            - monitoring
-        ports:
-            - "9090:9090"
+    db:
+        image: postgres:latest
+        container_name: postgres_db
         restart: unless-stopped
-
-    grafana:
-        image: grafana/grafana:latest
-        container_name: grafana
         env_file:
             - .env
-        volumes:
-            - grafana_data:/var/lib/grafana
         ports:
-            - "9081:3000"
-        depends_on:
-            - prometheus
-        networks:
-            - monitoring
-        restart: unless-stopped
-
-    node-exporter:
-        image: prom/node-exporter:latest
-        container_name: node-exporter
-        restart: unless-stopped
-        networks:
-            - monitoring
-        ports:
-            - "9100:9100"
-        command:
-            - "--path.procfs=/host/proc"
-            - "--path.sysfs=/host/sys"
-            - "--collector.filesystem.ignored-mount-points"
-            - "^/(sys|proc|dev|host|etc)($|/)"
+            - "5432:5432"
         volumes:
-            - /proc:/host/proc:ro
-            - /sys:/host/sys:ro
-
-    otel-collector:
-        image: otel/opentelemetry-collector:latest
-        container_name: otel-collector
-        command: [ "--config=/etc/otel-collector-config.yml" ]
-        volumes:
-            - ./monitoring/otel-collector-config.yml:/etc/otel-collector-config.yml
-        ports:
-            - "4317:4317"   # OTLP gRPC
-            - "4318:4318"   # OTLP HTTP
-            - "55679:55679" # zPages
+            - postgres_data:/var/lib/postgresql
+        environment:
+            PGDATA: /var/lib/postgresql/data
         networks:
-            - monitoring
-        restart: unless-stopped
+            - internal
 
 volumes:
-    prometheus_data:
-    grafana_data:
+    postgres_data:
 
 networks:
-    monitoring:
+    internal:

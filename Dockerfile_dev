@@ -10,7 +10,6 @@ COPY templates .
 COPY .env .
 COPY Cargo.* .
 COPY diesel.* .
-COPY dipakdb.sqlite3 .
 COPY run.sh .
 
 RUN cargo install cargo-watch

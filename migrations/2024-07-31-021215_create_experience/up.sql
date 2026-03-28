@@ -1,6 +1,6 @@
 -- Your SQL goes here
 CREATE TABLE experiences (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     company_name TEXT NOT NULL,
     position TEXT NOT NULL,
     start_date TEXT NOT NULL,

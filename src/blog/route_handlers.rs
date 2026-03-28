@@ -2,21 +2,25 @@ use diesel::prelude::*;
 
 use serde::{Deserialize, Serialize};
 
-use crate::middlewares::session_middleware;
 use super::models::{Blog, Category, NewBlog, NewCategory, UpdateBlog};
+use crate::blog::blog_repository::blog_repo::BlogRepository;
+use crate::blog::blog_repository::category_repository::CategoryRepository;
 use crate::db::establish_connection;
+use crate::filters;
+use crate::middlewares::session_middleware;
 use askama::Template;
 use axum::extract::{Multipart, Path, Query};
-use axum::{http::StatusCode, response::{Html, IntoResponse, Redirect}, routing::get, Form, Router};
+use axum::{
+    Form, Router,
+    http::StatusCode,
+    response::{Html, IntoResponse, Redirect},
+    routing::get,
+};
 use chrono::Utc;
-use diesel::RunQueryDsl;
+use diesel_async::RunQueryDsl;
 use std::str::FromStr;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
-use crate::blog::blog_repository::blog_repo::BlogRepository;
-use crate::blog::blog_repository::category_repository::CategoryRepository;
-use crate::filters;
-
 
 pub async fn blog_routes() -> Router {
     Router::new()
@@ -26,40 +30,45 @@ pub async fn blog_routes() -> Router {
         // admin side pages
         .route(
             "/admin/blog/list",
-            get(blog_list_page_admin).layer(axum::middleware::from_fn(session_middleware)))
+            get(blog_list_page_admin).layer(axum::middleware::from_fn(session_middleware)),
+        )
         .route(
             "/admin/blog/create",
             get(blog_create_page)
                 .post(blog_create_handler)
-                .layer(axum::middleware::from_fn(session_middleware)))
+                .layer(axum::middleware::from_fn(session_middleware)),
+        )
         .route(
             "/admin/blog/{blog_id}/update",
             get(blog_update_page)
                 .post(blog_update_handler)
-                .layer(axum::middleware::from_fn(session_middleware)))
+                .layer(axum::middleware::from_fn(session_middleware)),
+        )
         .route(
             "/admin/blog/{blog_id}/delete",
             get(blog_delete_page)
                 .post(blog_delete_handler)
-                .layer(axum::middleware::from_fn(session_middleware)))
+                .layer(axum::middleware::from_fn(session_middleware)),
+        )
         .route(
             "/admin/category/create",
             get(category_create_page)
                 .post(category_create_handler)
-                .layer(axum::middleware::from_fn(session_middleware)))
+                .layer(axum::middleware::from_fn(session_middleware)),
+        )
 }
 
 #[derive(Template)]
 #[template(path = "admin/blogcreate.html")]
 struct BlogCreateTemplate {
-    categories: Vec<Category>
+    categories: Vec<Category>,
 }
 
 pub async fn blog_create_page() -> impl IntoResponse {
     let conn = &mut establish_connection().await;
     let category_repo = CategoryRepository::new(conn);
     let context = BlogCreateTemplate {
-        categories: category_repo.find().await.unwrap()
+        categories: category_repo.find().await.unwrap(),
     };
 
     match context.render() {
@@ -110,8 +119,6 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
         }
     }
 
-    
-
     let blog = NewBlog {
         is_active: blog_status,
         title: &title,
@@ -124,7 +131,7 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
     let conn = &mut establish_connection().await;
     let blog_repo = BlogRepository::new(conn);
 
-    blog_repo.insert_one(&blog, &categories);
+    blog_repo.insert_one(&blog, &categories).await;
 
     Redirect::to("/admin/blog/list").into_response()
 }
@@ -144,12 +151,11 @@ pub async fn blog_update_page(Path(blog_id): Path<String>) -> impl IntoResponse 
     let result = blogs
         .filter(id.eq(blog_id_num))
         .limit(1)
-        .first::<Blog>(&mut conn);
+        .first::<Blog>(&mut conn)
+        .await;
     match result {
         Ok(blog) => {
-            let context = BlogUpdateTemplate {
-                blog,
-            };
+            let context = BlogUpdateTemplate { blog };
 
             match context.render() {
                 Ok(html) => Html(html).into_response(),
@@ -164,13 +170,10 @@ pub async fn blog_update_page(Path(blog_id): Path<String>) -> impl IntoResponse 
     }
 }
 
-
 pub async fn blog_update_handler(
     Path(blog_id): Path<String>,
     mut multipart: Multipart,
 ) -> impl IntoResponse {
-    
-
     let mut update_blog = UpdateBlog {
         title: None,
         content: None,
@@ -220,7 +223,7 @@ pub async fn blog_update_handler(
     let blog_id_num = i32::from_str(&blog_id).unwrap();
 
     let blog_repo = BlogRepository::new(conn);
-    blog_repo.update_one(blog_id_num, &update_blog);
+    blog_repo.update_one(blog_id_num, &update_blog).await;
 
     Redirect::to("/admin/blog/list").into_response()
 }
@@ -253,10 +256,10 @@ async fn blog_delete_handler(Path(blog_id): Path<String>) -> impl IntoResponse {
 
     diesel::delete(blogs.filter(id.eq(blog_id_num)))
         .execute(connection)
+        .await
         .expect("Error deleting posts");
     Redirect::to("/admin/blog/list")
 }
-
 
 #[derive(Template)]
 #[template(path = "admin/adminbloglist.html")]
@@ -265,19 +268,14 @@ struct AdminBlogListTemplate {
 }
 
 pub async fn blog_list_page_admin() -> impl IntoResponse {
-    
-
     let mut conn = establish_connection().await;
     let blog_repo = BlogRepository::new(&mut conn);
 
-    let results = blog_repo.find();
+    let results = blog_repo.find().await;
 
     match results {
         Ok(blog_list) => {
-            let context = AdminBlogListTemplate {
-                blog_list,
-
-            };
+            let context = AdminBlogListTemplate { blog_list };
             match context.render() {
                 Ok(html) => Html(html).into_response(),
                 Err(_) => (
@@ -286,7 +284,7 @@ pub async fn blog_list_page_admin() -> impl IntoResponse {
                 )
                     .into_response(),
             }
-        },
+        }
         Err(err) => {
             tracing::warn!("Error in getting blog list; error: {:?}", err);
             (
@@ -298,7 +296,6 @@ pub async fn blog_list_page_admin() -> impl IntoResponse {
     }
 }
 
-
 #[derive(Template)]
 #[template(path = "blog_list.html")]
 struct BlogListTemplate {
@@ -306,19 +303,16 @@ struct BlogListTemplate {
     categories_list: Vec<Category>,
 }
 
-
 #[derive(Debug, Deserialize)]
 pub struct BlogQuery {
     cat_id: Option<i32>,
 }
 
 pub async fn blog_list_page(Query(query): Query<BlogQuery>) -> impl IntoResponse {
-
     let mut conn = establish_connection().await;
     let blog_repo = BlogRepository::new(&mut conn);
 
-
-    let results = blog_repo.find_active_only(query.cat_id, "id", 25);
+    let results = blog_repo.find_active_only(query.cat_id, "id", 25).await;
 
     let mut conn = establish_connection().await;
     let category_repo = CategoryRepository::new(&mut conn);
@@ -328,7 +322,7 @@ pub async fn blog_list_page(Query(query): Query<BlogQuery>) -> impl IntoResponse
         Ok(blogs) => {
             let context = BlogListTemplate {
                 blog_list: blogs,
-                categories_list: categories
+                categories_list: categories,
             };
 
             match context.render() {
@@ -363,10 +357,10 @@ pub async fn blog_detail_page(Path(blog_id): Path<String>) -> impl IntoResponse 
     let blog_id_num = i32::from_str(&blog_id).unwrap();
 
     let blog_repo = BlogRepository::new(&mut conn);
-    let single_blog_result = blog_repo.find_by_id(blog_id_num);
+    let single_blog_result = blog_repo.find_by_id(blog_id_num).await;
 
     let blog_repo = BlogRepository::new(&mut conn);
-    blog_repo.increase_view_count(blog_id_num);
+    blog_repo.increase_view_count(blog_id_num).await;
 
     match single_blog_result {
         Ok(blog) => {
@@ -392,12 +386,9 @@ pub async fn blog_detail_page(Path(blog_id): Path<String>) -> impl IntoResponse 
     }
 }
 
-
 #[derive(Template)]
 #[template(path = "admin/admincategorycreate.html")]
-struct CategoryCreatePageTemplate {
-
-}
+struct CategoryCreatePageTemplate {}
 
 pub async fn category_create_page() -> impl IntoResponse {
     let context = CategoryCreatePageTemplate {};
@@ -407,16 +398,15 @@ pub async fn category_create_page() -> impl IntoResponse {
         Err(_) => (
             StatusCode::INTERNAL_SERVER_ERROR,
             "Failed to render HTML".to_string(),
-        ).into_response()
+        )
+            .into_response(),
     }
 }
-
 
 #[derive(Debug, Deserialize)]
 pub struct CategoryForm {
     name: String,
 }
-
 
 pub async fn category_create_handler(Form(form_data): Form<CategoryForm>) -> impl IntoResponse {
     let conn = &mut establish_connection().await;

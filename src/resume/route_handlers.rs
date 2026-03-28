@@ -9,7 +9,7 @@ use crate::db::establish_connection;
 use crate::resume::models::{Experience, NewExperience, UpdateExperience};
 
 use diesel::prelude::*;
-use diesel::RunQueryDsl;
+use diesel_async::RunQueryDsl;
 use crate::auth::models::SocialLink;
 use crate::middlewares::session_middleware;
 use crate::resume::resume_repository::ExperienceRepository;
@@ -49,10 +49,11 @@ pub async fn resume_page() -> impl IntoResponse {
     let my_social_links = social_links
         .select(SocialLink::as_select())
         .load(conn)
+        .await
         .expect("Error loading social links");
 
     let repo = ExperienceRepository::new(conn);
-    let result = repo.find();
+    let result = repo.find().await;
 
 
     match result {
@@ -94,7 +95,7 @@ pub async fn admin_experience_list_page() -> impl IntoResponse {
     let repo = ExperienceRepository::new(conn);
 
 
-    let result = repo.find();
+    let result = repo.find().await;
 
     match result {
         Ok(experience_list) => {
@@ -156,7 +157,7 @@ pub async fn handle_create_experience(Form(form_data): Form<NewExperience>) -> i
     let conn = &mut establish_connection().await;
 
     let repo = ExperienceRepository::new(conn);
-    match repo.insert_one(&experience) {
+    match repo.insert_one(&experience).await {
         Ok(_) => Redirect::to("/auth/admin-panel").into_response(),
         Err(e) => {
             tracing::error!("Could not save the experience; error: {:?}", e);
@@ -179,7 +180,7 @@ pub async fn update_experience_page(Path(data_id): Path<String>) -> impl IntoRes
 
     let data_id_num = i32::from_str(&data_id).unwrap();
 
-    let result = repo.find_by_id(data_id_num);
+    let result = repo.find_by_id(data_id_num).await;
 
     match result {
         Ok(experience) => {
@@ -224,7 +225,7 @@ pub async fn handle_update_experience(Path(data_id): Path<String>, Form(form_dat
         order: Some(form_data.order)
     };
 
-    let _ = repo.update_one(data_id_num, &experience);
+    let _ = repo.update_one(data_id_num, &experience).await;
 
     Redirect::to("/admin/experience/list")
 

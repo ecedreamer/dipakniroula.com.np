@@ -1,6 +1,6 @@
 -- Your SQL goes here
 ALTER TABLE blogs
-ADD COLUMN published_date TEXT NOT NULL DEFAULT "";
+ADD COLUMN published_date TEXT NOT NULL DEFAULT '';
 
 ALTER TABLE blogs
 ADD COLUMN modified_date TEXT;

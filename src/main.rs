@@ -1,60 +1,45 @@
-mod route_handlers;
-mod models;
-mod schema;
-mod db;
-mod embedded_migrations;
 mod auth;
 mod blog;
+mod db;
+mod embedded_migrations;
 mod middlewares;
+mod models;
 mod resume;
+mod route_handlers;
+mod schema;
 
 mod filters;
 mod session_backend;
 
-use std::env;
-use std::sync::{Arc, Mutex};
-use dotenvy::dotenv;
 use askama::Template;
-use axum::{
-    routing::{get, post},
-    Router,
-    response::{Html, IntoResponse},
-    http::StatusCode,
-};
-use axum::body::Body;
 use axum::http::{HeaderValue, Method};
-use axum::response::Response;
-use db::establish_connection;
+use axum::{
+    Router,
+    http::StatusCode,
+    response::{Html, IntoResponse},
+    routing::{get, post},
+};
+use db::establish_sync_connection;
+use dotenvy::dotenv;
+use std::env;
 
 use axum_csrf::CsrfConfig;
 
-use tower_http::services::ServeDir;
 use tower_http::cors::CorsLayer;
+use tower_http::services::ServeDir;
 
 use diesel_migrations::MigrationHarness;
-use lazy_static::lazy_static;
-use opentelemetry::global;
-use rand::Rng;
-use tracing::{span, Level};
-use tracing_subscriber::{filter, fmt, EnvFilter, Layer, Registry};
+use route_handlers::{contact_form_handler, contact_page, home_page, summernote_upload};
+use tracing::Level;
 use tracing_subscriber::layer::SubscriberExt;
-use route_handlers::{
-    home_page,
-    contact_page,
-    contact_form_handler,
-    summernote_upload,
-};
-
+use tracing_subscriber::{EnvFilter, Layer, filter, fmt};
 
 #[derive(Template)]
 #[template(path = "404.html")]
 struct FourZeroFourTemplate {}
 
 async fn handle_404() -> impl IntoResponse {
-    tracing::error!("This is a error message for error page");
-    let otel_tracer = global::tracer("otel_tracer");
-    let otel_tracer_span = otel_tracer.start("This is the otel tracer");
-    tracing::error!("This is a error message for error page new tracer");
+    tracing::warn!("404 page not found");
     let context = FourZeroFourTemplate {};
     match context.render() {
         Ok(html) => Html(html).into_response(),
@@ -66,17 +51,13 @@ async fn handle_404() -> impl IntoResponse {
     }
 }
 
-
-use opentelemetry_sdk::trace::SdkTracerProvider;
-use opentelemetry::trace::{Tracer, TracerProvider as _};
-use tracing_opentelemetry::MetricsLayer;
-
-fn init_tracing() -> (tracing_appender::non_blocking::WorkerGuard, tracing_appender::non_blocking::WorkerGuard) {
-
+fn init_tracing() -> (
+    tracing_appender::non_blocking::WorkerGuard,
+    tracing_appender::non_blocking::WorkerGuard,
+) {
     let console_layer = fmt::layer()
         .with_writer(std::io::stdout)
         .with_filter(EnvFilter::new("trace"));
-
 
     let log_dir = env::var("LOG_DIRECTORY").expect("LOG_DIRECTORY not set");
 
@@ -99,30 +80,57 @@ fn init_tracing() -> (tracing_appender::non_blocking::WorkerGuard, tracing_appen
         .json()
         .with_filter(filter::LevelFilter::WARN);
 
-    // otel configuration
-    let provider = SdkTracerProvider::builder()
-        .with_simple_exporter(opentelemetry_stdout::SpanExporter::default())
-        .build();
-    opentelemetry::global::set_tracer_provider(provider.clone());
-
-    let tracer = provider.tracer("otel_tracer");
-
-    let telemetry_layer = tracing_opentelemetry::layer().with_tracer(tracer);
-
-
     let subscriber = tracing_subscriber::registry()
         .with(console_layer)
         .with(app_layer)
-        .with(error_layer)
-        .with(telemetry_layer)
-        ;
+        .with(error_layer);
 
-    tracing::subscriber::set_global_default(subscriber)
-        .expect("Failed to set global subscriber");
+    tracing::subscriber::set_global_default(subscriber).expect("Failed to set global subscriber");
 
     (_app_guard, _err_guard)
 }
 
+async fn run_fixture(conn: &mut diesel::PgConnection) {
+    tracing::info!("Running fixture script...");
+    let env_email =
+        std::env::var("WEB_SUPER_ADMIN").expect("WEB_SUPER_ADMIN not set in environment");
+    let env_password = std::env::var("WEB_PASSWORD").expect("WEB_PASSWORD not set in environment");
+
+    use argon2::{
+        Argon2,
+        password_hash::{PasswordHasher, SaltString},
+    };
+    use diesel::prelude::*;
+
+    let salt = SaltString::from_rng(&mut rand::rng());
+    let argon2 = Argon2::default();
+    let hashed_password = argon2
+        .hash_password(env_password.as_bytes(), &salt)
+        .unwrap()
+        .to_string();
+
+    use crate::schema::admin_users::dsl::*;
+
+    let existing_user = admin_users
+        .filter(email.eq(&env_email))
+        .first::<crate::models::AdminUser>(conn);
+    if existing_user.is_ok() {
+        tracing::info!(
+            "Admin user '{}' already exists. Skipping insertion.",
+            env_email
+        );
+        return;
+    }
+
+    let insert_result = diesel::insert_into(admin_users)
+        .values((email.eq(env_email.clone()), password.eq(hashed_password)))
+        .execute(conn);
+
+    match insert_result {
+        Ok(_) => tracing::info!("Successfully inserted admin user: {}", env_email),
+        Err(e) => tracing::error!("Failed to insert admin user: {}", e),
+    }
+}
 
 #[tokio::main]
 async fn main() {
@@ -130,16 +138,25 @@ async fn main() {
 
     let _guards = init_tracing();
 
-
     let csrf_config = CsrfConfig::default();
 
-    let mut connection = establish_connection().await;
-    connection.run_pending_migrations(embedded_migrations::MIGRATIONS)
+    let mut connection = establish_sync_connection();
+    connection
+        .run_pending_migrations(embedded_migrations::MIGRATIONS)
         .expect("Error running migrations");
+
+    if std::env::args().any(|arg| arg == "--fixture") {
+        run_fixture(&mut connection).await;
+        return;
+    }
 
     let cors = CorsLayer::new()
         .allow_methods([Method::GET, Method::POST])
-        .allow_origin("https://dipakniroula.com.np".parse::<HeaderValue>().expect("Invalid origin URL"));
+        .allow_origin(
+            "https://dipakniroula.com.np"
+                .parse::<HeaderValue>()
+                .expect("Invalid origin URL"),
+        );
 
     let static_files_service = ServeDir::new("static");
     let media_files_service = ServeDir::new("media");
@@ -156,7 +173,12 @@ async fn main() {
         .fallback(handle_404)
         .layer(cors);
 
-    let listener = tokio::net::TcpListener::bind(&"0.0.0.0:8080").await.unwrap();
-    tracing::debug!("Server listening on http://{}", listener.local_addr().unwrap());
+    let listener = tokio::net::TcpListener::bind(&"0.0.0.0:8080")
+        .await
+        .unwrap();
+    tracing::debug!(
+        "Server listening on http://{}",
+        listener.local_addr().unwrap()
+    );
     axum::serve(listener, app).await.unwrap();
 }

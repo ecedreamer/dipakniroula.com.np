@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Queryable, Deserialize)]
 #[diesel(table_name = crate::schema::blogs)]
-#[diesel(check_for_backend(diesel::sqlite::Sqlite))]
+#[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Blog {
     pub id: Option<i32>,
     pub title: String,

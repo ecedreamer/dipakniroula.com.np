@@ -35,7 +35,7 @@ pub async fn session_middleware(mut req: Request<Body>, next: Next) -> Result<Re
             let session_id = session_cookie.value();
 
             let conn = &mut establish_connection().await;
-            if let Ok(Some(session)) = get_session(conn, session_id) {
+            if let Ok(Some(session)) = get_session(conn, session_id).await {
                 let current_time = Utc::now().naive_utc(); // Current datetime in UTC
                 tracing::info!("{:?}", session);
                 if current_time < session.expires_at {
@@ -44,7 +44,7 @@ pub async fn session_middleware(mut req: Request<Body>, next: Next) -> Result<Re
                     Ok(next.run(req).await)
                 } else {
                     tracing::info!("Session expired {} -- {}", current_time, session.expires_at);
-                    delete_expired_sessions(conn).expect("Error deleting expired sessions");
+                    delete_expired_sessions(conn).await.expect("Error deleting expired sessions");
                     Ok(Redirect::to("/auth/login").into_response())
                 }
             } else {

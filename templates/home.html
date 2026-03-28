@@ -2,7 +2,8 @@
 {% block home %}active{% endblock %}
 
 {% block title %} Professional Software Engineer {% endblock %}
-{% block description %} Dipak Niroula is a Professional Software Engineer, Programmer, Developer, Mentor, Learner. {% endblock %}
+{% block description %} Dipak Niroula is a Professional Software Engineer, Programmer, Developer, Mentor, Learner. {%
+endblock %}
 
 {% block content %}
 
@@ -21,7 +22,7 @@
                 <h5>Introduction</h5>
                 <hr>
                 <p>Senior Software Engineer at <a href="https://logpoint.com" target="_blank">Logpoint Nepal Pvt.
-                    Ltd</a>
+                        Ltd</a>
                 </p>
                 <p>Engineer | Programmer | Developer | Learner | Mentor | Leader </p>
                 <p>10+ years of Experience in Software Engineering</p>
@@ -35,11 +36,15 @@
                 <p>
                     I am a seasoned Senior Software Engineer with over 10 years of experience in designing, developing,
                     and scaling software solutions. I possess expertise in programming languages such as Python, Rust,
-                    Java, JavaScript, Shell Scripting, and SQL, and have experience with frameworks like Django, FastAPI, and
-                    ReactJS. My technical proficiency extends to message brokers (RabbitMQ, Kafka, Redis), databases (PostgreSQL, MySQL, MongoDB),
+                    Java, JavaScript, Shell Scripting, and SQL, and have experience with frameworks like Django,
+                    FastAPI, and
+                    ReactJS. My technical proficiency extends to message brokers (RabbitMQ, Kafka, Redis), databases
+                    (PostgreSQL, MySQL, MongoDB),
                     and tools like Docker and Kubernetes.
-                    Throughout my career, I have demonstrated strong leadership and mentoring abilities by leading engineering teams,
-                    leading the development of over 100 projects, mentoring hundreds of engineers, and training thousands of students in
+                    Throughout my career, I have demonstrated strong leadership and mentoring abilities by leading
+                    engineering teams,
+                    leading the development of over 100 projects, mentoring hundreds of engineers, and training
+                    thousands of students in
                     web development.
                 </p>
 
@@ -47,7 +52,7 @@
                 <hr>
                 {% for (count, social_link) in social_links.iter().enumerate() %}
                 <p> {{count+1}}) {{social_link.social_media}}: <a href="{{social_link.social_link}}"
-                                                                                target="_blank">{{social_link.social_link}}</a>
+                        target="_blank">{{social_link.social_link}}</a>
                 </p>
 
                 {% endfor %}
@@ -56,6 +61,8 @@
         </div>
     </div>
 </div>
+
+{% if popular_blogs.len() > 0 %}
 <div class="row mt-5">
     <div class="col-md-12">
         <h4>Popular Blogs</h4>
@@ -84,5 +91,5 @@
 
     </div>
 </div>
-
+{% endif %}
 {% endblock %}

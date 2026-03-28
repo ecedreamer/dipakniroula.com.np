@@ -1,7 +1,7 @@
 -- Your SQL goes here
 
 CREATE TABLE categories (
-    id INTEGER PRIMARY KEY NOT NULL,
+    id SERIAL PRIMARY KEY,
     name TEXT NOT NULL
 );
 
