@@ -1,0 +1,40 @@
+services:
+  webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dipak_site-webapp-prod
+    restart: always
+    ports:
+      - "127.0.0.1:8080:8080"
+    env_file:
+      - .env
+    volumes:
+      - app_logs:/tmp/logs/dipakniroula.com.np/
+    networks:
+      - webnet
+      - internal
+    depends_on:
+      - db
+
+  db:
+    image: postgres:latest
+    container_name: postgres_db-prod
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    environment:
+      PGDATA: /var/lib/postgresql/data
+    networks:
+      - internal
+    # Note: Ports block is removed to prevent external DB scanning (Isolation)
+
+volumes:
+  postgres_data:
+  app_logs:
+
+networks:
+  webnet:
+  internal:

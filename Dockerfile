@@ -1,29 +1,37 @@
-FROM rust:latest AS builder
-
+# Stage 1: Build Phase
+FROM rust:latest as builder
 WORKDIR /usr/src/app
 
+# Copy dependency manifests and source code
 COPY Cargo.toml Cargo.lock ./
-
 COPY src ./src
-
-COPY migrations ./migrations
 COPY templates ./templates
 COPY static ./static
-COPY .env ./.env
-COPY diesel.toml ./diesel.toml
+COPY media ./media
+COPY migrations ./migrations
 
+# Build the release binary.
 RUN cargo build --release
 
-# Use a base image with compatible glibc version for runtime
+# Stage 2: Minimal Runtime Phase
 FROM debian:bookworm-slim
+WORKDIR /usr/local/bin
 
+# Install runtime dependencies (PostgreSQL client lib and CA certificates)
 RUN apt-get update && \
-    apt-get install -y libsqlite3-0 && \
-    apt-get clean && \
+    apt-get install -y libpq-dev ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /usr/src/app
-
+# Copy the compiled binary from the builder environment
 COPY --from=builder /usr/src/app/target/release/dipak_site .
 
+# Copy static assets and necessary rendering templates
+COPY --from=builder /usr/src/app/static ./static
+COPY --from=builder /usr/src/app/templates ./templates
+COPY --from=builder /usr/src/app/media ./media
+
+# Expose internal port
+EXPOSE 8080
+
+# Execute the application natively
 CMD ["./dipak_site"]
