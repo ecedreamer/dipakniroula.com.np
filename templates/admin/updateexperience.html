@@ -32,17 +32,23 @@
     <br>
     <div>
         <label for="end_date">End Date</label>
-        <input type="date" name="end_date" value="{{experience.end_date.as_ref().unwrap()}}" class="form-control">
+        {% match experience.end_date %}
+            {% when Some with (date) %}
+                <input type="date" name="end_date" value="{{date}}" class="form-control">
+            {% when None %}
+                <input type="date" name="end_date" value="" class="form-control">
+        {% endmatch %}
+        <small class="text-muted">Leave empty if this is your current position.</small>
     </div>
     <br>
     <div>
         <label for="responsibility">Responsibilities</label>
-        <textarea type="text" name="responsibility" id="summernote" class="form-control" required>{{experience.responsibility.as_ref().unwrap()}}</textarea>
+        <textarea name="responsibility" id="summernote" class="form-control" required>{% if experience.responsibility.is_some() %}{{experience.responsibility.as_ref().unwrap()}}{% endif %}</textarea>
     </div>
     <br>
     <div>
         <label for="skills">Skills</label>
-        <input type="text" name="skills" value="{{experience.skills.as_ref().unwrap()}}" class="form-control" required>
+        <input type="text" name="skills" value="{% if experience.skills.is_some() %}{{experience.skills.as_ref().unwrap()}}{% endif %}" class="form-control" required>
     </div>
     <br>
     <div>

@@ -2,7 +2,7 @@
     {
         "id": null,
         "company_name": "Guardsix (formerly Logpoint)",
-        "your_position": "Software Engineer",
+        "your_position": "Senior Software Engineer",
         "start_date": "2022-01-01",
         "end_date": null,
         "responsibility": "Architecting and maintaining the high-performance Core Engine, focusing on large-scale Data Ingestion and Analytics pipelines. Specialized in distributed systems and optimized data processing using low-level systems programming and modern design patterns.",

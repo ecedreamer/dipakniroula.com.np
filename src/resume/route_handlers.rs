@@ -173,61 +173,62 @@ pub struct UpdateExperienceTemplate {
     experience: Experience
 }
 
-pub async fn update_experience_page(Path(data_id): Path<String>) -> impl IntoResponse {
+pub async fn update_experience_page(Path(exp_id): Path<String>) -> impl IntoResponse {
     let conn = &mut establish_connection().await;
-
     let repo = ExperienceRepository::new(conn);
 
-    let data_id_num = i32::from_str(&data_id).unwrap();
+    let exp_id_num = match i32::from_str(&exp_id) {
+        Ok(num) => num,
+        Err(_) => return (StatusCode::BAD_REQUEST, "Invalid experience ID").into_response(),
+    };
 
-    let result = repo.find_by_id(data_id_num).await;
-
-    match result {
+    match repo.find_by_id(exp_id_num).await {
         Ok(experience) => {
-            let context = UpdateExperienceTemplate {
-                experience
-            };
+            let context = UpdateExperienceTemplate { experience };
             match context.render() {
                 Ok(html) => Html(html).into_response(),
-                Err(_) => (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "Failed to render HTML".to_string(),
-                ).into_response(),
+                Err(e) => {
+                    tracing::error!("Template render error: {:?}", e);
+                    (StatusCode::INTERNAL_SERVER_ERROR, "Failed to render template").into_response()
+                }
             }
-        },
-        Err(_) => {
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Failed to render HTML".to_string(),
-            ).into_response()
+        }
+        Err(e) => {
+            tracing::error!("Database fetch error for ID {}: {:?}", exp_id_num, e);
+            (StatusCode::NOT_FOUND, "Experience not found").into_response()
         }
     }
-
-
 }
 
 
 pub async fn handle_update_experience(Path(data_id): Path<String>, Form(form_data): Form<NewExperience>) -> impl IntoResponse {
     let conn = &mut establish_connection().await;
-
     let repo = ExperienceRepository::new(conn);
 
-    let data_id_num = i32::from_str(&data_id).unwrap();
+    let data_id_num = match i32::from_str(&data_id) {
+        Ok(num) => num,
+        Err(_) => return (StatusCode::BAD_REQUEST, "Invalid experience ID").into_response(),
+    };
 
+    // Correctly map empty form strings to None, and non-empty to Some
     let experience = UpdateExperience {
         company_name: Some(form_data.company_name),
         company_link: Some(form_data.company_link),
         your_position: Some(form_data.your_position),
         start_date: Some(form_data.start_date),
-        end_date: Some(form_data.end_date.unwrap_or(String::new())),
-        responsibility: Some(form_data.responsibility.unwrap_or(String::new())),
-        skills: Some(form_data.skills.unwrap_or(String::new())),
-        order: Some(form_data.order)
+        end_date: form_data.end_date.filter(|s| !s.trim().is_empty()),
+        responsibility: form_data.responsibility.filter(|s| !s.trim().is_empty()),
+        skills: form_data.skills.filter(|s| !s.trim().is_empty()),
+        order: Some(form_data.order),
     };
 
-    let _ = repo.update_one(data_id_num, &experience).await;
-
-    Redirect::to("/admin/experience/list")
+    match repo.update_one(data_id_num, &experience).await {
+        Ok(_) => Redirect::to("/admin/experience/list").into_response(),
+        Err(e) => {
+            tracing::error!("Update failed for ID {}: {:?}", data_id_num, e);
+            (StatusCode::INTERNAL_SERVER_ERROR, "Update failed").into_response()
+        }
+    }
 
 
 }
