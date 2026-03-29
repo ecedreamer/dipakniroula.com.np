@@ -1,55 +1,53 @@
 {% extends "base.html" %}
 {% block blogs %}active{% endblock %}
 
-{% block title %} Dipak Niroula's Blogs {% endblock %}
+{% block title %}Blogs — Dipak Niroula{% endblock %}
+{% block description %}Thoughts, notes, and deep dives on software engineering, Rust, Python, and distributed systems.{% endblock %}
 
 {% block content %}
-<div class="section">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="row">
-                <div class="col-md-12">
-                    Categories:
-                    {% for cat in categories_list %}
-                    <span class="p-3"><a href="?cat_id={{cat.id}}">{{cat.name}}</a></span>
-                    {% endfor %}
-                </div>
-            </div>
-            {% if blog_list.len() > 0 %}
-            {% for blog in blog_list %}
-            <div class="row">
 
-                <div class="col-12 mt-3">
-                    <div class="card">
-                        <div class="row g-0">
-                            {% if blog.image.as_ref().is_some() %}
-                            <div class="col-md-4">
-                                <img src="/{{ blog.image.as_ref().unwrap() }}" class="img-fluid rounded-start"
-                                     alt="Blog Image 1">
-                            </div>
-                            {% endif %}
-                            <div class="col-md-8">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ blog.title }}</h5>
-                                    <small>Published On: {{ blog.published_date }}</small>
-                                    <br>
-                                    <a href="/blog/{{ blog.id.unwrap() }}/detail" class="btn btn-primary">View Details</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-            {% else %}
-            <div class="row mt-5">
-                <div class="col-md-12">
-                    <p class="text-secondary"> -> No blogs in this category</p>
-                </div>
+<section class="page-section">
+    <!-- Page Header -->
+    <div class="page-heading mb-5">
+        <h1 class="h3 fw-bold mb-1">Writings</h1>
+        <p class="text-muted small">Notes on engineering, architecture, and programming.</p>
+    </div>
+
+    <!-- Category Filters -->
+    {% if categories_list.len() > 0 %}
+    <div class="category-filters mb-5">
+        <a href="/blog/list" class="cat-pill {% block all_cat %}{% endblock %}">All</a>
+        {% for cat in categories_list %}
+        <a href="?cat_id={{ cat.id }}" class="cat-pill">{{ cat.name }}</a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Blog List -->
+    {% if blog_list.len() > 0 %}
+    <div class="blog-list">
+        {% for blog in blog_list %}
+        <article class="blog-list-item">
+            {% if blog.image.as_ref().is_some() %}
+            <div class="blog-list-thumb">
+                <img src="/{{ blog.image.as_ref().unwrap() }}" alt="{{ blog.title }}">
             </div>
             {% endif %}
-        </div>
+            <div class="blog-list-content">
+                <p class="blog-list-date text-muted small mb-1">{{ blog.published_date }}</p>
+                <h2 class="blog-list-title h5 fw-semibold mb-2">{{ blog.title }}</h2>
+                <a href="/blog/{{ blog.id.unwrap() }}/detail" class="read-more-link">Read article →</a>
+            </div>
+        </article>
+        {% endfor %}
     </div>
-</div>
+    {% else %}
+    <div class="empty-state text-center py-5">
+        <i class="bi bi-journal-x fs-1 text-muted d-block mb-3"></i>
+        <p class="text-muted">No articles in this category yet.</p>
+    </div>
+    {% endif %}
+
+</section>
 
 {% endblock %}

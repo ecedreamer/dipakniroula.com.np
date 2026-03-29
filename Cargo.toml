@@ -33,7 +33,7 @@ argon2 = "0.5.3"
 uuid = { version = "1.23.0", features = ["v4"] }
 cookie = "0.18.1"
 lazy_static = "1.5.0"
-rand = "0.8.5"
+rand = "0.10.0"
 
 
 [profile.dev.package.askama_derive]
@@ -48,4 +48,4 @@ panic = "abort"  # Abort on panic to reduce size
 codegen-units = 1  # Improve cross-crate optimizations
 strip = "debuginfo"  # Strip debug symbols
 incremental = false  # Disable incremental compilation
-target-cpu = "native"  # Optimize for the current machine's CPU
+overflow-checks = true

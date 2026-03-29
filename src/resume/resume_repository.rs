@@ -23,7 +23,7 @@ impl<'a> ExperienceRepository<'a> {
 
     pub async fn find(self) -> Result<Vec<Experience>, diesel::result::Error> {
         experiences
-            .order(order.desc())
+            .order(order.asc())
             .load::<Experience>(self.conn)
             .await
     }

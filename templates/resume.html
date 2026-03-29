@@ -4,236 +4,208 @@
 {% block title %}Dipak Niroula Resume{% endblock %}
 
 {% block description %}
-Senior software engineer with over 10 years of experience in designing, developing, and scaling Software.
-Expertise in Python, Rust, Kafka, and PostgreSQL, etc with a focus on building secure, high-performance backend
-systems. Experience in completing complex projects from concept to deployemnt, leading cross-functional teams,
-mentoring junior engineers, and driving innovation through
-modern DevOps practices.
+Software engineer with over 10 years of experience in designing, developing, and scaling software solutions.
+Expertise in Python, Rust, Kafka, and PostgreSQL, with a focus on building secure, high-performance backend systems.
 {% endblock %}
+
 {% block resume %}active{% endblock %}
+{% block body_class %}resume-page{% endblock %}
 
 {% block css %}
-
-<style>
-    p {
-        margin: 3px 1px;
-    }
-</style>
+<link rel="stylesheet" href="/static/resume.css">
 {% endblock %}
 
 
 {% block content %}
-<div class="section">
-    <div class="row" id="printable">
-        <div class="col-md-12">
-            <div class="card p-3">
-                <div class="row">
-                    <div class="col-md-12">
-                        <h1 class="text-primary text-center">Dipak Niroula</h1>
-                        <p class="text-primary text-center">Software Engineer | Programmer | Developer | Mentor | Leader | Learner </p>
-                        <hr>
-                        <p class="mt-3">
-                            <p>I am a seasoned Senior Software Engineer with over 10 years of experience in designing, developing,
-                            and scaling software solutions. I possess expertise in programming languages such as Python, Rust,
-                            Java, JavaScript, Shell Scripting, and SQL, and have experience with frameworks like Django, FastAPI, Axum-Rust, and
-                            ReactJS. My technical proficiency extends to message brokers (RabbitMQ, Kafka, Redis), databases (PostgreSQL, MySQL, MongoDB),
-                            and tools like Docker and Kubernetes.</p>
-                            <p>Throughout my career, I have demonstrated strong leadership and mentoring abilities by leading engineering teams,
-                                leading the development of over 100 projects, mentoring hundreds of engineers, and training thousands of students in
-                                web development. My roles have included co-founding and leading software engineering teams, enhancing system
-                                performance, solving complex engineering problems, and driving innovation. My commitment to continuous
-                                learning and excellence is evident in my contributions to the tech community, including mentoring junior
-                                engineers and leading cross-functional teams. </p>
-                        </p>
-                    </div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col-md-6">
-                        <h4 class="text-primary">Contact Information</h4>
-                        <p>Full Name: Dipak Niroula</p>
-                        <p>Email: sangit.niroula@gmail.com</p>
-                        <p>Mobile: +977 9849978896 | +977 9823371327</p>
-                        <p>Address: Kathmandu, Bagmati Province, Nepal</p>
-                    </div>
-                    <div class="col-md-6">
-                        <h4 class="text-primary">Professional Accounts</h4>
-                        {% for social_link in social_links %}
-                        <p>{{social_link.social_media}}: <a href="{{social_link.social_link}}" target="_blank">{{social_link.social_link}}</a></p>
-                        {% endfor %}
+<div class="resume-wrapper">
+    <div id="printable">
+        <!-- Header -->
+        <header>
+            <h1 class="resume-name">Dipak Niroula</h1>
+            <p class="resume-tagline">Software Engineer | Architect | Tech Lead | Mentor</p>
 
-                    </div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col-md-12">
-                        <h4 class="text-primary"> Skills </h4>
-                        <div class="row">
-                            <div class="col-md-6 mt-2">
-                                <div class="card border-0">
-                                    <div class="card-header">
-                                        <p>Software Engineering Skills</p>
-                                    </div>
-                                    <div class="card-body">
-                                        <p><i class="bi bi-arrow-right"></i> Custom Software Design & Development</p>
-                                        <p><i class="bi bi-arrow-right"></i> Web Application Development</p>
-                                        <p><i class="bi bi-arrow-right"></i> Search Engine Design & Development</p>
-                                        <p><i class="bi bi-arrow-right"></i> Microservices Architecture Design and Development</p>
-                                        <p><i class="bi bi-arrow-right"></i> Distributed System Design and Development</p>
-                                        <p><i class="bi bi-arrow-right"></i> Object-Oriented & Functional Programming</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mt-2">
-                                <div class="card border-0">
-                                    <div class="card-header">
-                                        <p>Programming Languages & Frameworks Skills</p>
-                                    </div>
-                                    <div class="card-body">
-                                        <p><i class="bi bi-arrow-right"></i> Python, Rust, JavaScript, Shell Scripting, SQL</p>
-                                        <p><i class="bi bi-arrow-right"></i> Some Experience in Java, Go, C, C++, etc.</p>
-                                        <p><i class="bi bi-arrow-right"></i> Python Based: Django, FastAPI, Starlette, etc. </p>
-                                        <p><i class="bi bi-arrow-right"></i> Rust Based: Axum, Actix</p>
-                                        <p><i class="bi bi-arrow-right"></i> JavaScript based: NodeJS, ExpressJS, ReactJS etc.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mt-2">
-                                <div class="card border-0">
-                                    <div class="card-header">
-                                        <p>Tools/Technologies & others</p>
-                                    </div>
-                                    <div class="card-body">
-                                        <p><i class="bi bi-arrow-right"></i> Message Broker: Kafka, Redis, ZeroMQ, RabbitMQ, etc. </p>
-                                        <p><i class="bi bi-arrow-right"></i> Databases: Postgres, MySQL, SQLite, MongoDB, Redis, etc.</p>
-                                        <p><i class="bi bi-arrow-right"></i> ORMs: SQLAlchemy, Django ORM, Diesel ORM etc.</p>
-                                        <p><i class="bi bi-arrow-right"></i> GIT vcs, Jira, Trello, Aha, etc. </p>
-                                        <p><i class="bi bi-arrow-right"></i> Docker, Kubernetes, NGINX</p>
-                                        <p><i class="bi bi-arrow-right"></i> REST API, GraphQL, GRPC, WebSocket, etc. </p>
-                                        <p><i class="bi bi-arrow-right"></i> Network Programming</p>
-                                        <p><i class="bi bi-arrow-right"></i> Familiarity with Linux SyStem</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mt-2">
-                                <div class="card border-0">
-                                    <div class="card-header">
-                                        <p>Soft Skills</p>
-                                    </div>
-                                    <div class="card-body">
-                                        <p><i class="bi bi-arrow-right"></i> Clear Verbal and Written Communication in English & Nepali Languages</p>
-                                        <p><i class="bi bi-arrow-right"></i> Problem-Solving & Fast Learning Ability</p>
-                                        <p><i class="bi bi-arrow-right"></i> Dedicated, Committed, Leadership, Ownership, Collaborative</p>
-                                        <p><i class="bi bi-arrow-right"></i> Agile, Scrum, Test Driven Development</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+            <div class="resume-contact-info">
+                <span class="resume-contact-item">📧 <a
+                        href="mailto:sangit.niroula@gmail.com">sangit.niroula@gmail.com</a></span>
+                <span class="resume-contact-item">📱 +977 9849978896 / 9823371327</span>
+                <span class="resume-contact-item">📍 Kathmandu, Nepal</span>
+                {% for social_link in social_links %}
+                <span class="resume-contact-item">🔗 <a href="{{social_link.social_link}}"
+                        target="_blank">{{social_link.social_media}}</a></span>
+                {% endfor %}
+            </div>
+        </header>
 
-                    </div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col-md-12">
-                        <h4 class="text-primary">Experiences (10+ years in Software Engineering)</h4>
-                        <hr>
-                        <div class="row">
-                            <div class="col-md-12">
-                                {% for experience in experiences %}
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <h6><a href="{{experience.company_link}}" target="_blank">{{experience.company_name}}</a>
-                                        </h6>
-                                    </div>
-                                    <div class="col-md-9">
-                                        <div class="col-md-9">
-                                            <h6> <strong>{{experience.your_position}}</strong> | {{experience.start_date}} - {% if experience.end_date.as_ref().unwrap() != ""  %} {{experience.end_date.as_ref().unwrap()}} {% else %}Still Working {% endif %}</h6>
-                                            <p>{{experience.responsibility.as_ref().unwrap()|safe}}</p>
-                                            <p><strong>Skills:</strong> {{experience.skills.as_ref().unwrap()}} </p>
-                                        </div>
-                                    </div>
+        <!-- Summary -->
+        <section>
+            <h2 class="resume-section-title">Professional Summary</h2>
+            <div class="resume-item-description">
+                <p>Seasoned Software Engineer with over 10 years of experience in designing, developing, and
+                    scaling complex software solutions. Expert in Python, Rust, and Java with a strong focus on
+                    high-performance backend systems, distributed architectures, and message-driven processing. Proven
+                    leader who has co-founded engineering teams, led over 100 projects, and mentored hundreds of
+                    engineers while driving innovation through modern DevOps practices.</p>
+            </div>
+        </section>
 
-                                </div>
-                                <hr>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
+        <!-- Experience -->
+        <section>
+            <h2 class="resume-section-title">Experience</h2>
+            {% for experience in experiences %}
+            <div class="resume-item">
+                <div class="resume-item-header">
+                    <span class="resume-item-title">{{experience.your_position}}</span>
+                    <span class="resume-item-date">
+                        {{experience.start_date}} –
+                        {% match experience.end_date %}
+                        {% when Some with (end) %}
+                        {% if end != "" %}{{end}}{% else %}Present{% endif %}
+                        {% when None %}
+                        Present
+                        {% endmatch %}
+                    </span>
                 </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <h4 class="text-primary">Academic Qualification</h4>
-                        <hr>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <h6>Master in Computer Science</h6>
-                                    </div>
-                                    <div class="col-md-6">
-                                        Nepal College of Information Technology <br>
-                                        <strong>Pokhara University</strong>
-                                    </div>
-                                    <div class="col-md-3">
-                                        2018-2020 (DropOut)
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <h6>Bachelor in Electronics & Communication Engineering</h6>
-                                    </div>
-                                    <div class="col-md-6">
-                                        Cosmos College of Management & Technology <br>
-                                        <strong>Pokhara University</strong>
-                                    </div>
-                                    <div class="col-md-3">
-                                        2012-2016 <br>
-                                        Grade: 3.25 / 4
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="resume-item-subtitle">
+                    <a href="{{experience.company_link}}" target="_blank">{{experience.company_name}}</a>
                 </div>
-                <hr>
-                <div class="row">
-                    <div class="col-md-12">
-                        <h4 class="text-primary">Hobbies</h4>
-                        <hr>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <p><i class="bi bi-arrow-right"></i> Learning & Experimenting new things</p>
-                                <p><i class="bi bi-arrow-right"></i> Travelling in the Natural & Spiritual Places</p>
-                                <p><i class="bi bi-arrow-right"></i> Spending times with family & Relatives</p>
-                                <p><i class="bi bi-arrow-right"></i> Sometimes writing tech articles and making tech videos </p>
-                            </div>
-                        </div>
-                    </div>
+                <div class="resume-item-description">
+                    {% match experience.responsibility %}
+                    {% when Some with (resp) %}{{resp|safe}}
+                    {% when None %}{% endmatch %}
+
+                    {% match experience.skills %}
+                    {% when Some with (skills) %}<p><strong>Technologies:</strong> {{skills}}</p>
+                    {% when None %}{% endmatch %}
                 </div>
             </div>
-        </div>
+            {% endfor %}
+        </section>
+
+        <!-- Skills -->
+        <section>
+            <h2 class="resume-section-title">Technical Skills</h2>
+            <div class="resume-skills-grid">
+                <div class="skill-category">
+                    <div class="skill-category-title">Core Technologies</div>
+                    <div class="skill-list">Python, Rust, Java, JavaScript, Shell Scripting, SQL, C, C++, Go</div>
+                </div>
+                <div class="skill-category">
+                    <div class="skill-category-title">Frameworks & Backend</div>
+                    <div class="skill-list">Django, FastAPI, Starlette, Axum, Actix, Node.js, Express.js, ReactJS</div>
+                </div>
+                <div class="skill-category">
+                    <div class="skill-category-title">Data & Messaging</div>
+                    <div class="skill-list">Kafka, Redis, RabbitMQ, ZeroMQ, PostgreSQL, MySQL, MongoDB, Diesel ORM,
+                        SQLAlchemy</div>
+                </div>
+                <div class="skill-category">
+                    <div class="skill-category-title">DevOps & Tools</div>
+                    <div class="skill-list">Docker, Kubernetes, NGINX, GitHub Actions, Linux Systems, Jira, Trello</div>
+                </div>
+                <div class="skill-category">
+                    <div class="skill-category-title">Architecture</div>
+                    <div class="skill-list">Microservices, Distributed Systems, Search Engine Design, REST APIs,
+                        GraphQL, gRPC</div>
+                </div>
+                <div class="skill-category">
+                    <div class="skill-category-title">Soft Skills</div>
+                    <div class="skill-list">Technical Leadership, Team Mentoring, Agile/Scrum, Problem-Solving,
+                        Ownership</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Education -->
+        <section>
+            <h2 class="resume-section-title">Education</h2>
+            <div class="resume-item">
+                <div class="resume-item-header">
+                    <span class="resume-item-title">Master in Computer Science (Candidate)</span>
+                    <span class="resume-item-date">2018 – 2020</span>
+                </div>
+                <div class="resume-item-subtitle">Nepal College of Information Technology, Pokhara University</div>
+            </div>
+            <div class="resume-item">
+                <div class="resume-item-header">
+                    <span class="resume-item-title">Bachelor in Electronics & Communication Engineering</span>
+                    <span class="resume-item-date">2012 – 2016</span>
+                </div>
+                <div class="resume-item-subtitle">Cosmos College of Management & Technology, Pokhara University</div>
+                <div class="resume-item-description">Grade: 3.25 / 4.00</div>
+            </div>
+        </section>
+
     </div>
-    <div class="row mt-3">
-        <div class="col-md-12">
-            <button href="" class="btn btn-primary mx-auto" id="download-resume">Download</button>
-        </div>
+
+    <!-- Download / Print Action -->
+    <div class="no-print resume-actions">
+        <button class="resume-pdf-btn" id="download-resume">
+            <i class="bi bi-download"></i> Download PDF
+        </button>
     </div>
 </div>
 
 <script>
-    const btn = document.getElementById("download-resume");
-    btn.addEventListener("click", (ev) => {
-        ev.preventDefault();
-        alert("Downloading")
-        var printableContent = document.getElementById('printable').innerHTML;
-        var originalContent = document.body.innerHTML;
+document.getElementById('download-resume').addEventListener('click', function () {
+    // Clone only the resume content
+    const content = document.getElementById('printable').innerHTML;
+    const origin = window.location.origin;
 
-        document.body.innerHTML = printableContent;
-        window.print();
+    // Open a lean, isolated window
+    const w = window.open('', '_blank', 'width=1024,height=800');
+    w.document.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dipak_Niroula_CV</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="${origin}/static/resume.css">
+    <style>
+        /* Standalone print overrides */
+        body {
+            margin: 0;
+            padding: 20px 0;
+            background: #fff;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        #printable {
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            margin: 0 auto !important;
+            padding: 40px 60px !important;
+            max-width: 850px;
+        }
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 0.6in 0.5in;
+            }
+            body { padding: 0; }
+            #printable {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .resume-item { page-break-inside: avoid; }
+            a { color: #2c5282 !important; text-decoration: none !important; }
+        }
+    </style>
+</head>
+<body class="resume-page">
+    <div id="printable">${content}</div>
+</body>
+</html>`);
+    w.document.close();
 
-        document.body.innerHTML = originalContent;
-    })
+    // Wait for fonts + styles to load, then print
+    w.addEventListener('load', function () {
+        // Use document.fonts.ready for reliable font loading
+        w.document.fonts.ready.then(function () {
+            w.print();
+        });
+    }, { once: true });
+});
 </script>
 
 {% endblock %}

@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,85 +12,122 @@
     <link rel="stylesheet" href="/static/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/fonts.css">
     {% block metatags %}
     {% endblock %}
 
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-M56B9CW3');</script>
+    <script>(function (w, d, s, l, i) {
+            w[l] = w[l] || []; w[l].push({
+                'gtm.start':
+                    new Date().getTime(), event: 'gtm.js'
+            }); var f = d.getElementsByTagName(s)[0],
+                j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-M56B9CW3');</script>
 
 
     {% block css %}
 
     {% endblock %}
 </head>
-<body class="d-flex flex-column min-vh-100">
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-M56B9CW3"
-                  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container">
-        <a class="navbar-brand fw-bold brand-teal" href="/">Dipak Niroula</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link {% block home %}{% endblock %}" aria-current="page" href="/"><i class="bi bi-house-door me-1"></i>Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% block blogs %}{% endblock %}" href="/blog/list"><i class="bi bi-journal-text me-1"></i>Blogs</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% block contact %}{% endblock %}" href="/contact"><i class="bi bi-envelope me-1"></i>Contact</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% block resume %}{% endblock %}" href="/my-resume"><i class="bi bi-file-arrow-down me-1"></i>My Resume</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" target="_blank" href="https://github.com/ecedreamer?tab=repositories"><i class="bi bi-github me-1"></i>Github</a>
-                </li>
-            </ul>
+
+<body class="d-flex flex-column min-vh-100 {% block body_class %}{% endblock %}">
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-M56B9CW3" height="0" width="0"
+            style="display:none;visibility:hidden"></iframe></noscript>
+    <header class="site-header">
+        <div class="container">
+            <div class="header-inner">
+                <!-- Logo / Brand -->
+                <a class="site-logo text-decoration-none" href="/">
+                    <span class="logo-monogram">DN</span>
+                    <span class="logo-name">Dipak Niroula</span>
+                </a>
+
+                <!-- Mobile Toggle -->
+                <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <!-- Navigation -->
+                <nav class="site-nav" id="siteNav">
+                    <ol class="nav-list">
+                        <li>
+                            <a class="nav-link {% block home %}{% endblock %}" href="/">
+                                <span class="nav-num">01.</span><span class="nav-label">Home</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% block blogs %}{% endblock %}" href="/blog/list">
+                                <span class="nav-num">02.</span><span class="nav-label">Blogs</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% block contact %}{% endblock %}" href="/contact">
+                                <span class="nav-num">03.</span><span class="nav-label">Contact</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% block resume %}{% endblock %}" href="/my-resume">
+                                <span class="nav-num">04.</span><span class="nav-label">Resume</span>
+                            </a>
+                        </li>
+                        <li class="nav-github">
+                            <a href="https://github.com/ecedreamer" target="_blank" title="GitHub" aria-label="GitHub Profile">
+                                <i class="bi bi-github"></i>
+                            </a>
+                        </li>
+                    </ol>
+                </nav>
+            </div>
         </div>
-    </div>
-</nav>
+    </header>
+    <script>
+        document.getElementById('mobileNavToggle').addEventListener('click', function() {
+            const nav = document.getElementById('siteNav');
+            this.classList.toggle('open');
+            nav.classList.toggle('open');
+        });
+    </script>
 
-<main class="flex-shrink-0">
-    <div class="container my-4">
-        {% block content %}
-        {% endblock %}
-    </div>
-</main>
+    <main class="flex-shrink-0">
+        <div class="container my-5">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
 
-<footer class="footer mt-auto py-3 bg-dark text-white text-center">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <p>Built using [<a href="https://www.rust-lang.org/" class="text-light">Rust</a>, <a href="https://github.com/tokio-rs/axum" class="text-light">Axum</a>]</p>
-                <p>&copy; 2024 Dipak Niroula. All Rights Reserved.</p>
-                <div class="mt-3">
-                    <a href="https://github.com/ecedreamer" class="text-light me-3" target="_blank"><i class="bi bi-github"></i></a>
-                    <a href="https://linkedin.com/in/dipak-niroula-90b11610b/" class="text-light me-3" target="_blank"><i class="bi bi-linkedin"></i></a>
-                    <a href="https://twitter.com/DipakSangit" class="text-light" target="_blank"><i class="bi bi-twitter"></i></a>
+    <footer class="footer mt-auto py-5 bg-dark text-white text-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <p class="mb-2">Built with <span class="text-danger">❤</span> using <strong>Rust</strong> & <strong>Axum</strong></p>
+                    <p class="opacity-50 small">&copy; 2026 Dipak Niroula. All Rights Reserved.</p>
+                    <div class="mt-4 site-social-links">
+                        <a href="https://github.com/ecedreamer" class="social-icon" target="_blank"><i
+                                class="bi bi-github"></i></a>
+                        <a href="https://linkedin.com/in/dipak-niroula-90b11610b/" class="social-icon"
+                            target="_blank"><i class="bi bi-linkedin"></i></a>
+                        <a href="https://twitter.com/DipakSangit" class="social-icon" target="_blank"><i
+                                class="bi bi-twitter"></i></a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</footer>
+    </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-TFM254286B"></script>
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TFM254286B"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-    gtag('config', 'G-TFM254286B');
-</script>
+        gtag('config', 'G-TFM254286B');
+    </script>
 </body>
+
 </html>

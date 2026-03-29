@@ -28,35 +28,47 @@ pub async fn session_middleware(mut req: Request<Body>, next: Next) -> Result<Re
 
         let cookies = cookies_str
             .split(';')
-            .filter_map(|cookie_str| Cookie::parse_encoded(cookie_str.trim()).ok())
+            .filter_map(|cookie_str| {
+                let parsed = Cookie::parse_encoded(cookie_str.trim());
+                if parsed.is_err() {
+                    tracing::debug!("Failed to parse cookie: {}", cookie_str);
+                }
+                parsed.ok()
+            })
             .collect::<Vec<_>>();
 
         if let Some(session_cookie) = cookies.iter().find(|cookie| cookie.name() == "session_id") {
             let session_id = session_cookie.value();
 
             let conn = &mut establish_connection().await;
-            if let Ok(Some(session)) = get_session(conn, session_id).await {
-                let current_time = Utc::now().naive_utc(); // Current datetime in UTC
-                tracing::info!("{:?}", session);
-                if current_time < session.expires_at {
-                    tracing::info!("Session is valid {} -- {}", current_time, session.expires_at);
-                    req.extensions_mut().insert(session);
-                    Ok(next.run(req).await)
-                } else {
-                    tracing::info!("Session expired {} -- {}", current_time, session.expires_at);
-                    delete_expired_sessions(conn).await.expect("Error deleting expired sessions");
+            match get_session(conn, session_id).await {
+                Ok(Some(session)) => {
+                    let current_time = Utc::now().naive_utc();
+                    if current_time < session.expires_at {
+                        tracing::info!("Valid session for user: {}", session.user_id);
+                        req.extensions_mut().insert(session);
+                        Ok(next.run(req).await)
+                    } else {
+                        tracing::warn!("Session expired for ID: {}. Current: {}, Expires: {}", session_id, current_time, session.expires_at);
+                        let _ = delete_expired_sessions(conn).await;
+                        Ok(Redirect::to("/auth/login").into_response())
+                    }
+                }
+                Ok(None) => {
+                    tracing::warn!("Session ID not found in database: {}", session_id);
                     Ok(Redirect::to("/auth/login").into_response())
                 }
-            } else {
-                tracing::info!("Session not found in DB");
-                Ok(Redirect::to("/auth/login").into_response())
+                Err(e) => {
+                    tracing::error!("Database error during session lookup: {}", e);
+                    Ok(Redirect::to("/auth/login").into_response())
+                }
             }
         } else {
-            tracing::info!("Session cookie not found");
+            tracing::info!("Required 'session_id' cookie missing. Found: {:?}", cookies.iter().map(|c| c.name()).collect::<Vec<_>>());
             Ok(Redirect::to("/auth/login").into_response())
         }
     } else {
-        tracing::info!("No cookies found");
+        tracing::info!("No cookies present in request headers.");
         Ok(Redirect::to("/auth/login").into_response())
     }
 }

@@ -1,35 +1,46 @@
 {% extends "base.html" %}
 
-{% block blogs %} active {% endblock %}
-{% block title %} {{blog.title}} {% endblock %}
-{% block description %} {{blog.content | strip_html_tags | truncate(180)}} {% endblock %}
+{% block blogs %}active{% endblock %}
+{% block title %}{{ blog.title }} — Dipak Niroula{% endblock %}
+{% block description %}{{ blog.content | strip_html_tags | truncate(180) }}{% endblock %}
 
 {% block metatags %}
 {% if blog.image.is_some() %}
-<meta property="og:image" content="https://dipakniroula.com.np/{{blog.image.as_ref().unwrap()}}">
+<meta property="og:image" content="https://dipakniroula.com.np/{{ blog.image.as_ref().unwrap() }}">
 {% endif %}
-<meta property="og:image:alt" content="{{blog.title}}">
+<meta property="og:image:alt" content="{{ blog.title }}">
 {% endblock %}
 
-
 {% block content %}
-<div class="section">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="title">
-                <h4>{{blog.title}}</h4>
-                <small>Published Date: {{ blog.published_date }} | viewed {{blog.view_count}} times</small>
-            </div>
-            <div class="image py-5">
-                {% if blog.image.is_some() %}
-                <img src="/{{blog.image.as_ref().unwrap()}}" class="img-fluid" alt="{{blog.title}}">
-                {% endif %}
-            </div>
-            <div class="content">
-                {{blog.content|safe}}
-            </div>
-        </div>
+
+<article class="blog-detail">
+    <!-- Back link -->
+    <div class="mb-5">
+        <a href="/blog/list" class="back-link text-decoration-none small">← Back to Writings</a>
     </div>
-</div>
+
+    <!-- Article Header -->
+    <header class="blog-detail-header mb-5">
+        <h1 class="blog-detail-title fw-bold mb-3">{{ blog.title }}</h1>
+        <p class="text-muted small">Published {{ blog.published_date }} &middot; {{ blog.view_count }} views</p>
+    </header>
+
+    <!-- Cover Image -->
+    {% if blog.image.is_some() %}
+    <div class="blog-detail-cover mb-5">
+        <img src="/{{ blog.image.as_ref().unwrap() }}" class="img-fluid rounded-3" alt="{{ blog.title }}">
+    </div>
+    {% endif %}
+
+    <!-- Article content -->
+    <div class="blog-detail-content">
+        {{ blog.content | safe }}
+    </div>
+
+    <!-- Footer -->
+    <div class="blog-detail-footer mt-5 pt-4 border-top">
+        <a href="/blog/list" class="btn-hero-outline">← All Writings</a>
+    </div>
+</article>
 
 {% endblock %}

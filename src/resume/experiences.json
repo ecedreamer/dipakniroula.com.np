@@ -1,0 +1,79 @@
+[
+    {
+        "id": null,
+        "company_name": "Guardsix (formerly Logpoint)",
+        "your_position": "Software Engineer",
+        "start_date": "2022-01-01",
+        "end_date": null,
+        "responsibility": "Architecting and maintaining the high-performance Core Engine, focusing on large-scale Data Ingestion and Analytics pipelines. Specialized in distributed systems and optimized data processing using low-level systems programming and modern design patterns.",
+        "skills": "Rust, Java, Python, C, Kafka, ZeroMQ, Lucene, ANTLR, Docker, Jenkins, Distributed Systems, Software Architecture",
+        "company_link": "https://www.guardsix.com",
+        "order": 1
+    },
+    {
+        "id": null,
+        "company_name": "Softwarica College of IT and E-commerce",
+        "your_position": "Software Design Lecturer",
+        "start_date": "2024-03-01",
+        "end_date": "2024-09-01",
+        "responsibility": "Delivering advanced modules on Software Design and Python. Bridging the gap between academic theory and industry-standard engineering practices for the next generation of developers.",
+        "skills": "Software Design, Design Patterns, Python, Academic Leadership",
+        "company_link": "https://softwarica.edu.np",
+        "order": 2
+    },
+    {
+        "id": null,
+        "company_name": "Sarobar Technology Pvt. Ltd",
+        "your_position": "Co-Founder and Lead Software Engineer",
+        "start_date": "2016-12-01",
+        "end_date": "2022-01-01",
+        "responsibility": "Co-founded and scaled a tech firm delivering robust monoliths and microservices. Directed a multidisciplinary engineering team to build custom distributed systems while scaling the company's technical vision.",
+        "skills": "Python (Django/FastAPI), JavaScript (React), Flutter, RabbitMQ, Celery, Docker, Microservices, Leadership",
+        "company_link": "https://sarobar.com",
+        "order": 3
+    },
+    {
+        "id": null,
+        "company_name": "Sarobar Technology Pvt. Ltd",
+        "your_position": "Web Development Trainer",
+        "start_date": "2016-12-01",
+        "end_date": "2021-12-01",
+        "responsibility": "Mentored 1000+ developers in modern web ecosystems. Designed comprehensive curricula for Django and React JS, fostering a community of skilled tech enthusiasts and interns.",
+        "skills": "Mentorship, Technical Training, Django REST Framework, React JS, Fullstack Pedagogy",
+        "company_link": "https://sarobar.com",
+        "order": 4
+    },
+    {
+        "id": null,
+        "company_name": "Cosmos College of Management and Technology",
+        "your_position": "Part-time Lecturer",
+        "start_date": "2016-07-01",
+        "end_date": "2021-12-01",
+        "responsibility": "Instructed engineering students in Computer and Electronics disciplines, balancing theoretical foundations with hands-on laboratory application.",
+        "skills": "Computer Engineering, IT, Electronics, Curriculum Development",
+        "company_link": "https://cosmoscollege.edu.np",
+        "order": 5
+    },
+    {
+        "id": null,
+        "company_name": "Prixa",
+        "your_position": "Software Engineer",
+        "start_date": "2016-07-01",
+        "end_date": "2016-12-01",
+        "responsibility": "Developed enterprise-grade HRM and E-commerce systems. Integrated AI-driven conversational interfaces using Google Dialogflow to enhance user engagement on social platforms.",
+        "skills": "Python, Django, Django REST Framework, Dialogflow, API Integration",
+        "company_link": "https://prixa.com",
+        "order": 6
+    },
+    {
+        "id": null,
+        "company_name": "RAIT Pvt. Ltd.",
+        "your_position": "Co-founder and Electronics Engineer",
+        "start_date": "2015-04-01",
+        "end_date": "2016-07-01",
+        "responsibility": "Pioneered a startup focused on hardware education. Engineered lab training equipment and programmed embedded systems for schools, specializing in IoT and microcontroller prototypes.",
+        "skills": "Embedded Systems, C/C++, Arduino, Raspberry Pi, Hardware Prototyping",
+        "company_link": "https://raitnepal.com.np",
+        "order": 7
+    }
+]

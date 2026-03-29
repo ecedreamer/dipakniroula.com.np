@@ -11,6 +11,7 @@ mod schema;
 mod filters;
 mod session_backend;
 
+use argon2::password_hash::rand_core;
 use askama::Template;
 use axum::http::{HeaderValue, Method};
 use axum::{
@@ -102,7 +103,7 @@ async fn run_fixture(conn: &mut diesel::PgConnection) {
     };
     use diesel::prelude::*;
 
-    let salt = SaltString::generate(rand::rngs::OsRng);
+    let salt = SaltString::generate(&mut rand_core::OsRng);
     let argon2 = Argon2::default();
     let hashed_password = argon2
         .hash_password(env_password.as_bytes(), &salt)

@@ -87,7 +87,7 @@ pub async fn login_handler(Form(form_data): Form<LoginForm>) -> impl IntoRespons
 
                     let mut headers = HeaderMap::new();
                     let cookie_value = format!(
-                        "session_id={}; HttpOnly; Secure; SameSite=Lax; Path=/",
+                        "session_id={}; HttpOnly; SameSite=Lax; Path=/",
                         session_obj.session_id
                     );
                     headers.insert(

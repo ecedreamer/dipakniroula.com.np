@@ -1,95 +1,77 @@
 {% extends "base.html" %}
 {% block home %}active{% endblock %}
 
-{% block title %} Professional Software Engineer {% endblock %}
-{% block description %} Dipak Niroula is a Professional Software Engineer, Programmer, Developer, Mentor, Learner. {%
-endblock %}
+{% block title %}Software Engineer — Dipak Niroula{% endblock %}
+{% block description %}Dipak Niroula is a Software Engineer & Architect with 10+ years of experience in
+Python, Rust, Java, Distributed System {% endblock %}
 
 {% block content %}
 
-<!--<div class="row mt-5">-->
-<!--    <div class="col-md-12">-->
-<!--        <h5 class="text-center">Welcome to my website</h5>-->
-<!--        <h3 class="text-center">I am Dipak Niroula</h3>-->
-<!--        <h5>Software Engineer, Programmer, Developer, </h5>-->
-<!--    </div>-->
-<!--</div>-->
+<section class="hero-section">
+    <div class="row align-items-center g-5 py-5">
+        <div class="col-lg-7">
+            <p class="hero-eyebrow">Hello, I'm</p>
+            <h1 class="display-5 fw-bold mb-3">Dipak Niroula</h1>
+            <p class="hero-tagline mb-4">Software Engineer &amp; Architect</p>
+            <p class="hero-bio mb-5">
+                10+ years building scalable backend systems, distributed architectures, and
+                high-performance data pipelines. I've led 100+ projects, co-founded engineering teams,
+                and mentored hundreds of engineers.
+            </p>
 
-<div class="row mt-3">
-    <div class="col-md-12">
-        <div class="row">
-            <div class="col-md-6">
-                <h5>Introduction</h5>
-                <hr>
-                <p>Senior Software Engineer at <a href="https://logpoint.com" target="_blank">Logpoint Nepal Pvt.
-                        Ltd</a>
-                </p>
-                <p>Engineer | Programmer | Developer | Learner | Mentor | Leader </p>
-                <p>10+ years of Experience in Software Engineering</p>
-                <p>Programmer: Python, Rust, JavaScript, Shell Script, Java </p>
-                <img src="/static/dni_profile.jpeg" alt="" class="img-fluid" style="width: 350px;">
+            <div class="skill-tags mb-5">
+                <span class="skill-tag">Python</span>
+                <span class="skill-tag">Rust</span>
+                <span class="skill-tag">Kafka</span>
+                <span class="skill-tag">PostgreSQL</span>
+                <span class="skill-tag">Docker</span>
+                <span class="skill-tag">Kubernetes</span>
             </div>
 
-            <div class="col-md-6">
-                <br>
-                <br>
-                <p>
-                    I am a seasoned Senior Software Engineer with over 10 years of experience in designing, developing,
-                    and scaling software solutions. I possess expertise in programming languages such as Python, Rust,
-                    Java, JavaScript, Shell Scripting, and SQL, and have experience with frameworks like Django,
-                    FastAPI, and
-                    ReactJS. My technical proficiency extends to message brokers (RabbitMQ, Kafka, Redis), databases
-                    (PostgreSQL, MySQL, MongoDB),
-                    and tools like Docker and Kubernetes.
-                    Throughout my career, I have demonstrated strong leadership and mentoring abilities by leading
-                    engineering teams,
-                    leading the development of over 100 projects, mentoring hundreds of engineers, and training
-                    thousands of students in
-                    web development.
-                </p>
-
-                <h5>Find me on Social Media</h5>
-                <hr>
-                {% for (count, social_link) in social_links.iter().enumerate() %}
-                <p> {{count+1}}) {{social_link.social_media}}: <a href="{{social_link.social_link}}"
-                        target="_blank">{{social_link.social_link}}</a>
-                </p>
-
-                {% endfor %}
-                <a href="/my-resume" class="btn btn-info text-white">View my Resume</a>
+            <div class="hero-actions">
+                <a href="/my-resume" class="btn-hero-primary">View Resume</a>
+                <a href="/contact" class="btn-hero-outline">Get in Touch</a>
+            </div>
+        </div>
+        <div class="col-lg-5 text-center">
+            <div class="profile-frame">
+                <img src="/static/dni_profile.jpeg" alt="Dipak Niroula" class="img-fluid profile-photo">
             </div>
         </div>
     </div>
-</div>
+</section>
 
 {% if popular_blogs.len() > 0 %}
-<div class="row mt-5">
-    <div class="col-md-12">
-        <h4>Popular Blogs</h4>
-        <hr>
-        <div class="row">
-            {% for blog in popular_blogs %}
-            <div class="col-md-4 mt-2">
-                <div class="card h-200">
+<section class="blogs-section mt-5 pt-4 border-top">
+    <div class="section-header d-flex justify-content-between align-items-center mb-4">
+        <h2 class="section-title h5 fw-semibold mb-0">Popular Articles</h2>
+        <a href="/blog/list" class="section-link text-decoration-none small">View all →</a>
+    </div>
+    <div class="row g-4">
+        {% for blog in popular_blogs %}
+        <div class="col-md-4">
+            <a href="/blog/{{ blog.id.unwrap() }}/detail" class="blog-card-link text-decoration-none">
+                <div class="blog-card">
                     {% if blog.image.is_some() %}
-                    <img src="/{{ blog.image.as_ref().unwrap() }}" class="card-img-top" alt="{{blog.title}}">
-                    {% else %}
-                    <img src="https://via.placeholder.com/350x200" class="card-img-top" alt="{{blog.title}}">
-                    {% endif %}
-                    <div class="card-body">
-                        <h5 class="card-title">{{blog.title}}</h5>
-                        <p>Published On: {{blog.published_date}}</p>
-                        <p>Viewed: {{blog.view_count}} times</p>
+                    <div class="blog-card-img">
+                        <img src="/{{ blog.image.as_ref().unwrap() }}" alt="{{ blog.title }}">
                     </div>
-                    <div class="card-footer">
-                        <a href="/blog/{{ blog.id.unwrap() }}/detail" class="btn btn-primary">View Details</a>
+                    {% else %}
+                    <div class="blog-card-img placeholder-img d-flex align-items-center justify-content-center">
+                        <i class="bi bi-file-earmark-text fs-1 text-muted"></i>
+                    </div>
+                    {% endif %}
+                    <div class="blog-card-body p-3">
+                        <h3 class="blog-card-title h6 fw-semibold mb-1">{{ blog.title }}</h3>
+                        <p class="blog-card-meta small text-muted mb-0">{{ blog.published_date }} &middot; {{
+                            blog.view_count }} views</p>
                     </div>
                 </div>
-            </div>
-            {% endfor %}
+            </a>
         </div>
-
+        {% endfor %}
     </div>
-</div>
+</section>
 {% endif %}
+
 {% endblock %}
