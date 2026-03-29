@@ -35,6 +35,7 @@ volumes:
   postgres_data:
   app_logs:
 
+
 networks:
   webnet:
   internal:

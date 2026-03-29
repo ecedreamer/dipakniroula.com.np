@@ -3,6 +3,7 @@ use regex::Regex;
 use askama::Values;
 
 
+#[askama::filter_fn]
 pub fn truncate_words(value: &str, num_words: usize) -> askama::Result<String> {
     let words: Vec<&str> = value.split_whitespace().collect();
     if words.len() <= num_words {
@@ -16,6 +17,7 @@ pub fn truncate_words(value: &str, num_words: usize) -> askama::Result<String> {
 
 
 
+#[askama::filter_fn]
 pub fn strip_html_tags(s: &str, _: &dyn Values) -> Result<String> {
     let re = Regex::new(r"<[^>]*>").unwrap();
     let without_tags = re.replace_all(s, "").to_string();

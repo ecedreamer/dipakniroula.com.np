@@ -102,7 +102,7 @@ async fn run_fixture(conn: &mut diesel::PgConnection) {
     };
     use diesel::prelude::*;
 
-    let salt = SaltString::from_rng(&mut rand::rng());
+    let salt = SaltString::generate(rand::rngs::OsRng);
     let argon2 = Argon2::default();
     let hashed_password = argon2
         .hash_password(env_password.as_bytes(), &salt)
