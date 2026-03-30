@@ -1,5 +1,5 @@
-use diesel::{AsChangeset, Insertable, Queryable, Selectable};
-use serde::{Deserialize, Serialize};
+use diesel::{AsChangeset, Insertable, Queryable};
+use serde::Deserialize;
 
 
 #[derive(Debug, Queryable, Deserialize)]

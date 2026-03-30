@@ -1,6 +1,6 @@
 use diesel::prelude::*;
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use super::models::{Blog, Category, NewBlog, NewCategory, UpdateBlog};
 use crate::blog::blog_repository::blog_repo::BlogRepository;
@@ -22,7 +22,7 @@ use std::str::FromStr;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 
-pub async fn blog_routes() -> Router {
+pub async fn blog_routes() -> Router<axum_csrf::CsrfConfig> {
     Router::new()
         // client side pages
         .route("/blog/list", get(blog_list_page))

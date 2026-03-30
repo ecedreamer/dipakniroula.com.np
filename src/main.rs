@@ -39,6 +39,7 @@ use tracing_subscriber::{EnvFilter, Layer, filter, fmt};
 #[template(path = "404.html")]
 struct FourZeroFourTemplate {}
 
+
 async fn handle_404() -> impl IntoResponse {
     tracing::warn!("404 page not found");
     let context = FourZeroFourTemplate {};
@@ -161,10 +162,10 @@ async fn main() {
 
     let static_files_service = ServeDir::new("static");
     let media_files_service = ServeDir::new("media");
+
     let app = Router::new()
         .route("/", get(home_page))
         .route("/contact", get(contact_page).post(contact_form_handler))
-        .with_state(csrf_config)
         .route("/summernote-upload", post(summernote_upload))
         .nest("/auth", auth::route_handlers::auth_routes().await)
         .merge(blog::route_handlers::blog_routes().await)
@@ -172,6 +173,8 @@ async fn main() {
         .nest_service("/static", static_files_service)
         .nest_service("/media", media_files_service)
         .fallback(handle_404)
+        .with_state(csrf_config) // Now all routes that need state have it
+        .layer(axum::middleware::from_fn(middlewares::security_headers_middleware))
         .layer(cors);
 
     let listener = tokio::net::TcpListener::bind(&"0.0.0.0:8080")

@@ -14,7 +14,7 @@ use crate::auth::models::SocialLink;
 use crate::middlewares::session_middleware;
 use crate::resume::resume_repository::ExperienceRepository;
 
-pub async fn resume_routes() -> Router {
+pub async fn resume_routes() -> Router<axum_csrf::CsrfConfig> {
     
     Router::new()
         // client side pages

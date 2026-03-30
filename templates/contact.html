@@ -18,25 +18,31 @@
             <form action="" method="POST">
                 <input type="hidden" name="authenticity_token" value="{{ authenticity_token }}"/>
                 
+                <!-- Honeypot field - should be left empty by humans -->
+                <div style="display: none;">
+                    <label for="website_url">Website URL</label>
+                    <input type="text" name="website_url" id="website_url" tabindex="-1" autocomplete="off">
+                </div>
+                
                 <div class="row mb-4">
                     <div class="col-md-6 mb-4 mb-md-0">
                         <label for="full_name" class="form-label small fw-bold text-uppercase text-muted">Full Name</label>
-                        <input type="text" required name="full_name" class="form-control form-control-lg" placeholder="John Doe">
+                        <input type="text" required name="full_name" maxlength="100" class="form-control form-control-lg" placeholder="John Doe">
                     </div>
                     <div class="col-md-6">
                         <label for="email" class="form-label small fw-bold text-uppercase text-muted">Email Address</label>
-                        <input type="email" required name="email" class="form-control form-control-lg" placeholder="john@example.com">
+                        <input type="email" required name="email" maxlength="100" class="form-control form-control-lg" placeholder="john@example.com">
                     </div>
                 </div>
 
                 <div class="mb-4">
                     <label for="subject" class="form-label small fw-bold text-uppercase text-muted">Subject</label>
-                    <input type="text" required name="subject" class="form-control form-control-lg" placeholder="Project Inquiry">
+                    <input type="text" required name="subject" maxlength="200" class="form-control form-control-lg" placeholder="Project Inquiry">
                 </div>
 
                 <div class="mb-4">
                     <label for="message" class="form-label small fw-bold text-uppercase text-muted">Your Message</label>
-                    <textarea class="form-control" required name="message" rows="6" placeholder="How can I help you?"></textarea>
+                    <textarea class="form-control" required name="message" rows="6" maxlength="5000" placeholder="How can I help you?"></textarea>
                 </div>
 
                 <div class="d-grid mt-5">

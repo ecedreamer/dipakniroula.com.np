@@ -1,5 +1,4 @@
 use askama::Template;
-use diesel::prelude::*;
 use diesel_async::RunQueryDsl;
 
 use axum::{
@@ -20,7 +19,7 @@ use axum_csrf::CsrfToken;
 use serde::Deserialize;
 use serde_json::json;
 
-use crate::auth::models::SocialLink;
+
 use crate::blog::blog_repository::blog_repo::BlogRepository;
 use crate::blog::models::Blog;
 use crate::db::establish_connection;
@@ -29,7 +28,6 @@ use crate::db::establish_connection;
 #[derive(Template, Deserialize)]
 #[template(path = "home.html")]
 struct HomeTemplate {
-    social_links: Vec<SocialLink>,
     popular_blogs: Vec<Blog>,
 }
 
@@ -41,16 +39,7 @@ pub async fn home_page() -> impl IntoResponse {
     let results = blog_repo.find_active_only(None, "view_count", 3).await;
 
 
-    use crate::schema::social_links::dsl::social_links;
-    let my_social_links = social_links
-        .select(SocialLink::as_select())
-        .load(connection)
-        .await
-        .expect("Error loading social links");
-
-
     let context = HomeTemplate {
-        social_links: my_social_links,
         popular_blogs: results.unwrap(),
     };
 
@@ -69,23 +58,12 @@ pub async fn home_page() -> impl IntoResponse {
 #[derive(Template)]
 #[template(path = "contact.html")]
 struct ContactTemplate {
-    social_links: Vec<SocialLink>,
     authenticity_token: String,
 }
 
 
 pub async fn contact_page(token: CsrfToken) -> impl IntoResponse {
-    let connection = &mut establish_connection().await;
-    use crate::schema::social_links::dsl::social_links;
-    let results = social_links
-        .select(SocialLink::as_select())
-        .load(connection)
-        .await
-        .expect("Error loading social links");
-
-
     let context = ContactTemplate {
-        social_links: results,
         authenticity_token: token.authenticity_token().unwrap(),
     };
     match context.render() {
@@ -106,15 +84,33 @@ pub struct ContactForm {
     mobile: Option<String>,
     subject: String,
     message: String,
+    website_url: Option<String>,
 }
 
 pub async fn contact_form_handler(token: CsrfToken, Form(form): Form<ContactForm>) -> impl IntoResponse {
-    tracing::info!("{} ------", form.full_name);
-    let date_time_str = Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
-    let mobile = form.mobile.unwrap_or(String::new());
+    tracing::info!("Contact form submission from: {}", form.full_name);
+    
+    // Honeypot check
+    if form.website_url.is_some() && !form.website_url.as_ref().unwrap().is_empty() {
+        tracing::warn!("Honeypot triggered by: {}", form.full_name);
+        return Redirect::to("/contact").into_response();
+    }
 
     if token.verify(&form.authenticity_token).is_err() {
-        tracing::error!("Suspicious Payload: {}", &form.authenticity_token);
+        tracing::error!("Invalid CSRF token from: {}", form.full_name);
+        return Redirect::to("/contact").into_response();
+    }
+
+    // Basic length validation
+    if form.full_name.len() > 100 || form.email.len() > 100 || form.subject.len() > 200 || form.message.len() > 5000 {
+        tracing::error!("Input too long from: {}", form.full_name);
+        return (StatusCode::BAD_REQUEST, "Input too long").into_response();
+    }
+
+    let date_time_str = Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+    let mobile = form.mobile.unwrap_or_default();
+
+    if false { // Placeholder logic to keep structure if needed, but normally verified above
         Redirect::to("/contact").into_response()
     } else {
         use crate::schema::messages;

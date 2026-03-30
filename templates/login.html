@@ -8,6 +8,7 @@
             <h4 class="text-center">Login Page</h4>
             <hr>
             <form action="/auth/login" method="POST">
+                <input type="hidden" name="authenticity_token" value="{{ authenticity_token }}"/>
                 <div>
                     <label for="email"> Email: *</label><br>
                     <input type="email" name="email" required class="form-control">

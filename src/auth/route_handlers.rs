@@ -1,4 +1,4 @@
-use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
+use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use serde::Deserialize;
 use std::str::FromStr;
 
@@ -17,9 +17,10 @@ use axum::{
     response::{Html, IntoResponse, Redirect},
     routing::{get, post},
 };
+use axum_csrf::CsrfToken;
 use diesel_async::RunQueryDsl;
 
-pub async fn auth_routes() -> Router {
+pub async fn auth_routes() -> Router<axum_csrf::CsrfConfig> {
     Router::new()
         .route("/login", get(login_page))
         .route("/login", post(login_handler))
@@ -49,15 +50,19 @@ pub async fn auth_routes() -> Router {
         )
 }
 
-#[derive(Template, Deserialize)]
+#[derive(Template)]
 #[template(path = "login.html")]
-struct LoginTemplate {}
+struct LoginTemplate {
+    pub authenticity_token: String,
+}
 
-pub async fn login_page() -> impl IntoResponse {
-    let context = LoginTemplate {};
+pub async fn login_page(token: CsrfToken) -> impl IntoResponse {
+    let context = LoginTemplate {
+        authenticity_token: token.authenticity_token().unwrap(),
+    };
 
     match context.render() {
-        Ok(html) => Html(html).into_response(),
+        Ok(html) => (token, Html(html)).into_response(),
         Err(_) => (
             StatusCode::INTERNAL_SERVER_ERROR,
             "Failed to render HTML".to_string(),
@@ -68,11 +73,20 @@ pub async fn login_page() -> impl IntoResponse {
 
 #[derive(Deserialize, Debug)]
 pub struct LoginForm {
+    authenticity_token: String,
     email: String,
     password: String,
 }
 
-pub async fn login_handler(Form(form_data): Form<LoginForm>) -> impl IntoResponse {
+pub async fn login_handler(
+    token: CsrfToken,
+    Form(form_data): Form<LoginForm>,
+) -> impl IntoResponse {
+    if token.verify(&form_data.authenticity_token).is_err() {
+        tracing::error!("Suspicious Payload: {}", &form_data.authenticity_token);
+        return Redirect::to("/auth/login").into_response();
+    }
+
     let mut conn = establish_connection().await;
 
     use crate::schema::admin_users::dsl::*;
@@ -120,10 +134,9 @@ pub async fn login_handler(Form(form_data): Form<LoginForm>) -> impl IntoRespons
     }
 }
 
-#[derive(Template, Deserialize)]
+#[derive(Template)]
 #[template(path = "admin/admin_home.html")]
 struct AdminHomeTemplate {
-    username: String,
     messages: Vec<ContactMessage>,
     blog_count: i64,
     experience_count: i64,
@@ -132,7 +145,7 @@ struct AdminHomeTemplate {
     active_nav: String,
 }
 
-pub async fn admin_home_page(Extension(session): Extension<CustomSession>) -> impl IntoResponse {
+pub async fn admin_home_page(Extension(_session): Extension<CustomSession>) -> impl IntoResponse {
     let conn = &mut establish_connection().await;
 
     use crate::schema::messages::dsl::*;
@@ -152,7 +165,6 @@ pub async fn admin_home_page(Extension(session): Extension<CustomSession>) -> im
     let s_count = social_links.count().get_result::<i64>(conn).await.unwrap_or(0);
 
     let context = AdminHomeTemplate {
-        username: session.user_id,
         messages: results,
         blog_count: b_count,
         experience_count: e_count,

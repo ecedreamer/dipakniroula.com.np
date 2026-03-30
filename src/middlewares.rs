@@ -72,3 +72,29 @@ pub async fn session_middleware(mut req: Request<Body>, next: Next) -> Result<Re
         Ok(Redirect::to("/auth/login").into_response())
     }
 }
+
+
+pub async fn security_headers_middleware(req: Request<Body>, next: Next) -> Response {
+    let mut response = next.run(req).await;
+
+    let headers = response.headers_mut();
+
+    headers.insert("X-Content-Type-Options", "nosniff".parse().unwrap());
+    headers.insert("X-Frame-Options", "DENY".parse().unwrap());
+    headers.insert("X-XSS-Protection", "1; mode=block".parse().unwrap());
+    headers.insert("Strict-Transport-Security", "max-age=31536000; includeSubDomains".parse().unwrap());
+    headers.insert("Referrer-Policy", "strict-origin-when-cross-origin".parse().unwrap());
+
+    let csp = "default-src 'self'; \
+               script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com; \
+               style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; \
+               font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; \
+               img-src 'self' data: https://www.googletagmanager.com https://www.google-analytics.com; \
+               connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com; \
+               frame-src https://www.googletagmanager.com; \
+               frame-ancestors 'none'; \
+               object-src 'none';";
+    headers.insert("Content-Security-Policy", csp.parse().unwrap());
+
+    response
+}
