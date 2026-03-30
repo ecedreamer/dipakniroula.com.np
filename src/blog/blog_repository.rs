@@ -137,12 +137,32 @@ pub mod category_repository {
                 .await
         }
 
+        pub async fn find_by_id(self, data_id: i32) -> QueryResult<Category> {
+            categories
+                .filter(id.eq(data_id))
+                .first::<Category>(self.conn)
+                .await
+        }
+
         pub async fn insert_one(self, data: &NewCategory) {
             diesel::insert_into(categories)
                 .values(data)
                 .execute(self.conn)
                 .await
                 .unwrap();
+        }
+
+        pub async fn update_one(self, data_id: i32, data: &NewCategory) -> QueryResult<usize> {
+            diesel::update(categories.filter(id.eq(data_id)))
+                .set(name.eq(&data.name))
+                .execute(self.conn)
+                .await
+        }
+
+        pub async fn delete_one(self, data_id: i32) -> QueryResult<usize> {
+            diesel::delete(categories.filter(id.eq(data_id)))
+                .execute(self.conn)
+                .await
         }
     }
 }

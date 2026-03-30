@@ -29,6 +29,8 @@ pub async fn resume_routes() -> Router {
         .route("/admin/experience/{exp_id}/update",
                get(update_experience_page)
                    .post(handle_update_experience).layer(axum::middleware::from_fn(session_middleware)))
+        .route("/admin/experience/{exp_id}/delete",
+               get(handle_delete_experience).layer(axum::middleware::from_fn(session_middleware)))
 
 }
 
@@ -86,7 +88,8 @@ pub async fn resume_page() -> impl IntoResponse {
 #[derive(Template)]
 #[template(path = "admin/experiencelist.html")]
 pub struct AdminExperienceListTemplate {
-    experience_list: Vec<Experience>
+    experience_list: Vec<Experience>,
+    active_nav: String,
 }
 
 
@@ -100,7 +103,8 @@ pub async fn admin_experience_list_page() -> impl IntoResponse {
     match result {
         Ok(experience_list) => {
             let context = AdminExperienceListTemplate {
-                experience_list
+                experience_list,
+                active_nav: "experiences".to_string(),
             };
             match context.render() {
                 Ok(html) => Html(html).into_response(),
@@ -126,11 +130,12 @@ pub async fn admin_experience_list_page() -> impl IntoResponse {
 #[derive(Template)]
 #[template(path = "admin/createexperience.html")]
 pub struct CreateExperienceTemplate {
-
+    active_nav: String,
 }
 
 pub async fn create_experience_page() -> impl IntoResponse {
     let context = CreateExperienceTemplate {
+        active_nav: "experiences".to_string(),
     };
     match context.render() {
         Ok(html) => Html(html).into_response(),
@@ -170,7 +175,8 @@ pub async fn handle_create_experience(Form(form_data): Form<NewExperience>) -> i
 #[derive(Template)]
 #[template(path = "admin/updateexperience.html")]
 pub struct UpdateExperienceTemplate {
-    experience: Experience
+    experience: Experience,
+    active_nav: String,
 }
 
 pub async fn update_experience_page(Path(exp_id): Path<String>) -> impl IntoResponse {
@@ -184,7 +190,10 @@ pub async fn update_experience_page(Path(exp_id): Path<String>) -> impl IntoResp
 
     match repo.find_by_id(exp_id_num).await {
         Ok(experience) => {
-            let context = UpdateExperienceTemplate { experience };
+            let context = UpdateExperienceTemplate { 
+                experience,
+                active_nav: "experiences".to_string(),
+            };
             match context.render() {
                 Ok(html) => Html(html).into_response(),
                 Err(e) => {
@@ -231,4 +240,23 @@ pub async fn handle_update_experience(Path(data_id): Path<String>, Form(form_dat
     }
 
 
+}
+
+
+pub async fn handle_delete_experience(Path(exp_id): Path<String>) -> impl IntoResponse {
+    let conn = &mut establish_connection().await;
+    let repo = ExperienceRepository::new(conn);
+
+    let exp_id_num = match i32::from_str(&exp_id) {
+        Ok(num) => num,
+        Err(_) => return (StatusCode::BAD_REQUEST, "Invalid experience ID").into_response(),
+    };
+
+    match repo.delete_one(exp_id_num).await {
+        Ok(_) => Redirect::to("/admin/experience/list").into_response(),
+        Err(e) => {
+            tracing::error!("Delete failed for ID {}: {:?}", exp_id_num, e);
+            (StatusCode::INTERNAL_SERVER_ERROR, "Delete failed").into_response()
+        }
+    }
 }

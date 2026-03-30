@@ -1,36 +1,107 @@
 {% extends "admin/adminbase.html" %}
 
+{% block title %}Dashboard - Admin Panel{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %}
 
 {% block content %}
-<section>
-    <h3>Admin Home Page</h3><hr>
-    <p>Loggedin User: {{username}}</p>
+<div class="card-stats">
+    <div class="stat-card">
+        <span class="stat-title">Total Blogs</span>
+        <span class="stat-value">{{ blog_count }}</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-title">Experiences</span>
+        <span class="stat-value">{{ experience_count }}</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-title">Messages</span>
+        <span class="stat-value">{{ message_count }}</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-title">Social Links</span>
+        <span class="stat-value">{{ social_count }}</span>
+    </div>
+</div>
 
-    <h4>Recent Messages</h4>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>SN</th>
-                <th>Full Name</th>
-                <th>Email</th>
-                <th>Subject</th>
-                <th>Message</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for (idx, message) in messages.iter().enumerate() %}
-            <tr>
-                <td>{{idx+1}}</td>
-                <td>{{message.full_name}}</td>
-                <td>{{message.email}}</td>
-                <td>{{message.subject}}</td>
-                <td>{{message.message}}</td>
-                <td>{{message.date_sent}}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-   
-</section>
+<div class="row">
+    <div class="col-lg-8">
+        <div class="header-top mb-3">
+            <h4 class="m-0">Recent Messages</h4>
+            <span class="badge badge-info">{{ messages.len() }} Total</span>
+        </div>
+        <div class="table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Sender</th>
+                        <th>Subject</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for message in messages %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold">{{ message.full_name }}</div>
+                            <div class="small text-muted">{{ message.email }}</div>
+                        </td>
+                        <td>{{ message.subject }}</td>
+                        <td class="small">{{ message.date_sent }}</td>
+                        <td>
+                            <div class="actions-group">
+                                <button class="btn-premium btn-primary-premium btn-sm" data-bs-toggle="modal" data-bs-target="#msgModal{{ message.id.unwrap() }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <a href="/auth/delete-message/{{ message.id.unwrap() }}" class="btn-premium btn-danger-premium btn-sm" onclick="return confirm('Are you sure?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+
+                            <!-- Message Modal -->
+                            <div class="modal fade" id="msgModal{{ message.id.unwrap() }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">From: {{ message.full_name }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <h6>Subject: {{ message.subject }}</h6>
+                                            <hr>
+                                            <p>{{ message.message }}</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="header-top mb-3">
+            <h4 class="m-0">Quick Actions</h4>
+        </div>
+        <div class="list-group shadow-sm">
+            <a href="/admin/blog/create" class="list-group-item list-group-item-action py-3">
+                <i class="fas fa-plus-circle text-primary me-2"></i> New Blog Post
+            </a>
+            <a href="/admin/experience/create" class="list-group-item list-group-item-action py-3">
+                <i class="fas fa-plus-circle text-success me-2"></i> Add Experience
+            </a>
+            <a href="/admin/category/create" class="list-group-item list-group-item-action py-3">
+                <i class="fas fa-tag text-warning me-2"></i> Create Category
+            </a>
+            <a href="/auth/add-social-link" class="list-group-item list-group-item-action py-3">
+                <i class="fas fa-link text-info me-2"></i> Add Social Link
+            </a>
+        </div>
+    </div>
+</div>
 {% endblock %}

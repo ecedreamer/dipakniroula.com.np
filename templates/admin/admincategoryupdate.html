@@ -1,18 +1,18 @@
 {% extends "admin/adminbase.html" %}
 
-{% block title %}Create Category - Admin Panel{% endblock %}
-{% block page_title %}Add New Category{% endblock %}
+{% block title %}Update Category - Admin Panel{% endblock %}
+{% block page_title %}Edit Category{% endblock %}
 
 {% block content %}
 <div class="form-card">
-    <form action="/admin/category/create" method="POST">
+    <form action="/admin/category/{{ category.id }}/update" method="POST">
         <div class="form-group">
             <label for="name" class="form-label">Category Name</label>
-            <input type="text" name="name" id="name" class="form-control-premium" placeholder="e.g., Tech, Life, Coding" required>
+            <input type="text" name="name" id="name" class="form-control-premium" value="{{ category.name }}" required>
         </div>
         <div class="d-flex gap-2 mt-4">
             <button type="submit" class="btn-premium btn-primary-premium">
-                <i class="fas fa-save"></i> Save Category
+                <i class="fas fa-save"></i> Update Category
             </button>
             <a href="/admin/category/list" class="btn-premium btn-secondary">
                 <i class="fas fa-times"></i> Cancel

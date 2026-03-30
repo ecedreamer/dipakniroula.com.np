@@ -1,77 +1,56 @@
 {% extends "admin/adminbase.html" %}
 
-
-{% block css %}
-<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
-{% endblock %}
-
+{% block title %}Update Experience - Admin Panel{% endblock %}
+{% block page_title %}Edit Experience{% endblock %}
 
 {% block content %}
+<div class="form-card" style="max-width: 900px;">
+    <form action="/admin/experience/{{ experience.id.unwrap() }}/update" method="POST">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="company_name" class="form-label">Company Name</label>
+                <input type="text" name="company_name" id="company_name" class="form-control-premium" value="{{ experience.company_name }}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="company_link" class="form-label">Company Link</label>
+                <input type="url" name="company_link" id="company_link" class="form-control-premium" value="{{ experience.company_link }}" required>
+            </div>
+            <div class="col-md-6 m-3">
+                <label for="your_position" class="form-label">Position</label>
+                <input type="text" name="your_position" id="your_position" class="form-control-premium" value="{{ experience.your_position }}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="order" class="form-label">Order Priority (Higher = Top)</label>
+                <input type="number" name="order" id="order" class="form-control-premium" value="{{ experience.order }}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="start_date" class="form-label">Start Date</label>
+                <input type="text" name="start_date" id="start_date" class="form-control-premium" value="{{ experience.start_date }}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="end_date" class="form-label">End Date (Leave blank for 'Present')</label>
+                <input type="text" name="end_date" id="end_date" class="form-control-premium" value="{% if let Some(end) = experience.end_date %}{{ end }}{% endif %}" placeholder="Jan 2023">
+            </div>
+        </div>
 
-<h4>Block create Page</h4>
-<form action="" method="POST">
-    <div>
-        <label for="company_name">Company Name</label>
-        <input type="text" name="company_name" class="form-control" value="{{experience.company_name}}" required>
-    </div>
-    <br>
-    <div>
-        <label for="company_link">Company Link</label>
-        <input type="text" name="company_link" class="form-control" value="{{experience.company_link}}" required>
-    </div>
-    <br>
-    <div>
-        <label for="your_position">Your Position</label>
-        <input type="text" name="your_position" class="form-control" value="{{experience.your_position}}" required>
-    </div>
-    <br>
-    <div>
-        <label for="start_date">Start Date</label>
-        <input type="date" name="start_date" class="form-control" value="{{experience.start_date}}" required>
-    </div>
-    <br>
-    <div>
-        <label for="end_date">End Date</label>
-        {% match experience.end_date %}
-            {% when Some with (date) %}
-                <input type="date" name="end_date" value="{{date}}" class="form-control">
-            {% when None %}
-                <input type="date" name="end_date" value="" class="form-control">
-        {% endmatch %}
-        <small class="text-muted">Leave empty if this is your current position.</small>
-    </div>
-    <br>
-    <div>
-        <label for="responsibility">Responsibilities</label>
-        <textarea name="responsibility" id="summernote" class="form-control" required>{% if experience.responsibility.is_some() %}{{experience.responsibility.as_ref().unwrap()}}{% endif %}</textarea>
-    </div>
-    <br>
-    <div>
-        <label for="skills">Skills</label>
-        <input type="text" name="skills" value="{% if experience.skills.is_some() %}{{experience.skills.as_ref().unwrap()}}{% endif %}" class="form-control" required>
-    </div>
-    <br>
-    <div>
-        <label for="order">Order</label>
-        <input type="number" name="order" value="{{experience.order}}" class="form-control" required>
-    </div>
-    <br>
-    <button class="btn btn-primary">Save Experience</button>
-</form>
+        <div class="mb-3">
+            <label for="skills" class="form-label">Skills (Comma separated)</label>
+            <input type="text" name="skills" id="skills" class="form-control-premium" value="{% if let Some(s) = experience.skills %}{{ s }}{% endif %}">
+        </div>
 
-{% endblock %}
+        <div class="mb-4">
+            <label for="responsibility" class="form-label">Responsibilities & Achievements</label>
+            <textarea name="responsibility" id="responsibility" rows="6" class="form-control-premium">{% if let Some(r) = experience.responsibility %}{{ r }}{% endif %}</textarea>
+        </div>
 
-{% block js %}
-<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
-<script>
-    $('#summernote').summernote({
-        placeholder: 'Hello stand alone ui',
-        tabsize: 2,
-        height: 120,
-        toolbar: [
-            ['para', ['ul', 'ol']],
-        ],
-    });
-</script>
-
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn-premium btn-primary-premium">
+                <i class="fas fa-save"></i> Update Experience
+            </button>
+            <a href="/admin/experience/list" class="btn-premium btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
 {% endblock %}

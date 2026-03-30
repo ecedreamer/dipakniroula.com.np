@@ -1,14 +1,25 @@
 {% extends "admin/adminbase.html" %}
 
+{% block title %}Delete Blog - Admin Panel{% endblock %}
+{% block page_title %}Confirm Deletion{% endblock %}
+
 {% block content %}
-
-<div>
-    <h4>Blog Delete</h4>
-    <form action="" method="POST">
-        <h5>Are you sure to delete the blog with ID: {{blog_id}}?</h5>
-        <button class="btn btn-danger">Confirm</button>
-        <a href="/admin/blog/list" class="btn btn-default">Cancel</a>
-    </form>
+<div class="form-card" style="max-width: 600px;">
+    <div class="text-center p-4">
+        <i class="fas fa-exclamation-triangle text-danger mb-3" style="font-size: 3rem;"></i>
+        <h4 class="mb-3">Are you absolutely sure?</h4>
+        <p class="text-muted mb-4">You are about to delete a blog post. This action cannot be undone.</p>
+        
+        <form action="/admin/blog/{{ blog_id }}/delete" method="POST">
+            <div class="d-flex gap-2 justify-content-center">
+                <button type="submit" class="btn-premium btn-danger-premium px-4">
+                    <i class="fas fa-trash"></i> Yes, Delete Post
+                </button>
+                <a href="/admin/blog/list" class="btn-premium btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
 </div>
-
 {% endblock %}

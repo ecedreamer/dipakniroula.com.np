@@ -51,10 +51,24 @@ pub async fn blog_routes() -> Router {
                 .layer(axum::middleware::from_fn(session_middleware)),
         )
         .route(
+            "/admin/category/list",
+            get(category_list_page).layer(axum::middleware::from_fn(session_middleware)),
+        )
+        .route(
             "/admin/category/create",
             get(category_create_page)
                 .post(category_create_handler)
                 .layer(axum::middleware::from_fn(session_middleware)),
+        )
+        .route(
+            "/admin/category/{category_id}/update",
+            get(category_update_page)
+                .post(category_update_handler)
+                .layer(axum::middleware::from_fn(session_middleware)),
+        )
+        .route(
+            "/admin/category/{category_id}/delete",
+            get(category_delete_handler).layer(axum::middleware::from_fn(session_middleware)),
         )
 }
 
@@ -62,6 +76,7 @@ pub async fn blog_routes() -> Router {
 #[template(path = "admin/blogcreate.html")]
 struct BlogCreateTemplate {
     categories: Vec<Category>,
+    active_nav: String,
 }
 
 pub async fn blog_create_page() -> impl IntoResponse {
@@ -69,6 +84,7 @@ pub async fn blog_create_page() -> impl IntoResponse {
     let category_repo = CategoryRepository::new(conn);
     let context = BlogCreateTemplate {
         categories: category_repo.find().await.unwrap(),
+        active_nav: "blogs".to_string(),
     };
 
     match context.render() {
@@ -140,6 +156,7 @@ pub async fn blog_create_handler(mut multipart: Multipart) -> impl IntoResponse 
 #[template(path = "admin/blogupdate.html")]
 struct BlogUpdateTemplate {
     blog: Blog,
+    active_nav: String,
 }
 
 pub async fn blog_update_page(Path(blog_id): Path<String>) -> impl IntoResponse {
@@ -155,7 +172,10 @@ pub async fn blog_update_page(Path(blog_id): Path<String>) -> impl IntoResponse 
         .await;
     match result {
         Ok(blog) => {
-            let context = BlogUpdateTemplate { blog };
+            let context = BlogUpdateTemplate { 
+                blog,
+                active_nav: "blogs".to_string(),
+            };
 
             match context.render() {
                 Ok(html) => Html(html).into_response(),
@@ -232,11 +252,13 @@ pub async fn blog_update_handler(
 #[template(path = "admin/blogdelete.html")]
 struct BlogDeleteTemplate {
     blog_id: i32,
+    active_nav: String,
 }
 
 async fn blog_delete_page(Path(blog_id): Path<String>) -> impl IntoResponse {
     let context = BlogDeleteTemplate {
         blog_id: i32::from_str(&blog_id).unwrap(),
+        active_nav: "blogs".to_string(),
     };
 
     match context.render() {
@@ -265,6 +287,7 @@ async fn blog_delete_handler(Path(blog_id): Path<String>) -> impl IntoResponse {
 #[template(path = "admin/adminbloglist.html")]
 struct AdminBlogListTemplate {
     blog_list: Vec<Blog>,
+    active_nav: String,
 }
 
 pub async fn blog_list_page_admin() -> impl IntoResponse {
@@ -275,7 +298,10 @@ pub async fn blog_list_page_admin() -> impl IntoResponse {
 
     match results {
         Ok(blog_list) => {
-            let context = AdminBlogListTemplate { blog_list };
+            let context = AdminBlogListTemplate { 
+                blog_list,
+                active_nav: "blogs".to_string(),
+            };
             match context.render() {
                 Ok(html) => Html(html).into_response(),
                 Err(_) => (
@@ -388,10 +414,14 @@ pub async fn blog_detail_page(Path(blog_id): Path<String>) -> impl IntoResponse 
 
 #[derive(Template)]
 #[template(path = "admin/admincategorycreate.html")]
-struct CategoryCreatePageTemplate {}
+struct CategoryCreatePageTemplate {
+    active_nav: String,
+}
 
 pub async fn category_create_page() -> impl IntoResponse {
-    let context = CategoryCreatePageTemplate {};
+    let context = CategoryCreatePageTemplate {
+        active_nav: "categories".to_string(),
+    };
 
     match context.render() {
         Ok(html) => Html(html).into_response(),
@@ -418,5 +448,87 @@ pub async fn category_create_handler(Form(form_data): Form<CategoryForm>) -> imp
 
     repo.insert_one(&new_category).await;
 
-    Redirect::to("/admin/blog/list").into_response()
+    Redirect::to("/admin/category/list").into_response()
+}
+
+#[derive(Template)]
+#[template(path = "admin/admincategorylist.html")]
+struct CategoryListTemplate {
+    categories: Vec<Category>,
+    active_nav: String,
+}
+
+pub async fn category_list_page() -> impl IntoResponse {
+    let mut conn = establish_connection().await;
+    let category_repo = CategoryRepository::new(&mut conn);
+
+    let categories = category_repo.find().await.unwrap();
+
+    let context = CategoryListTemplate {
+        categories,
+        active_nav: "categories".to_string(),
+    };
+
+    match context.render() {
+        Ok(html) => Html(html).into_response(),
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Failed to render HTML".to_string(),
+        ).into_response(),
+    }
+}
+
+#[derive(Template)]
+#[template(path = "admin/admincategoryupdate.html")]
+struct CategoryUpdateTemplate {
+    category: Category,
+    active_nav: String,
+}
+
+pub async fn category_update_page(Path(category_id): Path<String>) -> impl IntoResponse {
+    let mut conn = establish_connection().await;
+    let category_repo = CategoryRepository::new(&mut conn);
+
+    let category_id_num = i32::from_str(&category_id).unwrap();
+    let category = category_repo.find_by_id(category_id_num).await.unwrap();
+
+    let context = CategoryUpdateTemplate {
+        category,
+        active_nav: "categories".to_string(),
+    };
+
+    match context.render() {
+        Ok(html) => Html(html).into_response(),
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Failed to render HTML".to_string(),
+        ).into_response(),
+    }
+}
+
+pub async fn category_update_handler(
+    Path(category_id): Path<String>,
+    Form(form_data): Form<CategoryForm>,
+) -> impl IntoResponse {
+    let mut conn = establish_connection().await;
+    let category_repo = CategoryRepository::new(&mut conn);
+
+    let category_id_num = i32::from_str(&category_id).unwrap();
+    let update_category = NewCategory {
+        name: form_data.name,
+    };
+
+    category_repo.update_one(category_id_num, &update_category).await.unwrap();
+
+    Redirect::to("/admin/category/list").into_response()
+}
+
+pub async fn category_delete_handler(Path(category_id): Path<String>) -> impl IntoResponse {
+    let mut conn = establish_connection().await;
+    let category_repo = CategoryRepository::new(&mut conn);
+
+    let category_id_num = i32::from_str(&category_id).unwrap();
+    category_repo.delete_one(category_id_num).await.unwrap();
+
+    Redirect::to("/admin/category/list").into_response()
 }

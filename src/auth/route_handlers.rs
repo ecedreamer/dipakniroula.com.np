@@ -39,6 +39,14 @@ pub async fn auth_routes() -> Router {
                 .post(social_link_update_handler)
                 .layer(axum::middleware::from_fn(session_middleware)),
         )
+        .route(
+            "/delete-social-link/{data_id}",
+            get(social_link_delete_handler).layer(axum::middleware::from_fn(session_middleware)),
+        )
+        .route(
+            "/delete-message/{message_id}",
+            get(message_delete_handler).layer(axum::middleware::from_fn(session_middleware)),
+        )
 }
 
 #[derive(Template, Deserialize)]
@@ -117,22 +125,40 @@ pub async fn login_handler(Form(form_data): Form<LoginForm>) -> impl IntoRespons
 struct AdminHomeTemplate {
     username: String,
     messages: Vec<ContactMessage>,
+    blog_count: i64,
+    experience_count: i64,
+    message_count: i64,
+    social_count: i64,
+    active_nav: String,
 }
 
 pub async fn admin_home_page(Extension(session): Extension<CustomSession>) -> impl IntoResponse {
     let conn = &mut establish_connection().await;
 
     use crate::schema::messages::dsl::*;
+    use crate::schema::blogs::dsl::blogs;
+    use crate::schema::experiences::dsl::experiences;
+    use crate::schema::social_links::dsl::social_links;
 
     let results = messages
         .order(id.desc())
         .load::<ContactMessage>(conn)
         .await
-        .expect("Error loading blogs");
+        .expect("Error loading messages");
+
+    let b_count = blogs.count().get_result::<i64>(conn).await.unwrap_or(0);
+    let e_count = experiences.count().get_result::<i64>(conn).await.unwrap_or(0);
+    let m_count = messages.count().get_result::<i64>(conn).await.unwrap_or(0);
+    let s_count = social_links.count().get_result::<i64>(conn).await.unwrap_or(0);
 
     let context = AdminHomeTemplate {
         username: session.user_id,
         messages: results,
+        blog_count: b_count,
+        experience_count: e_count,
+        message_count: m_count,
+        social_count: s_count,
+        active_nav: "dashboard".to_string(),
     };
 
     match context.render() {
@@ -145,12 +171,56 @@ pub async fn admin_home_page(Extension(session): Extension<CustomSession>) -> im
     }
 }
 
+pub async fn social_link_delete_handler(
+    Path(data_id): Path<String>,
+) -> impl IntoResponse {
+    let conn = &mut establish_connection().await;
+    use crate::schema::social_links::dsl::*;
+    let data_id_num = i32::from_str(data_id.as_str()).unwrap();
+
+    diesel::delete(social_links.filter(id.eq(data_id_num)))
+        .execute(conn)
+        .await
+        .unwrap();
+
+    Redirect::to("/auth/admin-panel").into_response()
+}
+
+pub async fn message_delete_handler(
+    Path(message_id): Path<String>,
+) -> impl IntoResponse {
+    let conn = &mut establish_connection().await;
+    use crate::schema::messages::dsl::*;
+    let message_id_num = i32::from_str(message_id.as_str()).unwrap();
+
+    diesel::delete(messages.filter(id.eq(message_id_num)))
+        .execute(conn)
+        .await
+        .unwrap();
+
+    Redirect::to("/auth/admin-panel").into_response()
+}
+
 #[derive(Template, Deserialize)]
 #[template(path = "admin/add_social_link.html")]
-struct SocialLinkCreateTemplate {}
+struct SocialLinkCreateTemplate {
+    social_links: Vec<SocialLink>,
+    active_nav: String,
+}
 
 pub async fn social_link_create_page() -> impl IntoResponse {
-    let context = SocialLinkCreateTemplate {};
+    let conn = &mut establish_connection().await;
+    use crate::schema::social_links::dsl::*;
+    
+    let links = social_links
+        .load::<SocialLink>(conn)
+        .await
+        .expect("Error loading social links");
+
+    let context = SocialLinkCreateTemplate {
+        social_links: links,
+        active_nav: "social".to_string(),
+    };
     match context.render() {
         Ok(html) => Html(html).into_response(),
         Err(_) => (
@@ -189,6 +259,7 @@ pub async fn social_link_create_handler(
 #[template(path = "admin/update_social_link.html")]
 struct SocialLinkUpdateTemplate {
     social_link: SocialLink,
+    active_nav: String,
 }
 
 pub async fn social_link_update_page(
@@ -206,6 +277,7 @@ pub async fn social_link_update_page(
 
     let context = SocialLinkUpdateTemplate {
         social_link: this_social_link,
+        active_nav: "social".to_string(),
     };
     match context.render() {
         Ok(html) => Html(html).into_response(),

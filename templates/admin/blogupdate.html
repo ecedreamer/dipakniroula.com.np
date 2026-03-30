@@ -1,86 +1,78 @@
 {% extends "admin/adminbase.html" %}
 
+{% block title %}Update Blog - Admin Panel{% endblock %}
+{% block page_title %}Edit Article{% endblock %}
 
 {% block css %}
 <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+<style>
+    .note-editor { border-radius: 0.5rem; overflow: hidden; border: 1px solid var(--border) !important; }
+    .note-toolbar { background: var(--light) !important; border-bottom: 1px solid var(--border) !important; }
+</style>
 {% endblock %}
-
 
 {% block content %}
+<div class="form-card" style="max-width: 1000px;">
+    <form action="/admin/blog/{{ blog.id.unwrap() }}/update" method="POST" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col-md-10 mb-3">
+                <label for="title" class="form-label">Article Title</label>
+                <input type="text" name="title" id="title" class="form-control-premium" value="{{ blog.title }}" required>
+            </div>
+            <div class="col-md-2 d-flex align-items-end mb-3">
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" name="is_active" id="is_active" {% if blog.is_active == 1 %}checked{% endif %}>
+                    <label class="form-check-label fw-bold" for="is_active">Published</label>
+                </div>
+            </div>
+        </div>
 
-<h4>Block create Page</h4>
-<form action="/admin/blog/{{blog.id.unwrap()}}/update" method="POST" enctype="multipart/form-data">
-    <div>
-        <label for="title">Blog Title</label>
-        <input type="text" name="title" class="form-control" value="{{blog.title}}">
-    </div>
-    <br>
-    <div>
-        {% if blog.image.as_ref().is_some() %}
-        <a href="/{{ blog.image.as_ref().unwrap() }}" target="_blank"><img src="/{{ blog.image.as_ref().unwrap() }}" style="width: 200px;" alt="" class="img-fluid"></a><br>
-        {% endif %}
-        <label for="image">Blog Image</label>
-        <input type="file" class="form-control" name="blog-image">
-    </div>
-    <br>
-    <div>
-        <label for="content">Content</label>
-        <textarea name="content" rows="10" class="form-control" id="summernote">{{blog.content}}</textarea>
-    </div>
-    <br>
-    <div>
-        <label for="is_active">Active</label>
-        <input type="checkbox" name="is_active" {% if blog.is_active == 1 %}checked{% else %}{% endif %} id="is_active"/>
-    </div>
-    <br>
-    <button class="btn btn-primary">Save Blog</button>
-</form>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="blog-image" class="form-label">Featured Image</label>
+                <input type="file" name="blog-image" id="blog-image" class="form-control-premium" accept="image/*">
+                {% if let Some(img) = blog.image %}
+                    <div class="mt-2 small text-muted">Current: {{ img }}</div>
+                    <img id="image-preview" src="/{{ img }}" class="mt-2 rounded" style="width: 150px; height: 100px; object-fit: cover;">
+                {% endif %}
+            </div>
+        </div>
 
+        <div class="mb-4">
+            <label for="content" class="form-label">Content</label>
+            <textarea name="content" id="summernote">{{ blog.content }}</textarea>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn-premium btn-primary-premium">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+            <a href="/admin/blog/list" class="btn-premium btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
 {% endblock %}
-
 
 {% block js %}
 <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
 <script>
-    $('#summernote').summernote({
-        placeholder: 'Hello stand alone ui',
-        tabsize: 2,
-        height: 524,
-        toolbar: [
-            ['style', ['style']],
-            ['font', ['bold', 'underline', 'clear']],
-            ['color', ['color']],
-            ['para', ['ul', 'ol', 'paragraph']],
-            ['table', ['table']],
-            ['insert', ['link', 'picture', 'video']],
-            ['view', ['fullscreen', 'codeview', 'help']],
-            ['misc', ['codeblock']]
-        ],
-        callbacks: {
-            onImageUpload: function(files) {
-                uploadImage(files[0]);
-            }
-        }
-    });
-    function uploadImage(file) {
-        var data = new FormData();
-        data.append("file", file);
-
-        $.ajax({
-            url: '/summernote-upload',
-            type: 'POST',
-            data: data,
-            cache: false,
-            contentType: false,
-            processData: false,
-            success: function(response) {
-                console.log(response)
-                $('#summernote').summernote('insertImage', response.image_path);
-            },
-            error: function(data) {
-                console.log('Error uploading image');
-            }
+    $(document).ready(function() {
+        $('#summernote').summernote({
+            placeholder: 'Write something amazing...',
+            tabsize: 2,
+            height: 400,
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'underline', 'clear']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['table', ['table']],
+                ['insert', ['link', 'picture', 'video']],
+                ['view', ['fullscreen', 'codeview', 'help']]
+            ]
         });
-    }
+    });
 </script>
 {% endblock %}

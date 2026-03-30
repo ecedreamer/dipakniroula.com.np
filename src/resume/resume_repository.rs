@@ -43,4 +43,10 @@ impl<'a> ExperienceRepository<'a> {
             .execute(self.conn)
             .await
     }
+
+    pub async fn delete_one(self, data_id: i32) -> QueryResult<usize> {
+        diesel::delete(experiences.filter(id.eq(data_id)))
+            .execute(self.conn)
+            .await
+    }
 }

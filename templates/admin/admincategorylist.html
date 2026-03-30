@@ -1,0 +1,43 @@
+{% extends "admin/adminbase.html" %}
+
+{% block title %}Categories - Admin Panel{% endblock %}
+{% block page_title %}Manage Categories{% endblock %}
+
+{% block content %}
+<div class="header-top mb-4">
+    <h4 class="m-0">Blog Categories</h4>
+    <a href="/admin/category/create" class="btn-premium btn-primary-premium">
+        <i class="fas fa-plus"></i> New Category
+    </a>
+</div>
+
+<div class="table-container" style="max-width: 600px;">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for category in categories %}
+            <tr>
+                <td>{{ category.id }}</td>
+                <td class="fw-bold">{{ category.name }}</td>
+                <td>
+                    <div class="actions-group">
+                        <a href="/admin/category/{{ category.id }}/update" class="btn-premium btn-primary-premium btn-sm">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="/admin/category/{{ category.id }}/delete" class="btn-premium btn-danger-premium btn-sm" onclick="return confirm('Delete this category? This might affect blog posts.')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

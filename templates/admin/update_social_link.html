@@ -1,27 +1,27 @@
 {% extends "admin/adminbase.html" %}
 
+{% block title %}Update Social Link - Admin Panel{% endblock %}
+{% block page_title %}Edit Social Link{% endblock %}
 
 {% block content %}
-
-<div class="row mt-3">
-    <div class="col-md-4 mx-auto">
-
-        <h3>Social Media Update Form</h3>
-        <form action="" method="POST">
-            <div>
-                <label for="social_media">Social Media</label><br>
-                <input type="text" class="form-control" name="social_media" value="{{social_link.social_media}}" placeholder="Social Media Name..." required>
-            </div>
-            <br>
-            <div>
-                <label for="social_link">Social Media Link</label><br>
-                <input type="text" class="form-control" name="social_link" value="{{social_link.social_link}}" placeholder="Social Media Link..." required>
-            </div>
-            <br>
-            <button class="btn btn-primary">Submit</button>
-
-        </form>
-    </div>
+<div class="form-card">
+    <form action="/auth/update-social-link/{{ social_link.id.unwrap() }}" method="POST">
+        <div class="form-group">
+            <label for="social_media" class="form-label">Platform Name</label>
+            <input type="text" name="social_media" id="social_media" class="form-control-premium" value="{{ social_link.social_media }}" required>
+        </div>
+        <div class="form-group">
+            <label for="social_link" class="form-label">Profile URL</label>
+            <input type="url" name="social_link" id="social_link" class="form-control-premium" value="{{ social_link.social_link }}" required>
+        </div>
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn-premium btn-primary-premium">
+                <i class="fas fa-save"></i> Update Link
+            </button>
+            <a href="/auth/add-social-link" class="btn-premium btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
 </div>
-
 {% endblock %}

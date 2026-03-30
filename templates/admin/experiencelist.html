@@ -1,42 +1,58 @@
 {% extends "admin/adminbase.html" %}
 
+{% block title %}Experiences - Admin Panel{% endblock %}
+{% block page_title %}Manage Experiences{% endblock %}
 
 {% block content %}
-
-<div>
-    <h4>Experience List</h4>
-    <div class="row">
-        <div class="col-md-12">
-            <a href="/admin/experience/create">Create Experience</a>
-
-            <table class="table table-bordered">
-                <thead>
-                <tr>
-                    <th>Company Name</th>
-                    <th>Position</th>
-                    <th>Start Date</th>
-                    <th>Order</th>
-                    <th>Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for experience in experience_list %}
-                <tr>
-                    <td><a href="{{experience.company_link}}">{{experience.company_name}}</a></td>
-
-                    <td>{{experience.your_position}}</td>
-                    <td>{{experience.start_date}}</td>
-                    <td>{{experience.order}}</td>
-                    <th>
-                        <a href="/admin/experience/{{experience.id.unwrap()}}/update">Update</a>
-                        <a href="/admin/experience/{{experience.id.unwrap()}}/delete">Delete</a>
-                    </th>
-                </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+<div class="header-top mb-4">
+    <h4 class="m-0">Work History</h4>
+    <a href="/admin/experience/create" class="btn-premium btn-primary-premium">
+        <i class="fas fa-plus"></i> Add New Experience
+    </a>
 </div>
 
+<div class="table-container">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Order</th>
+                <th>Company</th>
+                <th>Position</th>
+                <th>Duration</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for experience in experience_list %}
+            <tr>
+                <td class="fw-bold">{{ experience.order }}</td>
+                <td>
+                    <a href="{{ experience.company_link }}" target="_blank" class="text-decoration-none fw-semibold">
+                        {{ experience.company_name }}
+                    </a>
+                </td>
+                <td>{{ experience.your_position }}</td>
+                <td class="small">
+                    {{ experience.start_date }} - 
+                    {% if let Some(end) = experience.end_date %}
+                        {{ end }}
+                    {% else %}
+                        Present
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="actions-group">
+                        <a href="/admin/experience/{{ experience.id.unwrap() }}/update" class="btn-premium btn-primary-premium btn-sm">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="/admin/experience/{{ experience.id.unwrap() }}/delete" class="btn-premium btn-danger-premium btn-sm" onclick="return confirm('Are you sure?')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}
