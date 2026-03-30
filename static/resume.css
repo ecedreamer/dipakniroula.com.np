@@ -3,7 +3,8 @@
 :root {
     --primary-text: #1a202c;
     --secondary-text: #4a5568;
-    --accent-color: #2c5282; /* Muted Navy */
+    --accent-color: #2c5282;
+    /* Muted Navy */
     --bg-light: #f8fafc;
     --paper-white: #ffffff;
     --border-color: #edf2f7;
@@ -211,46 +212,112 @@ h1.resume-name {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Print Overrides */
 @media print {
     @page {
-        margin: 0.5in;
-    }
-    
-    body {
-        background: white;
-        padding: 0;
+        size: A4 portrait;
         margin: 0;
+        /* Let padding handle inner space */
+    }
+
+    html,
+    body {
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Hide everything except the CV */
+    .site-header,
+    .footer,
+    .no-print,
+    .resume-actions,
+    .mobile-nav-toggle,
+    #siteNav,
+    .row,
+    .container {
+        display: none !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Reset layout for print */
+    .section,
+    .resume-wrapper,
+    main,
+    .main {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     #printable {
-        box-shadow: none;
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        max-width: none;
+        display: block !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0.6in 0.8in !important;
+        /* Standardized Professional Margins */
+        width: 100% !important;
+        max-width: none !important;
+        border-radius: 0 !important;
+        background: #ffffff !important;
+        visibility: visible !important;
     }
 
-    /* Keep experience blocks together */
+    /* Force visibility of CV content */
+    #printable * {
+        visibility: visible !important;
+    }
+
+    /* Keep experience blocks together - No splitting across pages */
     .resume-item {
         page-break-inside: avoid;
+        break-inside: avoid;
     }
 
-    header, footer, nav, .btn, .no-print {
-        display: none !important;
-    }
-
-    a {
-        color: black !important;
-        text-decoration: none !important;
+    /* Ensure text colors are preserved */
+    .resume-name {
+        color: #1a202c !important;
     }
 
     .resume-section-title {
-        border-color: #000;
-        color: #000;
+        color: #2c5282 !important;
+        border-bottom: 2px solid #edf2f7 !important;
+        margin-top: 1rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .resume-section-title:first-of-type {
+        margin-top: 0.5rem !important;
+    }
+
+    .resume-item-description p {
+        margin-bottom: 0.5rem !important;
+    }
+
+    .resume-item {
+        margin-bottom: 1rem !important;
+    }
+
+    .resume-item-title {
+        color: #1a202c !important;
+    }
+
+    .resume-contact-info a {
+        color: #2c5282 !important;
+    }
+
+    .skill-category-title {
+        border-left-color: #2c5282 !important;
     }
 }
 
