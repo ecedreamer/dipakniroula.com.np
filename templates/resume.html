@@ -1,37 +1,38 @@
-{% extends "base.html" %}
-
-
-{% block title %}Dipak Niroula Resume{% endblock %}
-
-{% block description %}
-Software engineer with over 10 years of experience in designing, developing, and scaling software solutions.
-Expertise in Python, Rust, Kafka, and PostgreSQL, with a focus on building secure, high-performance backend systems.
-{% endblock %}
-
-{% block resume %}active{% endblock %}
-{% block body_class %}resume-page{% endblock %}
-
-{% block css %}
-<link rel="stylesheet" href="/static/resume.css">
-{% endblock %}
-
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Dipak Niroula Resume{% endblock %} {%
+block description %} Software engineer with over 10 years of experience in
+designing, developing, and scaling software solutions. Expertise in Python,
+Rust, Kafka, and PostgreSQL, with a focus on building secure, high-performance
+backend systems. {% endblock %} {% block resume %}active{% endblock %} {% block
+body_class %}resume-page{% endblock %} {% block css %}
+<link rel="stylesheet" href="/static/resume.css" />
+{% endblock %} {% block content %}
 <div class="resume-wrapper">
     <div id="printable">
         <!-- Header -->
         <header>
             <h1 class="resume-name">Dipak Niroula</h1>
-            <p class="resume-tagline">Software Engineer | Architect | Tech Lead | Mentor</p>
+            <p class="resume-tagline">
+                Software Engineer | Architect | Tech Lead | Mentor
+            </p>
 
             <div class="resume-contact-info">
-                <span class="resume-contact-item">📧 <a
-                        href="mailto:sangit.niroula@gmail.com">sangit.niroula@gmail.com</a></span>
-                <span class="resume-contact-item">📱 +977 9849978896 / 9823371327</span>
+                <span class="resume-contact-item"
+                    >📧
+                    <a href="mailto:sangit.niroula@gmail.com"
+                        >sangit.niroula@gmail.com</a
+                    ></span
+                >
+                <span class="resume-contact-item"
+                    >📱 +977 9849978896 / 9823371327</span
+                >
                 <span class="resume-contact-item">📍 Kathmandu, Nepal</span>
                 {% for social_link in social_links %}
-                <span class="resume-contact-item">🔗 <a href="{{social_link.social_link}}"
-                        target="_blank">{{social_link.social_media}}</a></span>
+                <span class="resume-contact-item"
+                    >🔗
+                    <a href="{{social_link.social_link}}" target="_blank"
+                        >{{social_link.social_media}}</a
+                    ></span
+                >
                 {% endfor %}
             </div>
         </header>
@@ -40,11 +41,16 @@ Expertise in Python, Rust, Kafka, and PostgreSQL, with a focus on building secur
         <section>
             <h2 class="resume-section-title">Professional Summary</h2>
             <div class="resume-item-description">
-                <p>Seasoned Software Engineer with over 10 years of experience in designing, developing, and
-                    scaling complex software solutions. Expert in Python, Rust, and Java with a strong focus on
-                    high-performance backend systems, distributed architectures, and message-driven processing. Proven
-                    leader who has co-founded engineering teams, led over 100 projects, and mentored hundreds of
-                    engineers while driving innovation through modern DevOps practices.</p>
+                <p>
+                    Seasoned Software Engineer with over 10 years of experience
+                    in designing, developing, and scaling complex software
+                    solutions. Expert in Python, Rust, and Java with a strong
+                    focus on high-performance backend systems, distributed
+                    architectures, and message-driven processing. Proven leader
+                    who has co-founded engineering teams, led over 100 projects,
+                    and mentored hundreds of engineers while driving innovation
+                    through modern DevOps practices.
+                </p>
             </div>
         </section>
 
@@ -54,27 +60,29 @@ Expertise in Python, Rust, Kafka, and PostgreSQL, with a focus on building secur
             {% for experience in experiences %}
             <div class="resume-item">
                 <div class="resume-item-header">
-                    <span class="resume-item-title">{{experience.your_position}}</span>
+                    <span class="resume-item-title"
+                        >{{experience.your_position}}</span
+                    >
                     <span class="resume-item-date">
-                        {{experience.start_date}} –
-                        {% match experience.end_date %}
-                        {% when Some with (end) %}
-                        {% if end != "" %}{{end}}{% else %}Present{% endif %}
-                        {% when None %}
-                        Present
-                        {% endmatch %}
+                        {{experience.start_date}} – {% match experience.end_date
+                        %} {% when Some with (end) %} {% if end != ""
+                        %}{{end}}{% else %}Present{% endif %} {% when None %}
+                        Present {% endmatch %} {% let duration =
+                        experience.duration() %} {% if !duration.is_empty() %}
+                        <span class="experience-duration">{{duration}}</span>
+                        {% endif %}
                     </span>
                 </div>
                 <div class="resume-item-subtitle">
-                    <a href="{{experience.company_link}}" target="_blank">{{experience.company_name}}</a>
+                    <a href="{{experience.company_link}}" target="_blank"
+                        >{{experience.company_name}}</a
+                    >
                 </div>
                 <div class="resume-item-description">
-                    {% match experience.responsibility %}
-                    {% when Some with (resp) %}{{resp|safe}}
-                    {% when None %}{% endmatch %}
-
-                    {% match experience.skills %}
-                    {% when Some with (skills) %}<p><strong>Technologies:</strong> {{skills}}</p>
+                    {% match experience.responsibility %} {% when Some with
+                    (resp) %}{{resp|safe}} {% when None %}{% endmatch %} {%
+                    match experience.skills %} {% when Some with (skills) %}
+                    <p><strong>Technologies:</strong> {{skills}}</p>
                     {% when None %}{% endmatch %}
                 </div>
             </div>
@@ -87,30 +95,45 @@ Expertise in Python, Rust, Kafka, and PostgreSQL, with a focus on building secur
             <div class="resume-skills-grid">
                 <div class="skill-category">
                     <div class="skill-category-title">Core Technologies</div>
-                    <div class="skill-list">Python, Rust, Java, JavaScript, Shell Scripting, SQL, C, C++, Go</div>
+                    <div class="skill-list">
+                        Python, Rust, Java, JavaScript, Shell Scripting, SQL, C,
+                        C++, Go
+                    </div>
                 </div>
                 <div class="skill-category">
                     <div class="skill-category-title">Frameworks & Backend</div>
-                    <div class="skill-list">Django, FastAPI, Starlette, Axum, Actix, Node.js, Express.js, ReactJS</div>
+                    <div class="skill-list">
+                        Django, FastAPI, Starlette, Axum, Actix, Node.js,
+                        Express.js, ReactJS
+                    </div>
                 </div>
                 <div class="skill-category">
                     <div class="skill-category-title">Data & Messaging</div>
-                    <div class="skill-list">Kafka, Redis, RabbitMQ, ZeroMQ, PostgreSQL, MySQL, MongoDB, Diesel ORM,
-                        SQLAlchemy</div>
+                    <div class="skill-list">
+                        Kafka, Redis, RabbitMQ, ZeroMQ, PostgreSQL, MySQL,
+                        MongoDB, Diesel ORM, SQLAlchemy
+                    </div>
                 </div>
                 <div class="skill-category">
                     <div class="skill-category-title">DevOps & Tools</div>
-                    <div class="skill-list">Docker, Kubernetes, NGINX, GitHub Actions, Linux Systems, Jira, Trello</div>
+                    <div class="skill-list">
+                        Docker, Kubernetes, NGINX, GitHub Actions, Linux
+                        Systems, Jira, Trello
+                    </div>
                 </div>
                 <div class="skill-category">
                     <div class="skill-category-title">Architecture</div>
-                    <div class="skill-list">Microservices, Distributed Systems, Search Engine Design, REST APIs,
-                        GraphQL, gRPC</div>
+                    <div class="skill-list">
+                        Microservices, Distributed Systems, Search Engine
+                        Design, REST APIs, GraphQL, gRPC
+                    </div>
                 </div>
                 <div class="skill-category">
                     <div class="skill-category-title">Soft Skills</div>
-                    <div class="skill-list">Technical Leadership, Team Mentoring, Agile/Scrum, Problem-Solving,
-                        Ownership</div>
+                    <div class="skill-list">
+                        Technical Leadership, Team Mentoring, Agile/Scrum,
+                        Problem-Solving, Ownership
+                    </div>
                 </div>
             </div>
         </section>
@@ -120,21 +143,30 @@ Expertise in Python, Rust, Kafka, and PostgreSQL, with a focus on building secur
             <h2 class="resume-section-title">Education</h2>
             <div class="resume-item">
                 <div class="resume-item-header">
-                    <span class="resume-item-title">Master in Computer Science (Candidate)</span>
+                    <span class="resume-item-title"
+                        >Master in Computer Science (Candidate)</span
+                    >
                     <span class="resume-item-date">2018 – 2020</span>
                 </div>
-                <div class="resume-item-subtitle">Nepal College of Information Technology, Pokhara University</div>
+                <div class="resume-item-subtitle">
+                    Nepal College of Information Technology, Pokhara University
+                </div>
             </div>
             <div class="resume-item">
                 <div class="resume-item-header">
-                    <span class="resume-item-title">Bachelor in Electronics & Communication Engineering</span>
+                    <span class="resume-item-title"
+                        >Bachelor in Electronics & Communication
+                        Engineering</span
+                    >
                     <span class="resume-item-date">2012 – 2016</span>
                 </div>
-                <div class="resume-item-subtitle">Cosmos College of Management & Technology, Pokhara University</div>
+                <div class="resume-item-subtitle">
+                    Cosmos College of Management & Technology, Pokhara
+                    University
+                </div>
                 <div class="resume-item-description">Grade: 3.25 / 4.00</div>
             </div>
         </section>
-
     </div>
 
     <!-- Download / Print Action -->
@@ -146,14 +178,16 @@ Expertise in Python, Rust, Kafka, and PostgreSQL, with a focus on building secur
 </div>
 
 <script>
-document.getElementById('download-resume').addEventListener('click', function () {
-    // Clone only the resume content
-    const content = document.getElementById('printable').innerHTML;
-    const origin = window.location.origin;
+    document
+        .getElementById("download-resume")
+        .addEventListener("click", function () {
+            // Clone only the resume content
+            const content = document.getElementById("printable").innerHTML;
+            const origin = window.location.origin;
 
-    // Open a lean, isolated window
-    const w = window.open('', '_blank', 'width=1024,height=800');
-    w.document.write(`<!DOCTYPE html>
+            // Open a lean, isolated window
+            const w = window.open("", "_blank", "width=1024,height=800");
+            w.document.write(`<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -196,16 +230,20 @@ document.getElementById('download-resume').addEventListener('click', function ()
     <div id="printable">${content}</div>
 </body>
 </html>`);
-    w.document.close();
+            w.document.close();
 
-    // Wait for fonts + styles to load, then print
-    w.addEventListener('load', function () {
-        // Use document.fonts.ready for reliable font loading
-        w.document.fonts.ready.then(function () {
-            w.print();
+            // Wait for fonts + styles to load, then print
+            w.addEventListener(
+                "load",
+                function () {
+                    // Use document.fonts.ready for reliable font loading
+                    w.document.fonts.ready.then(function () {
+                        w.print();
+                    });
+                },
+                { once: true },
+            );
         });
-    }, { once: true });
-});
 </script>
 
 {% endblock %}
