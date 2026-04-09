@@ -54,6 +54,86 @@ body_class %}resume-page{% endblock %} {% block css %}
             </div>
         </section>
 
+        <!-- Skills -->
+        <section>
+            <h2 class="resume-section-title">Technical Skills</h2>
+            <div class="resume-skills-grid">
+                <div class="skill-category">
+                    <div class="skill-category-title">
+                        Programming Languages
+                    </div>
+                    <div class="skill-list">
+                        Python, Rust, Java, JavaScript, GoLang, C/C++, SQL, etc.
+                    </div>
+                </div>
+                <div class="skill-category">
+                    <div class="skill-category-title">
+                        Web Development Frameworks
+                    </div>
+                    <div class="skill-list">
+                        Django, FastAPI, Starlette, Flask, Axum Rust, Actix
+                        Rust, Rocket Rust, Express.js, ReactJS
+                    </div>
+                </div>
+                <div class="skill-category">
+                    <div class="skill-category-title">
+                        Database Technologies
+                    </div>
+                    <div class="skill-list">
+                        Relational Databases(SQLite, Postgres, MySQL), NoSQL
+                        Databases(MongoDB, Redis, RocksDB)
+                    </div>
+                </div>
+                <div class="skill-category">
+                    <div class="skill-category-title">
+                        Cloud Computing Technologies
+                    </div>
+                    <div class="skill-list">
+                        VPS & VPC of different vendor, AWS EC2, S3, Lambda, SNS,
+                        SQS, etc.
+                    </div>
+                </div>
+                <div class="skill-category">
+                    <div class="skill-category-title">
+                        Data Pipeline, Analytics, Machine Learning Tools
+                    </div>
+                    <div class="skill-list">
+                        Apache Kafka, Spark, Flink, ZeroMQ, RabbitMQ, ActiveMQ,
+                        ScikitLearn, Pytorch, Pandas, Polars, Jupyter Lab,
+                        Apache Lucene, Elastic Search, Tantivy, Meilisearch,
+                        DataFusion
+                    </div>
+                </div>
+
+                <div class="skill-category">
+                    <div class="skill-category-title">
+                        Design Patterns & Software Architecture
+                    </div>
+                    <div class="skill-list">
+                        Software Design Patterns, Scalable Standalone,
+                        Distributed & SaaS System Design, Client-Server,
+                        MicroKernel, CQRS, Event Driven, Layered, MicroServices
+                        Patterns, etc.
+                    </div>
+                </div>
+                <div class="skill-category">
+                    <div class="skill-category-title">DevOps/SecOps Tools</div>
+                    <div class="skill-list">
+                        Docker, Kubernetes, NGINX, Jenkins, GitHub Actions,
+                        Linux Systems, Terraform, SNYK, Sonarqube, SemGrep
+                    </div>
+                </div>
+                <div class="skill-category">
+                    <div class="skill-category-title">Soft Skills</div>
+                    <div class="skill-list">
+                        Technical Leadership, Team Mentoring, Strong Ownership,
+                        Agile, Problem-Solving, Risk Management, Decision
+                        Making, Negotiation, & Trade-Off
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Experience -->
         <section>
             <h2 class="resume-section-title">Experience</h2>
@@ -89,51 +169,48 @@ body_class %}resume-page{% endblock %} {% block css %}
             {% endfor %}
         </section>
 
-        <!-- Skills -->
+        <!-- Projects -->
         <section>
-            <h2 class="resume-section-title">Technical Skills</h2>
-            <div class="resume-skills-grid">
-                <div class="skill-category">
-                    <div class="skill-category-title">Core Technologies</div>
-                    <div class="skill-list">
-                        Python, Rust, Java, JavaScript, Shell Scripting, SQL, C,
-                        C++, Go
-                    </div>
+            <h2 class="resume-section-title">Software Projects</h2>
+            <div class="skill-category">
+                <div class="skill-category-title">
+                    1. Data Ingestion, Search, & Analytics Platform
                 </div>
-                <div class="skill-category">
-                    <div class="skill-category-title">Frameworks & Backend</div>
-                    <div class="skill-list">
-                        Django, FastAPI, Starlette, Axum, Actix, Node.js,
-                        Express.js, ReactJS
-                    </div>
+                <div class="">
+                    Data ingestion pipeline includes data collection,
+                    processing, storage, & indexing <br />
+                    The stored data should be searchable and the search
+                    operation must be fast<br />
+                    Data analytics engine provides data filtering, aggregation,
+                    data correlation <br />
+                    <strong>Tools: </strong> Network Programming, Regex, Lucene,
+                    Elastic, Tantivy, Kafka, ZeroMQ
                 </div>
-                <div class="skill-category">
-                    <div class="skill-category-title">Data & Messaging</div>
-                    <div class="skill-list">
-                        Kafka, Redis, RabbitMQ, ZeroMQ, PostgreSQL, MySQL,
-                        MongoDB, Diesel ORM, SQLAlchemy
-                    </div>
+            </div>
+            <div class="skill-category">
+                <div class="skill-category-title">
+                    2. Web Application Development
                 </div>
-                <div class="skill-category">
-                    <div class="skill-category-title">DevOps & Tools</div>
-                    <div class="skill-list">
-                        Docker, Kubernetes, NGINX, GitHub Actions, Linux
-                        Systems, Jira, Trello
-                    </div>
+                <div class="">
+                    Developed single/multivendor ecommerce systems, Logistics
+                    Management System, Point of Sales, HRM System, Learning
+                    Management System, etc. <br />
+                    <strong>Tools: </strong> RESTful API, gRPC, WebSocket,
+                    Webhook, Server Sent Events, WebWorker, Redis, Oauth2
                 </div>
-                <div class="skill-category">
-                    <div class="skill-category-title">Architecture</div>
-                    <div class="skill-list">
-                        Microservices, Distributed Systems, Search Engine
-                        Design, REST APIs, GraphQL, gRPC
-                    </div>
+            </div>
+            <div class="skill-category">
+                <div class="skill-category-title">
+                    3. Behavior Analytics System
                 </div>
-                <div class="skill-category">
-                    <div class="skill-category-title">Soft Skills</div>
-                    <div class="skill-list">
-                        Technical Leadership, Team Mentoring, Agile/Scrum,
-                        Problem-Solving, Ownership
-                    </div>
+                <div class="">
+                    The behavior analytics system prepares baselines of the
+                    usual behavior of entities and generates alerts if the new
+                    behavior deviates from the usual behavior. This also support
+                    concept/pattern drift <br />
+                    <strong>Tools: </strong> Java, Rust, Lucene Monitor
+                    Framework, Probability & Statistics, Machine Learning,
+                    Explanable AI
                 </div>
             </div>
         </section>

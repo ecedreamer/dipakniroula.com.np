@@ -10,9 +10,9 @@ COPY templates .
 COPY .env .
 COPY Cargo.* .
 COPY diesel.* .
-COPY run.sh .
 
 RUN cargo install cargo-watch
 
+CMD ["cargo", "build"]
 
-CMD ["./run.sh"]
+CMD ["cargo", "watch", "-x", "run"]
