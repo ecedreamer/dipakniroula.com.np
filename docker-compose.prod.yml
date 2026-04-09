@@ -6,7 +6,7 @@ services:
     container_name: dipak_site-webapp-prod
     restart: always
     ports:
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:8080:8081"
     env_file:
       - .env
     volumes:
@@ -34,7 +34,6 @@ services:
 volumes:
   postgres_data:
   app_logs:
-
 
 networks:
   webnet:
