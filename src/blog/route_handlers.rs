@@ -15,7 +15,6 @@ use askama::Template;
 use axum::extract::{Multipart, Path, Query, State};
 use axum::{
     Form, Router,
-    http::StatusCode,
     response::{Html, IntoResponse, Redirect},
     routing::get,
 };
@@ -36,13 +35,13 @@ pub async fn blog_routes(state: AppState) -> Router<AppState> {
                 .layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)),
         )
         .route(
-            "/admin/blog/update/{blog_id}",
+            "/admin/blog/{blog_id}/update",
             get(blog_update_page)
                 .post(blog_update_handler)
                 .layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)),
         )
         .route(
-            "/admin/blog/delete/{blog_id}",
+            "/admin/blog/{blog_id}/delete",
             get(blog_delete_page)
                 .post(blog_delete_handler)
                 .layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)),
@@ -52,7 +51,7 @@ pub async fn blog_routes(state: AppState) -> Router<AppState> {
             get(blog_list_page_admin).layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)),
         )
         .route(
-            "/admin/category/add",
+            "/admin/category/create",
             get(category_create_page)
                 .post(category_create_handler)
                 .layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)),
@@ -62,18 +61,20 @@ pub async fn blog_routes(state: AppState) -> Router<AppState> {
             get(category_list_page).layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)),
         )
         .route(
-            "/admin/category/update/{category_id}",
+            "/admin/category/{category_id}/update",
             get(category_update_page)
                 .post(category_update_handler)
                 .layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)),
         )
         .route(
-            "/admin/category/delete/{category_id}",
+            "/admin/category/{category_id}/delete",
             get(category_delete_handler).layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)),
         )
         .route("/blogs", get(blog_list_page))
-        .route("/blogs/{blog_id}", get(blog_detail_page))
+        .route("/blog/{blog_id}/detail", get(blog_detail_page))
 }
+
+
 
 #[derive(Template)]
 #[template(path = "admin/blogcreate.html")]

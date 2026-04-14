@@ -36,19 +36,26 @@ impl IntoResponse for AppError {
         let (status, error_message) = match self {
             AppError::DatabaseError(err) => {
                 error!("Database error: {:?}", err);
-                (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error".to_string())
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Internal server error".to_string(),
+                )
             }
             AppError::TemplateError(err) => {
                 error!("Template rendering error: {:?}", err);
-                (StatusCode::INTERNAL_SERVER_ERROR, "Failed to render page".to_string())
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Failed to render page".to_string(),
+                )
             }
             AppError::IoError(err) => {
                 error!("IO error: {:?}", err);
-                (StatusCode::INTERNAL_SERVER_ERROR, "File system error".to_string())
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "File system error".to_string(),
+                )
             }
-            AppError::NotFound(item) => {
-                (StatusCode::NOT_FOUND, format!("{} not found", item))
-            }
+            AppError::NotFound(item) => (StatusCode::NOT_FOUND, format!("{} not found", item)),
             AppError::Internal(msg) => {
                 error!("Internal error: {}", msg);
                 (StatusCode::INTERNAL_SERVER_ERROR, msg)

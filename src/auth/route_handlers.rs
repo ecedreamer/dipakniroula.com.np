@@ -24,6 +24,7 @@ pub async fn auth_routes(state: AppState) -> Router<AppState> {
     Router::new()
         .route("/login", get(login_page))
         .route("/login", post(login_handler))
+        .route("/logout", get(logout_handler))
         .route(
             "/admin-panel",
             get(admin_home_page).layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)),
@@ -49,6 +50,8 @@ pub async fn auth_routes(state: AppState) -> Router<AppState> {
             get(message_delete_handler).layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)),
         )
 }
+
+
 
 #[derive(Template)]
 #[template(path = "login.html")]
@@ -348,3 +351,14 @@ pub async fn social_link_update_handler(
     Ok(Redirect::to("/auth/admin-panel"))
 }
 
+
+pub async fn logout_handler() -> Result<impl IntoResponse, AppError> {
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        header::SET_COOKIE,
+        HeaderValue::from_str("session_id=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0").map_err(|e| AppError::Internal(e.to_string()))?,
+    );
+
+    tracing::info!("User logged out successfully...");
+    Ok((headers, Redirect::to("/auth/login")))
+}

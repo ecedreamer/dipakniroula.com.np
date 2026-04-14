@@ -33,6 +33,7 @@ pub async fn resume_routes(state: AppState) -> Router<AppState> {
 
 
 
+
 #[derive(Template)]
 #[template(path = "resume.html")]
 pub struct ResumeTemplate {
