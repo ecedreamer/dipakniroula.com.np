@@ -1,12 +1,29 @@
 services:
+  nginx-proxy:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginx-proxy-prod
+    restart: always
+    ports:
+      - "80:80" # HTTP traffic
+      - "443:443" # HTTPS traffic
+      - "81:81" # Admin UI (Access this to set up SSL)
+    volumes:
+      - ./nginx_data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    networks:
+      - webnet
+    depends_on:
+      - webapp
+
   webapp:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: dipak_site-webapp-prod
     restart: always
-    ports:
-      - "127.0.0.1:8080:8081"
+    # Ports removed from host; Nginx will find it on 'webnet' via container port 8081
+    expose:
+      - "8081"
     env_file:
       - .env
     volumes:
@@ -24,16 +41,14 @@ services:
     env_file:
       - .env
     volumes:
-      - postgres_data:/var/lib/postgresql
-    environment:
-      PGDATA: /var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - internal
-    # Note: Ports block is removed to prevent external DB scanning (Isolation)
 
 volumes:
   postgres_data:
   app_logs:
+
 
 networks:
   webnet:
