@@ -66,7 +66,7 @@
                         <td class="small">{{ message.date_sent }}</td>
                         <td>
                             <div class="actions-group">
-                                <button class="btn-premium btn-primary-premium btn-sm" data-bs-toggle="modal" data-bs-target="#msgModal{{ message.id.unwrap() }}">
+                                <button type="button" class="btn-premium btn-primary-premium btn-sm" data-bs-toggle="modal" data-bs-target="#msgModal{{ message.id.unwrap() }}">
                                     <i class="fas fa-eye"></i>
                                 </button>
                                 <a href="/auth/delete-message/{{ message.id.unwrap() }}" class="btn-premium btn-danger-premium btn-sm" onclick="return confirm('Are you sure?')">
