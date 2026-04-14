@@ -27,7 +27,7 @@ use std::env;
 use axum_csrf::CsrfConfig;
 
 use tower_http::cors::CorsLayer;
-use tower_http::services::ServeDir;
+use tower_http::services::{ServeDir, ServeFile};
 
 use diesel_migrations::MigrationHarness;
 use route_handlers::{contact_form_handler, contact_page, home_page, summernote_upload};
@@ -164,6 +164,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(home_page))
+        .route_service("/robots.txt", ServeFile::new("static/robots.txt"))
         .route("/contact", get(contact_page).post(contact_form_handler))
         .route("/summernote-upload", post(summernote_upload))
         .nest("/auth", auth::route_handlers::auth_routes().await)

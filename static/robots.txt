@@ -1,0 +1,8 @@
+User-agent: *
+# Wait 10 seconds between requests
+Crawl-delay: 10
+Disallow: /auth/
+Disallow: /media/
+
+# Allow everything else
+Allow: /
