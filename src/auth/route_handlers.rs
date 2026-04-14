@@ -260,21 +260,27 @@ pub async fn message_delete_handler(
     Ok(Redirect::to("/auth/admin-panel"))
 }
 
-#[derive(Deserialize, Debug)]
-pub struct BulkDeleteForm {
-    pub message_ids: Vec<i32>,
-}
-
 pub async fn bulk_message_delete_handler(
     State(state): State<AppState>,
-    Form(form_data): Form<BulkDeleteForm>,
+    body: String,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
     use crate::schema::messages::dsl::*;
 
-    diesel::delete(messages.filter(id.eq_any(form_data.message_ids)))
-        .execute(&mut conn)
-        .await?;
+    // Manual parsing to handle both single and multiple "message_ids" fields correctly
+    // without requiring extra dependencies. For simple integer IDs, string splitting is safe.
+    let selected_ids: Vec<i32> = body
+        .split('&')
+        .filter(|s| s.starts_with("message_ids="))
+        .filter_map(|s| s.split('=').nth(1))
+        .filter_map(|v| v.parse::<i32>().ok())
+        .collect();
+
+    if !selected_ids.is_empty() {
+        diesel::delete(messages.filter(id.eq_any(selected_ids)))
+            .execute(&mut conn)
+            .await?;
+    }
 
     Ok(Redirect::to("/auth/admin-panel"))
 }
