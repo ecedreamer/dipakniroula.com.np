@@ -1,11 +1,8 @@
-use std::str::FromStr;
 use askama::Template;
-use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse, Redirect};
 use axum::{Form, Router};
-use axum::extract::Path;
+use axum::extract::{Path, State};
 use axum::routing::get;
-use crate::db::establish_connection;
 use crate::resume::models::{Experience, NewExperience, UpdateExperience};
 
 use diesel::prelude::*;
@@ -13,26 +10,27 @@ use diesel_async::RunQueryDsl;
 use crate::auth::models::SocialLink;
 use crate::middlewares::session_middleware;
 use crate::resume::resume_repository::ExperienceRepository;
+use crate::state::AppState;
+use crate::utils::error::AppError;
 
-pub async fn resume_routes() -> Router<axum_csrf::CsrfConfig> {
-    
+pub async fn resume_routes(state: AppState) -> Router<AppState> {
     Router::new()
         // client side pages
         .route("/my-resume", get(resume_page))
 
         // admin side pages
         .route("/admin/experience/list",
-               get(admin_experience_list_page).layer(axum::middleware::from_fn(session_middleware)))
+               get(admin_experience_list_page).layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)))
         .route("/admin/experience/create",
                get(create_experience_page)
-                   .post(handle_create_experience).layer(axum::middleware::from_fn(session_middleware)))
+                   .post(handle_create_experience).layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)))
         .route("/admin/experience/{exp_id}/update",
                get(update_experience_page)
-                   .post(handle_update_experience).layer(axum::middleware::from_fn(session_middleware)))
+                   .post(handle_update_experience).layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)))
         .route("/admin/experience/{exp_id}/delete",
-               get(handle_delete_experience).layer(axum::middleware::from_fn(session_middleware)))
-
+               get(handle_delete_experience).layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)))
 }
+
 
 
 #[derive(Template)]
@@ -43,44 +41,26 @@ pub struct ResumeTemplate {
 }
 
 
-pub async fn resume_page() -> impl IntoResponse {
-    let conn = &mut establish_connection().await;
+pub async fn resume_page(State(state): State<AppState>) -> Result<impl IntoResponse, AppError> {
+    let mut conn: crate::db::PooledConn = state.get_conn().await?;
 
 
     use crate::schema::social_links::dsl::social_links;
     let my_social_links = social_links
         .select(SocialLink::as_select())
-        .load(conn)
-        .await
-        .expect("Error loading social links");
+        .load(&mut conn)
+        .await?;
 
-    let repo = ExperienceRepository::new(conn);
-    let result = repo.find().await;
+    let repo = ExperienceRepository::new(&mut conn);
+    let results = repo.find().await?;
 
 
-    match result {
-        Ok(experience_list) => {
-            let context = ResumeTemplate {
-                experiences: experience_list,
-                social_links: my_social_links
-            };
+    let context = ResumeTemplate {
+        experiences: results,
+        social_links: my_social_links
+    };
 
-            match context.render() {
-                Ok(html) => Html(html).into_response(),
-                Err(_) => (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "Failed to render HTML".to_string(),
-                ).into_response(),
-            }
-        },
-        Err(_) => {
-            tracing::error!("Error fetching experiences");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Failed to render HTML".to_string(),
-            ).into_response()
-        }
-    }
+    Ok(Html(context.render()?))
 }
 
 
@@ -93,36 +73,18 @@ pub struct AdminExperienceListTemplate {
 }
 
 
-pub async fn admin_experience_list_page() -> impl IntoResponse {
-    let conn = &mut establish_connection().await;
-    let repo = ExperienceRepository::new(conn);
+pub async fn admin_experience_list_page(State(state): State<AppState>) -> Result<impl IntoResponse, AppError> {
+    let mut conn: crate::db::PooledConn = state.get_conn().await?;
+    let repo = ExperienceRepository::new(&mut conn);
 
+    let results = repo.find().await?;
 
-    let result = repo.find().await;
-
-    match result {
-        Ok(experience_list) => {
-            let context = AdminExperienceListTemplate {
-                experience_list,
-                active_nav: "experiences".to_string(),
-            };
-            match context.render() {
-                Ok(html) => Html(html).into_response(),
-                Err(_) => (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "Failed to render HTML".to_string(),
-                ).into_response(),
-            }
-        },
-        Err(err) => {
-            tracing::error!("Could not fetch experience list; error: {:?}", err);
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Failed to render HTML".to_string(),
-            ).into_response()
-        }
-    }
-
+    let context = AdminExperienceListTemplate {
+        experience_list: results,
+        active_nav: "experiences".to_string(),
+    };
+    
+    Ok(Html(context.render()?))
 }
 
 
@@ -133,42 +95,24 @@ pub struct CreateExperienceTemplate {
     active_nav: String,
 }
 
-pub async fn create_experience_page() -> impl IntoResponse {
+pub async fn create_experience_page() -> Result<impl IntoResponse, AppError> {
     let context = CreateExperienceTemplate {
         active_nav: "experiences".to_string(),
     };
-    match context.render() {
-        Ok(html) => Html(html).into_response(),
-        Err(_) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Failed to render HTML".to_string(),
-        ).into_response(),
-    }
+    Ok(Html(context.render()?))
 }
 
 
-pub async fn handle_create_experience(Form(form_data): Form<NewExperience>) -> impl IntoResponse {
-    let experience = NewExperience {
-        company_name: form_data.company_name,
-        company_link: form_data.company_link,
-        your_position: form_data.your_position,
-        start_date: form_data.start_date,
-        end_date: form_data.end_date,
-        responsibility: form_data.responsibility,
-        skills: form_data.skills,
-        order: form_data.order
+pub async fn handle_create_experience(
+    State(state): State<AppState>,
+    Form(form_data): Form<NewExperience>,
+) -> Result<impl IntoResponse, AppError> {
+    let mut conn: crate::db::PooledConn = state.get_conn().await?;
 
-    };
-    let conn = &mut establish_connection().await;
-
-    let repo = ExperienceRepository::new(conn);
-    match repo.insert_one(&experience).await {
-        Ok(_) => Redirect::to("/auth/admin-panel").into_response(),
-        Err(e) => {
-            tracing::error!("Could not save the experience; error: {:?}", e);
-            Redirect::to("/auth/admin-panel").into_response()
-        }
-    }
+    let repo = ExperienceRepository::new(&mut conn);
+    repo.insert_one(&form_data).await?;
+    
+    Ok(Redirect::to("/admin/experience/list"))
 }
 
 
@@ -179,45 +123,30 @@ pub struct UpdateExperienceTemplate {
     active_nav: String,
 }
 
-pub async fn update_experience_page(Path(exp_id): Path<String>) -> impl IntoResponse {
-    let conn = &mut establish_connection().await;
-    let repo = ExperienceRepository::new(conn);
+pub async fn update_experience_page(
+    State(state): State<AppState>,
+    Path(exp_id): Path<i32>,
+) -> Result<impl IntoResponse, AppError> {
+    let mut conn: crate::db::PooledConn = state.get_conn().await?;
+    let repo = ExperienceRepository::new(&mut conn);
 
-    let exp_id_num = match i32::from_str(&exp_id) {
-        Ok(num) => num,
-        Err(_) => return (StatusCode::BAD_REQUEST, "Invalid experience ID").into_response(),
+    let experience = repo.find_by_id(exp_id).await?;
+    
+    let context = UpdateExperienceTemplate { 
+        experience,
+        active_nav: "experiences".to_string(),
     };
-
-    match repo.find_by_id(exp_id_num).await {
-        Ok(experience) => {
-            let context = UpdateExperienceTemplate { 
-                experience,
-                active_nav: "experiences".to_string(),
-            };
-            match context.render() {
-                Ok(html) => Html(html).into_response(),
-                Err(e) => {
-                    tracing::error!("Template render error: {:?}", e);
-                    (StatusCode::INTERNAL_SERVER_ERROR, "Failed to render template").into_response()
-                }
-            }
-        }
-        Err(e) => {
-            tracing::error!("Database fetch error for ID {}: {:?}", exp_id_num, e);
-            (StatusCode::NOT_FOUND, "Experience not found").into_response()
-        }
-    }
+    Ok(Html(context.render()?))
 }
 
 
-pub async fn handle_update_experience(Path(data_id): Path<String>, Form(form_data): Form<NewExperience>) -> impl IntoResponse {
-    let conn = &mut establish_connection().await;
-    let repo = ExperienceRepository::new(conn);
-
-    let data_id_num = match i32::from_str(&data_id) {
-        Ok(num) => num,
-        Err(_) => return (StatusCode::BAD_REQUEST, "Invalid experience ID").into_response(),
-    };
+pub async fn handle_update_experience(
+    State(state): State<AppState>,
+    Path(data_id): Path<i32>, 
+    Form(form_data): Form<NewExperience>,
+) -> Result<impl IntoResponse, AppError> {
+    let mut conn: crate::db::PooledConn = state.get_conn().await?;
+    let repo = ExperienceRepository::new(&mut conn);
 
     // Correctly map empty form strings to None, and non-empty to Some
     let experience = UpdateExperience {
@@ -231,32 +160,20 @@ pub async fn handle_update_experience(Path(data_id): Path<String>, Form(form_dat
         order: Some(form_data.order),
     };
 
-    match repo.update_one(data_id_num, &experience).await {
-        Ok(_) => Redirect::to("/admin/experience/list").into_response(),
-        Err(e) => {
-            tracing::error!("Update failed for ID {}: {:?}", data_id_num, e);
-            (StatusCode::INTERNAL_SERVER_ERROR, "Update failed").into_response()
-        }
-    }
-
-
+    repo.update_one(data_id, &experience).await?;
+    
+    Ok(Redirect::to("/admin/experience/list"))
 }
 
 
-pub async fn handle_delete_experience(Path(exp_id): Path<String>) -> impl IntoResponse {
-    let conn = &mut establish_connection().await;
-    let repo = ExperienceRepository::new(conn);
+pub async fn handle_delete_experience(
+    State(state): State<AppState>,
+    Path(exp_id): Path<i32>,
+) -> Result<impl IntoResponse, AppError> {
+    let mut conn: crate::db::PooledConn = state.get_conn().await?;
+    let repo = ExperienceRepository::new(&mut conn);
 
-    let exp_id_num = match i32::from_str(&exp_id) {
-        Ok(num) => num,
-        Err(_) => return (StatusCode::BAD_REQUEST, "Invalid experience ID").into_response(),
-    };
-
-    match repo.delete_one(exp_id_num).await {
-        Ok(_) => Redirect::to("/admin/experience/list").into_response(),
-        Err(e) => {
-            tracing::error!("Delete failed for ID {}: {:?}", exp_id_num, e);
-            (StatusCode::INTERNAL_SERVER_ERROR, "Delete failed").into_response()
-        }
-    }
+    repo.delete_one(exp_id).await?;
+    
+    Ok(Redirect::to("/admin/experience/list"))
 }

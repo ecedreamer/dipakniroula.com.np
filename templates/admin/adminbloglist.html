@@ -4,11 +4,20 @@
 {% block page_title %}Manage Blog Posts{% endblock %}
 
 {% block content %}
-<div class="header-top mb-4">
-    <h4 class="m-0">Article Archive</h4>
-    <a href="/admin/blog/create" class="btn-premium btn-primary-premium">
-        <i class="fas fa-plus"></i> Write New Post
-    </a>
+<div class="header-top mb-4 d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="m-0 d-inline-block">Article Archive</h4>
+        <span class="badge badge-info ms-2">{{ total_count }} Total</span>
+    </div>
+    <div class="d-flex align-items-center">
+        <form method="GET" action="" class="d-flex me-3">
+            <input type="text" name="query" class="form-control form-control-sm me-2" placeholder="Search blogs..." value="{{ search_query.clone().unwrap_or_default() }}">
+            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+        </form>
+        <a href="/admin/blog/create" class="btn-premium btn-primary-premium">
+            <i class="fas fa-plus"></i> Write New Post
+        </a>
+    </div>
 </div>
 
 <div class="table-container">
@@ -67,5 +76,44 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <!-- Pagination Controls -->
+    {% if total_pages > 1 %}
+    <nav aria-label="Page navigation" class="mt-4 mb-3">
+      <ul class="pagination justify-content-center">
+        {% if current_page > 1 %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ current_page - 1 }}{% match search_query %}{% when Some with (val) %}&query={{ val }}{% when None %}{% endmatch %}">Previous</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">Previous</span>
+        </li>
+        {% endif %}
+
+        {% for p in pages %}
+        {% if *p == current_page %}
+        <li class="page-item active" aria-current="page">
+          <span class="page-link">{{ p }}</span>
+        </li>
+        {% else %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ p }}{% match search_query %}{% when Some with (val) %}&query={{ val }}{% when None %}{% endmatch %}">{{ p }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+
+        {% if current_page < total_pages %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ current_page + 1 }}{% match search_query %}{% when Some with (val) %}&query={{ val }}{% when None %}{% endmatch %}">Next</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">Next</span>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
 </div>
 {% endblock %}

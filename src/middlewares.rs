@@ -3,26 +3,18 @@ use axum::{
     http::{Request, StatusCode},
     middleware::Next,
     response::{Response, IntoResponse, Redirect},
+    extract::State,
 };
 use chrono::Utc;
 use cookie::Cookie;
-use crate::db::establish_connection;
 use crate::session_backend::{delete_expired_sessions, get_session};
+use crate::state::AppState;
 
-// pub async fn auth_middleware(req: Request<Body>, next: Next) -> Result<Response, StatusCode> {
-//     if let Some(auth_header) = req.headers().get("Cookie") {
-//         if auth_header.to_str().unwrap().contains("session_id=") {
-//             Ok(next.run(req).await)
-//         } else {
-//             Ok(Redirect::to("/auth/login").into_response())
-//         }
-//     } else {
-//         Ok(Redirect::to("/auth/login").into_response())
-//     }
-// }
-
-
-pub async fn session_middleware(mut req: Request<Body>, next: Next) -> Result<Response, StatusCode> {
+pub async fn session_middleware(
+    State(state): State<AppState>,
+    mut req: Request<Body>, 
+    next: Next
+) -> Result<Response, StatusCode> {
     if let Some(cookie_header) = req.headers().get("Cookie") {
         let cookies_str = cookie_header.to_str().ok().unwrap_or_default();
 
@@ -40,8 +32,8 @@ pub async fn session_middleware(mut req: Request<Body>, next: Next) -> Result<Re
         if let Some(session_cookie) = cookies.iter().find(|cookie| cookie.name() == "session_id") {
             let session_id = session_cookie.value();
 
-            let conn = &mut establish_connection().await;
-            match get_session(conn, session_id).await {
+            let mut conn: crate::db::PooledConn = state.get_conn().await.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+            match get_session(&mut conn, session_id).await {
                 Ok(Some(session)) => {
                     let current_time = Utc::now().naive_utc();
                     if current_time < session.expires_at {
@@ -50,7 +42,7 @@ pub async fn session_middleware(mut req: Request<Body>, next: Next) -> Result<Re
                         Ok(next.run(req).await)
                     } else {
                         tracing::warn!("Session expired for ID: {}. Current: {}, Expires: {}", session_id, current_time, session.expires_at);
-                        let _ = delete_expired_sessions(conn).await;
+                        let _ = delete_expired_sessions(&mut conn).await;
                         Ok(Redirect::to("/auth/login").into_response())
                     }
                 }
@@ -64,7 +56,7 @@ pub async fn session_middleware(mut req: Request<Body>, next: Next) -> Result<Re
                 }
             }
         } else {
-            tracing::info!("Required 'session_id' cookie missing. Found: {:?}", cookies.iter().map(|c| c.name()).collect::<Vec<_>>());
+            tracing::info!("Required 'session_id' cookie missing.");
             Ok(Redirect::to("/auth/login").into_response())
         }
     } else {
@@ -72,6 +64,7 @@ pub async fn session_middleware(mut req: Request<Body>, next: Next) -> Result<Re
         Ok(Redirect::to("/auth/login").into_response())
     }
 }
+
 
 
 pub async fn security_headers_middleware(req: Request<Body>, next: Next) -> Response {

@@ -10,6 +10,8 @@ mod schema;
 
 mod filters;
 mod session_backend;
+mod state;
+mod utils;
 
 use argon2::password_hash::rand_core;
 use askama::Template;
@@ -24,6 +26,8 @@ use db::establish_sync_connection;
 use dotenvy::dotenv;
 use std::env;
 
+use crate::db::create_pool;
+pub use crate::state::AppState;
 use axum_csrf::CsrfConfig;
 
 use tower_http::cors::CorsLayer;
@@ -140,6 +144,11 @@ async fn main() {
     let _guards = init_tracing();
 
     let csrf_config = CsrfConfig::default();
+    let db_pool = create_pool();
+    let app_state = AppState {
+        db_pool,
+        csrf_config: csrf_config.clone(),
+    };
 
     let mut connection = establish_sync_connection();
     connection
@@ -167,13 +176,16 @@ async fn main() {
         .route_service("/robots.txt", ServeFile::new("static/robots.txt"))
         .route("/contact", get(contact_page).post(contact_form_handler))
         .route("/summernote-upload", post(summernote_upload))
-        .nest("/auth", auth::route_handlers::auth_routes().await)
-        .merge(blog::route_handlers::blog_routes().await)
-        .merge(resume::route_handlers::resume_routes().await)
+        .nest(
+            "/auth",
+            auth::route_handlers::auth_routes(app_state.clone()).await,
+        )
+        .merge(blog::route_handlers::blog_routes(app_state.clone()).await)
+        .merge(resume::route_handlers::resume_routes(app_state.clone()).await)
         .nest_service("/static", static_files_service)
         .nest_service("/media", media_files_service)
         .fallback(handle_404)
-        .with_state(csrf_config) // Now all routes that need state have it
+        .with_state(app_state) // Now all routes that need state have it
         .layer(axum::middleware::from_fn(
             middlewares::security_headers_middleware,
         ))
