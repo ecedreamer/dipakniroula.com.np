@@ -1,6 +1,6 @@
 use askama::Template;
 use axum::response::{Html, IntoResponse, Redirect};
-use axum::{Form, Router};
+use axum::{Form, Router, Extension};
 use axum::extract::{Path, State};
 use axum::routing::get;
 use crate::resume::models::{Experience, NewExperience, UpdateExperience};
@@ -39,11 +39,21 @@ pub async fn resume_routes(state: AppState) -> Router<AppState> {
 pub struct ResumeTemplate {
     experiences: Vec<Experience>,
     social_links: Vec<SocialLink>,
+    flash: Option<crate::models::FlashData>,
 }
 
 
-pub async fn resume_page(State(state): State<AppState>) -> Result<impl IntoResponse, AppError> {
+pub async fn resume_page(
+    State(state): State<AppState>,
+    session: Option<axum::Extension<crate::models::CustomSession>>,
+) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
+
+    let flash = if let Some(axum::Extension(s)) = session {
+        crate::session_backend::take_flash(&mut conn, &s).await.1
+    } else {
+        crate::models::FlashData::default()
+    };
 
 
     use crate::schema::social_links::dsl::social_links;
@@ -58,7 +68,8 @@ pub async fn resume_page(State(state): State<AppState>) -> Result<impl IntoRespo
 
     let context = ResumeTemplate {
         experiences: results,
-        social_links: my_social_links
+        social_links: my_social_links,
+        flash: Some(flash),
     };
 
     Ok(Html(context.render()?))
@@ -71,11 +82,17 @@ pub async fn resume_page(State(state): State<AppState>) -> Result<impl IntoRespo
 pub struct AdminExperienceListTemplate {
     experience_list: Vec<Experience>,
     active_nav: String,
+    flash: Option<crate::models::FlashData>,
 }
 
 
-pub async fn admin_experience_list_page(State(state): State<AppState>) -> Result<impl IntoResponse, AppError> {
+pub async fn admin_experience_list_page(
+    State(state): State<AppState>,
+    axum::Extension(session): axum::Extension<crate::models::CustomSession>,
+) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
+    
+    let flash = crate::session_backend::take_flash(&mut conn, &session).await.1;
     let repo = ExperienceRepository::new(&mut conn);
 
     let results = repo.find().await?;
@@ -83,6 +100,7 @@ pub async fn admin_experience_list_page(State(state): State<AppState>) -> Result
     let context = AdminExperienceListTemplate {
         experience_list: results,
         active_nav: "experiences".to_string(),
+        flash: Some(flash),
     };
     
     Ok(Html(context.render()?))
@@ -94,11 +112,22 @@ pub async fn admin_experience_list_page(State(state): State<AppState>) -> Result
 #[template(path = "admin/createexperience.html")]
 pub struct CreateExperienceTemplate {
     active_nav: String,
+    flash: Option<crate::models::FlashData>,
 }
 
-pub async fn create_experience_page() -> Result<impl IntoResponse, AppError> {
+pub async fn create_experience_page(
+    State(state): State<AppState>,
+    session: Option<Extension<crate::models::CustomSession>>,
+) -> Result<impl IntoResponse, AppError> {
+    let mut conn = state.get_conn().await?;
+    let flash = if let Some(Extension(s)) = session {
+        crate::session_backend::take_flash(&mut conn, &s).await.1
+    } else {
+        crate::models::FlashData::default()
+    };
     let context = CreateExperienceTemplate {
         active_nav: "experiences".to_string(),
+        flash: Some(flash),
     };
     Ok(Html(context.render()?))
 }
@@ -106,12 +135,15 @@ pub async fn create_experience_page() -> Result<impl IntoResponse, AppError> {
 
 pub async fn handle_create_experience(
     State(state): State<AppState>,
+    axum::Extension(session): axum::Extension<crate::models::CustomSession>,
     Form(form_data): Form<NewExperience>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
 
     let repo = ExperienceRepository::new(&mut conn);
     repo.insert_one(&form_data).await?;
+
+    crate::session_backend::set_flash(&mut conn, &session, Some("Experience added successfully.".to_string()), None).await?;
     
     Ok(Redirect::to("/admin/experience/list"))
 }
@@ -122,13 +154,20 @@ pub async fn handle_create_experience(
 pub struct UpdateExperienceTemplate {
     experience: Experience,
     active_nav: String,
+    flash: Option<crate::models::FlashData>,
 }
 
 pub async fn update_experience_page(
     State(state): State<AppState>,
+    session: Option<Extension<crate::models::CustomSession>>,
     Path(exp_id): Path<i32>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
+    let flash = if let Some(Extension(s)) = session {
+        crate::session_backend::take_flash(&mut conn, &s).await.1
+    } else {
+        crate::models::FlashData::default()
+    };
     let repo = ExperienceRepository::new(&mut conn);
 
     let experience = repo.find_by_id(exp_id).await?;
@@ -136,6 +175,7 @@ pub async fn update_experience_page(
     let context = UpdateExperienceTemplate { 
         experience,
         active_nav: "experiences".to_string(),
+        flash: Some(flash),
     };
     Ok(Html(context.render()?))
 }
@@ -143,6 +183,7 @@ pub async fn update_experience_page(
 
 pub async fn handle_update_experience(
     State(state): State<AppState>,
+    axum::Extension(session): axum::Extension<crate::models::CustomSession>,
     Path(data_id): Path<i32>, 
     Form(form_data): Form<NewExperience>,
 ) -> Result<impl IntoResponse, AppError> {
@@ -163,12 +204,15 @@ pub async fn handle_update_experience(
 
     repo.update_one(data_id, &experience).await?;
     
+    crate::session_backend::set_flash(&mut conn, &session, Some("Experience updated successfully.".to_string()), None).await?;
+
     Ok(Redirect::to("/admin/experience/list"))
 }
 
 
 pub async fn handle_delete_experience(
     State(state): State<AppState>,
+    axum::Extension(session): axum::Extension<crate::models::CustomSession>,
     Path(exp_id): Path<i32>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
@@ -176,5 +220,7 @@ pub async fn handle_delete_experience(
 
     repo.delete_one(exp_id).await?;
     
+    crate::session_backend::set_flash(&mut conn, &session, Some("Experience deleted successfully.".to_string()), None).await?;
+
     Ok(Redirect::to("/admin/experience/list"))
 }

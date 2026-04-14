@@ -14,9 +14,9 @@ use std::str::FromStr;
 use askama::Template;
 use axum::extract::{Multipart, Path, Query, State};
 use axum::{
-    Form, Router,
     response::{Html, IntoResponse, Redirect},
     routing::get,
+    Extension, Form, Router,
 };
 use chrono::Utc;
 use diesel_async::RunQueryDsl;
@@ -81,16 +81,27 @@ pub async fn blog_routes(state: AppState) -> Router<AppState> {
 struct BlogCreateTemplate {
     categories: Vec<Category>,
     active_nav: String,
+    flash: Option<crate::models::FlashData>,
 }
 
 
 
-pub async fn blog_create_page(State(state): State<AppState>) -> Result<impl IntoResponse, AppError> {
+pub async fn blog_create_page(
+    State(state): State<AppState>,
+    session: Option<Extension<crate::models::CustomSession>>,
+) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
+    let flash = if let Some(Extension(s)) = session {
+        crate::session_backend::take_flash(&mut conn, &s).await.1
+    } else {
+        crate::models::FlashData::default()
+    };
+
     let category_repo = CategoryRepository::new(&mut conn);
     let context = BlogCreateTemplate {
         categories: category_repo.find().await?,
         active_nav: "blogs".to_string(),
+        flash: Some(flash),
     };
 
     Ok(Html(context.render()?))
@@ -98,8 +109,10 @@ pub async fn blog_create_page(State(state): State<AppState>) -> Result<impl Into
 
 pub async fn blog_create_handler(
     State(state): State<AppState>,
+    Extension(session): Extension<crate::models::CustomSession>,
     mut multipart: Multipart,
 ) -> Result<impl IntoResponse, AppError> {
+    let mut conn: crate::db::PooledConn = state.get_conn().await?;
     tracing::info!("Handling multipart request");
     let mut image_path = String::new();
     let mut title = String::new();
@@ -146,10 +159,11 @@ pub async fn blog_create_handler(
         modified_date: None,
     };
 
-    let mut conn: crate::db::PooledConn = state.get_conn().await?;
     let blog_repo = BlogRepository::new(&mut conn);
 
     blog_repo.insert_one(&blog, &categories).await?;
+
+    crate::session_backend::set_flash(&mut conn, &session, Some("Blog post created successfully.".to_string()), None).await?;
 
     Ok(Redirect::to("/admin/blog/list"))
 }
@@ -159,15 +173,22 @@ pub async fn blog_create_handler(
 struct BlogUpdateTemplate {
     blog: Blog,
     active_nav: String,
+    flash: Option<crate::models::FlashData>,
 }
 
 pub async fn blog_update_page(
     State(state): State<AppState>,
+    session: Option<Extension<crate::models::CustomSession>>,
     Path(blog_id): Path<i32>,
 ) -> Result<impl IntoResponse, AppError> {
     use crate::schema::blogs::dsl::*;
 
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
+    let flash = if let Some(Extension(s)) = session {
+        crate::session_backend::take_flash(&mut conn, &s).await.1
+    } else {
+        crate::models::FlashData::default()
+    };
 
     let result = blogs
         .filter(id.eq(blog_id))
@@ -180,6 +201,7 @@ pub async fn blog_update_page(
             let context = BlogUpdateTemplate { 
                 blog,
                 active_nav: "blogs".to_string(),
+                flash: Some(flash),
             };
 
             Ok(Html(context.render()?).into_response())
@@ -190,6 +212,7 @@ pub async fn blog_update_page(
 
 pub async fn blog_update_handler(
     State(state): State<AppState>,
+    Extension(session): Extension<crate::models::CustomSession>,
     Path(blog_id): Path<i32>,
     mut multipart: Multipart,
 ) -> Result<impl IntoResponse, AppError> {
@@ -243,6 +266,8 @@ pub async fn blog_update_handler(
     let blog_repo = BlogRepository::new(&mut conn);
     blog_repo.update_one(blog_id, &update_blog).await?;
 
+    crate::session_backend::set_flash(&mut conn, &session, Some("Blog post updated successfully.".to_string()), None).await?;
+
     Ok(Redirect::to("/admin/blog/list"))
 }
 
@@ -252,12 +277,25 @@ pub async fn blog_update_handler(
 struct BlogDeleteTemplate {
     blog_id: i32,
     active_nav: String,
+    flash: Option<crate::models::FlashData>,
 }
 
-async fn blog_delete_page(Path(blog_id): Path<i32>) -> Result<impl IntoResponse, AppError> {
+async fn blog_delete_page(
+    State(state): State<AppState>,
+    session: Option<Extension<crate::models::CustomSession>>,
+    Path(blog_id): Path<i32>,
+) -> Result<impl IntoResponse, AppError> {
+    let mut conn = state.get_conn().await?;
+    let flash = if let Some(Extension(s)) = session {
+        crate::session_backend::take_flash(&mut conn, &s).await.1
+    } else {
+        crate::models::FlashData::default()
+    };
+
     let context = BlogDeleteTemplate {
         blog_id,
         active_nav: "blogs".to_string(),
+        flash: Some(flash),
     };
 
     Ok(Html(context.render()?))
@@ -265,6 +303,7 @@ async fn blog_delete_page(Path(blog_id): Path<i32>) -> Result<impl IntoResponse,
 
 async fn blog_delete_handler(
     State(state): State<AppState>,
+    Extension(session): Extension<crate::models::CustomSession>,
     Path(blog_id): Path<i32>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
@@ -274,6 +313,8 @@ async fn blog_delete_handler(
         .execute(&mut conn)
         .await?;
     
+    crate::session_backend::set_flash(&mut conn, &session, Some("Blog post deleted successfully.".to_string()), None).await?;
+
     Ok(Redirect::to("/admin/blog/list"))
 }
 
@@ -293,13 +334,17 @@ struct AdminBlogListTemplate {
     pages: Vec<i64>,
     search_query: Option<String>,
     total_count: i64,
+    flash: Option<crate::models::FlashData>,
 }
 
 pub async fn blog_list_page_admin(
     State(state): State<AppState>,
+    Extension(session): Extension<crate::models::CustomSession>,
     Query(pagination): Query<AdminBlogQuery>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
+    
+    let flash = crate::session_backend::take_flash(&mut conn, &session).await.1;
 
     let page = pagination.page.unwrap_or(1).max(1);
     let per_page = 10;
@@ -343,6 +388,7 @@ pub async fn blog_list_page_admin(
         pages: pages_vec,
         search_query: pagination.query,
         total_count: b_count,
+        flash: Some(flash),
     };
     
     Ok(Html(context.render()?))
@@ -353,6 +399,7 @@ pub async fn blog_list_page_admin(
 struct BlogListTemplate {
     blog_list: Vec<Blog>,
     categories_list: Vec<Category>,
+    flash: Option<crate::models::FlashData>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -362,9 +409,15 @@ pub struct BlogQuery {
 
 pub async fn blog_list_page(
     State(state): State<AppState>,
+    session: Option<Extension<crate::models::CustomSession>>,
     Query(query): Query<BlogQuery>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
+    let flash = if let Some(Extension(s)) = session {
+        crate::session_backend::take_flash(&mut conn, &s).await.1
+    } else {
+        crate::models::FlashData::default()
+    };
     let blog_repo = BlogRepository::new(&mut conn);
 
     let results = blog_repo.find_active_only(query.cat_id, "id", 25).await?;
@@ -375,6 +428,7 @@ pub async fn blog_list_page(
     let context = BlogListTemplate {
         blog_list: results,
         categories_list: categories,
+        flash: Some(flash),
     };
 
     Ok(Html(context.render()?))
@@ -384,13 +438,20 @@ pub async fn blog_list_page(
 #[template(path = "blogdetail.html")]
 struct BlogDetailTemplate {
     blog: Blog,
+    flash: Option<crate::models::FlashData>,
 }
 
 pub async fn blog_detail_page(
     State(state): State<AppState>,
+    session: Option<Extension<crate::models::CustomSession>>,
     Path(blog_id): Path<i32>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
+    let flash = if let Some(Extension(s)) = session {
+        crate::session_backend::take_flash(&mut conn, &s).await.1
+    } else {
+        crate::models::FlashData::default()
+    };
 
     let blog_repo = BlogRepository::new(&mut conn);
     let single_blog_result = blog_repo.find_by_id(blog_id).await;
@@ -400,7 +461,7 @@ pub async fn blog_detail_page(
 
     match single_blog_result {
         Ok(blog) => {
-            let context = BlogDetailTemplate { blog };
+            let context = BlogDetailTemplate { blog, flash: Some(flash) };
             Ok(Html(context.render()?).into_response())
         }
         Err(err) => {
@@ -418,11 +479,23 @@ pub async fn blog_detail_page(
 #[template(path = "admin/admincategorycreate.html")]
 struct CategoryCreatePageTemplate {
     active_nav: String,
+    flash: Option<crate::models::FlashData>,
 }
 
-pub async fn category_create_page() -> Result<impl IntoResponse, AppError> {
+pub async fn category_create_page(
+    State(state): State<AppState>,
+    session: Option<Extension<crate::models::CustomSession>>,
+) -> Result<impl IntoResponse, AppError> {
+    let mut conn = state.get_conn().await?;
+    let flash = if let Some(Extension(s)) = session {
+        crate::session_backend::take_flash(&mut conn, &s).await.1
+    } else {
+        crate::models::FlashData::default()
+    };
+
     let context = CategoryCreatePageTemplate {
         active_nav: "categories".to_string(),
+        flash: Some(flash),
     };
 
     Ok(Html(context.render()?))
@@ -435,6 +508,7 @@ pub struct CategoryForm {
 
 pub async fn category_create_handler(
     State(state): State<AppState>,
+    Extension(session): Extension<crate::models::CustomSession>,
     Form(form_data): Form<CategoryForm>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
@@ -446,6 +520,8 @@ pub async fn category_create_handler(
 
     repo.insert_one(&new_category).await?;
 
+    crate::session_backend::set_flash(&mut conn, &session, Some("Category created successfully.".to_string()), None).await?;
+
     Ok(Redirect::to("/admin/category/list"))
 }
 
@@ -454,10 +530,16 @@ pub async fn category_create_handler(
 struct CategoryListTemplate {
     categories: Vec<Category>,
     active_nav: String,
+    flash: Option<crate::models::FlashData>,
 }
 
-pub async fn category_list_page(State(state): State<AppState>) -> Result<impl IntoResponse, AppError> {
+pub async fn category_list_page(
+    State(state): State<AppState>,
+    Extension(session): Extension<crate::models::CustomSession>,
+) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
+    
+    let flash = crate::session_backend::take_flash(&mut conn, &session).await.1;
     let category_repo = CategoryRepository::new(&mut conn);
 
     let categories = category_repo.find().await?;
@@ -465,6 +547,7 @@ pub async fn category_list_page(State(state): State<AppState>) -> Result<impl In
     let context = CategoryListTemplate {
         categories,
         active_nav: "categories".to_string(),
+        flash: Some(flash),
     };
 
     Ok(Html(context.render()?))
@@ -475,13 +558,20 @@ pub async fn category_list_page(State(state): State<AppState>) -> Result<impl In
 struct CategoryUpdateTemplate {
     category: Category,
     active_nav: String,
+    flash: Option<crate::models::FlashData>,
 }
 
 pub async fn category_update_page(
     State(state): State<AppState>,
+    session: Option<Extension<crate::models::CustomSession>>,
     Path(category_id): Path<i32>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
+    let flash = if let Some(Extension(s)) = session {
+        crate::session_backend::take_flash(&mut conn, &s).await.1
+    } else {
+        crate::models::FlashData::default()
+    };
     let category_repo = CategoryRepository::new(&mut conn);
 
     let category = category_repo.find_by_id(category_id).await?;
@@ -489,6 +579,7 @@ pub async fn category_update_page(
     let context = CategoryUpdateTemplate {
         category,
         active_nav: "categories".to_string(),
+        flash: Some(flash),
     };
 
     Ok(Html(context.render()?))
@@ -496,6 +587,7 @@ pub async fn category_update_page(
 
 pub async fn category_update_handler(
     State(state): State<AppState>,
+    Extension(session): Extension<crate::models::CustomSession>,
     Path(category_id): Path<i32>,
     Form(form_data): Form<CategoryForm>,
 ) -> Result<impl IntoResponse, AppError> {
@@ -508,17 +600,22 @@ pub async fn category_update_handler(
 
     category_repo.update_one(category_id, &update_category).await?;
 
+    crate::session_backend::set_flash(&mut conn, &session, Some("Category updated successfully.".to_string()), None).await?;
+
     Ok(Redirect::to("/admin/category/list"))
 }
 
 pub async fn category_delete_handler(
     State(state): State<AppState>,
+    Extension(session): Extension<crate::models::CustomSession>,
     Path(category_id): Path<i32>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
     let category_repo = CategoryRepository::new(&mut conn);
 
     category_repo.delete_one(category_id).await?;
+
+    crate::session_backend::set_flash(&mut conn, &session, Some("Category deleted successfully.".to_string()), None).await?;
 
     Ok(Redirect::to("/admin/category/list"))
 }

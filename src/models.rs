@@ -51,3 +51,9 @@ pub struct CustomSession {
     pub expires_at: NaiveDateTime,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct FlashData {
+    pub success: Option<String>,
+    pub error: Option<String>,
+}
+

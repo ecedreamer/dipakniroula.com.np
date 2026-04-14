@@ -7,6 +7,7 @@ use axum::{
     Form,
     Json,
     response::{Html, IntoResponse, Redirect},
+    Extension,
 };
 use tokio::{
     fs::File,
@@ -30,19 +31,28 @@ use crate::utils::error::AppError;
 #[template(path = "home.html")]
 struct HomeTemplate {
     popular_blogs: Vec<Blog>,
+    flash: Option<crate::models::FlashData>,
 }
 
 
-pub async fn home_page(State(state): State<AppState>) -> Result<impl IntoResponse, AppError> {
+pub async fn home_page(
+    State(state): State<AppState>,
+    session: Option<Extension<crate::models::CustomSession>>,
+) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
 
+    let flash = if let Some(Extension(s)) = session {
+        crate::session_backend::take_flash(&mut conn, &s).await.1
+    } else {
+        crate::models::FlashData::default()
+    };
+
     let blog_repo = BlogRepository::new(&mut conn);
-
     let results = blog_repo.find_active_only(None, "view_count", 3).await?;
-
 
     let context = HomeTemplate {
         popular_blogs: results,
+        flash: Some(flash),
     };
 
     Ok(Html(context.render()?))
@@ -53,15 +63,25 @@ pub async fn home_page(State(state): State<AppState>) -> Result<impl IntoRespons
 #[template(path = "contact.html")]
 struct ContactTemplate {
     authenticity_token: String,
+    flash: Option<crate::models::FlashData>,
 }
 
 
 pub async fn contact_page(
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
+    session: Option<Extension<crate::models::CustomSession>>,
     token: CsrfToken
 ) -> Result<impl IntoResponse, AppError> {
+    let mut conn = state.get_conn().await?;
+    let flash = if let Some(Extension(s)) = session {
+        crate::session_backend::take_flash(&mut conn, &s).await.1
+    } else {
+        crate::models::FlashData::default()
+    };
+
     let context = ContactTemplate {
         authenticity_token: token.authenticity_token().map_err(|e| AppError::Internal(format!("CSRF Error: {}", e)))?,
+        flash: Some(flash),
     };
     Ok((token, Html(context.render()?)))
 }
@@ -80,6 +100,7 @@ pub struct ContactForm {
 
 pub async fn contact_form_handler(
     State(state): State<AppState>,
+    session: Option<Extension<crate::models::CustomSession>>,
     token: CsrfToken, 
     Form(form): Form<ContactForm>,
 ) -> Result<impl IntoResponse, AppError> {
@@ -122,7 +143,22 @@ pub async fn contact_form_handler(
         .execute(&mut conn)
         .await?;
 
-    Ok(Redirect::to("/").into_response())
+    // Set flash message
+    let (headers, sess) = if let Some(Extension(s)) = session {
+        (axum::http::HeaderMap::new(), s)
+    } else {
+        let s = crate::session_backend::create_session(&mut conn, "anonymous".to_string()).await?;
+        let mut h = axum::http::HeaderMap::new();
+        h.insert(
+            axum::http::header::SET_COOKIE,
+            axum::http::HeaderValue::from_str(&format!("session_id={}; HttpOnly; SameSite=Lax; Path=/; Max-Age=3600", s.session_id)).unwrap()
+        );
+        (h, s)
+    };
+
+    crate::session_backend::set_flash(&mut conn, &sess, Some("Message sent successfully! I will get back to you soon.".to_string()), None).await?;
+
+    Ok((headers, Redirect::to("/")).into_response())
 }
 
 

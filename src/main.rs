@@ -41,11 +41,13 @@ use tracing_subscriber::{EnvFilter, Layer, filter, fmt};
 
 #[derive(Template)]
 #[template(path = "404.html")]
-struct FourZeroFourTemplate {}
+struct FourZeroFourTemplate {
+    pub flash: Option<crate::models::FlashData>,
+}
 
 async fn handle_404() -> impl IntoResponse {
     tracing::warn!("404 page not found");
-    let context = FourZeroFourTemplate {};
+    let context = FourZeroFourTemplate { flash: None };
     match context.render() {
         Ok(html) => Html(html).into_response(),
         Err(_) => (
@@ -175,6 +177,10 @@ async fn main() {
         .route("/", get(home_page))
         .route_service("/robots.txt", ServeFile::new("static/robots.txt"))
         .route("/contact", get(contact_page).post(contact_form_handler))
+        .layer(axum::middleware::from_fn_with_state(
+            app_state.clone(),
+            middlewares::optional_session_middleware,
+        ))
         .route("/summernote-upload", post(summernote_upload))
         .nest(
             "/auth",

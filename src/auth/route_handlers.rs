@@ -5,7 +5,7 @@ use diesel::prelude::*;
 
 use crate::auth::models::{NewSocialLink, SocialLink, UpdateSocialLink};
 use crate::middlewares::session_middleware;
-use crate::models::{AdminUser, ContactMessage, CustomSession};
+use crate::models::{AdminUser, ContactMessage};
 use crate::session_backend::create_session;
 use crate::utils::error::AppError;
 use crate::state::AppState;
@@ -62,13 +62,26 @@ pub async fn auth_routes(state: AppState) -> Router<AppState> {
 #[template(path = "login.html")]
 struct LoginTemplate {
     pub authenticity_token: String,
+    pub flash: Option<crate::models::FlashData>,
 }
 
-pub async fn login_page(token: CsrfToken) -> Result<impl IntoResponse, AppError> {
-    let context = LoginTemplate {
-        authenticity_token: token.authenticity_token().map_err(|e| AppError::Internal(format!("CSRF Error: {}", e)))?,
+pub async fn login_page(
+    State(state): State<AppState>,
+    session: Option<Extension<crate::models::CustomSession>>,
+    token: CsrfToken
+) -> Result<impl IntoResponse, AppError> {
+    let mut conn = state.get_conn().await?;
+    let flash = if let Some(Extension(s)) = session {
+        crate::session_backend::take_flash(&mut conn, &s).await.1
+    } else {
+        crate::models::FlashData::default()
     };
 
+    let context = LoginTemplate {
+        authenticity_token: token.authenticity_token().map_err(|e| AppError::Internal(format!("CSRF Error: {}", e)))?,
+        flash: Some(flash),
+    };
+ 
     Ok((token, Html(context.render()?)))
 }
 
@@ -107,6 +120,9 @@ pub async fn login_handler(
                     let session_obj = create_session(&mut conn, admin_user.email)
                         .await
                         .map_err(|e| AppError::Internal(format!("Session Creation Error: {}", e)))?;
+
+                    // Set welcome flash
+                    crate::session_backend::set_flash(&mut conn, &session_obj, Some(format!("Welcome back, {}!", session_obj.user_id)), None).await?;
 
                     let mut headers = HeaderMap::new();
                     let cookie_value = format!(
@@ -154,14 +170,17 @@ struct AdminHomeTemplate {
     total_pages: i64,
     pages: Vec<i64>,
     search_query: Option<String>,
+    flash: Option<crate::models::FlashData>,
 }
 
 pub async fn admin_home_page(
     State(state): State<AppState>,
-    Extension(_session): Extension<CustomSession>,
+    Extension(session): Extension<crate::models::CustomSession>,
     Query(pagination): Query<Pagination>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
+    
+    let flash = crate::session_backend::take_flash(&mut conn, &session).await.1;
 
     let page = pagination.page.unwrap_or(1).max(1);
     let per_page = 10;
@@ -227,6 +246,7 @@ pub async fn admin_home_page(
         total_pages,
         pages: pages_vec,
         search_query: pagination.query,
+        flash: Some(flash),
     };
 
     Ok(Html(context.render()?))
@@ -234,6 +254,7 @@ pub async fn admin_home_page(
 
 pub async fn social_link_delete_handler(
     State(state): State<AppState>,
+    Extension(session): Extension<crate::models::CustomSession>,
     Path(data_id): Path<i32>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
@@ -243,11 +264,14 @@ pub async fn social_link_delete_handler(
         .execute(&mut conn)
         .await?;
 
+    crate::session_backend::set_flash(&mut conn, &session, Some("Social link deleted successfully.".to_string()), None).await?;
+
     Ok(Redirect::to("/auth/admin-panel"))
 }
 
 pub async fn message_delete_handler(
     State(state): State<AppState>,
+    Extension(session): Extension<crate::models::CustomSession>,
     Path(message_id): Path<i32>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
@@ -257,11 +281,14 @@ pub async fn message_delete_handler(
         .execute(&mut conn)
         .await?;
 
+    crate::session_backend::set_flash(&mut conn, &session, Some("Message deleted successfully.".to_string()), None).await?;
+
     Ok(Redirect::to("/auth/admin-panel"))
 }
 
 pub async fn bulk_message_delete_handler(
     State(state): State<AppState>,
+    Extension(session): Extension<crate::models::CustomSession>,
     body: String,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
@@ -277,9 +304,12 @@ pub async fn bulk_message_delete_handler(
         .collect();
 
     if !selected_ids.is_empty() {
+        let count = selected_ids.len();
         diesel::delete(messages.filter(id.eq_any(selected_ids)))
             .execute(&mut conn)
             .await?;
+        
+        crate::session_backend::set_flash(&mut conn, &session, Some(format!("Successfully deleted {} messages.", count)), None).await?;
     }
 
     Ok(Redirect::to("/auth/admin-panel"))
@@ -290,21 +320,26 @@ pub async fn bulk_message_delete_handler(
 struct SocialLinkCreateTemplate {
     social_links: Vec<SocialLink>,
     active_nav: String,
+    flash: Option<crate::models::FlashData>,
 }
 
 pub async fn social_link_create_page(
     State(state): State<AppState>,
+    Extension(session): Extension<crate::models::CustomSession>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
-    use crate::schema::social_links::dsl::*;
+    let flash = crate::session_backend::take_flash(&mut conn, &session).await.1;
 
+    use crate::schema::social_links::dsl::*;
+ 
     let links = social_links
         .load::<SocialLink>(&mut conn)
         .await?;
-
+ 
     let context = SocialLinkCreateTemplate {
         social_links: links,
         active_nav: "social".to_string(),
+        flash: Some(flash),
     };
     Ok(Html(context.render()?))
 }
@@ -317,6 +352,7 @@ pub struct SocialMediaForm {
 
 pub async fn social_link_create_handler(
     State(state): State<AppState>,
+    Extension(session): Extension<crate::models::CustomSession>,
     Form(form_data): Form<SocialMediaForm>,
 ) -> Result<impl IntoResponse, AppError> {
     tracing::info!("{} - {}", form_data.social_media, form_data.social_link);
@@ -330,6 +366,9 @@ pub async fn social_link_create_handler(
         .values(&new_social_link)
         .execute(&mut conn)
         .await?;
+
+    crate::session_backend::set_flash(&mut conn, &session, Some("Social link added successfully.".to_string()), None).await?;
+
     Ok(Redirect::to("/auth/admin-panel"))
 }
 
@@ -338,46 +377,55 @@ pub async fn social_link_create_handler(
 struct SocialLinkUpdateTemplate {
     social_link: SocialLink,
     active_nav: String,
+    flash: Option<crate::models::FlashData>,
 }
 
 pub async fn social_link_update_page(
     State(state): State<AppState>,
+    Extension(session): Extension<crate::models::CustomSession>,
     Path(data_id): Path<i32>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
+    let flash = crate::session_backend::take_flash(&mut conn, &session).await.1;
+
     use crate::schema::social_links::dsl::*;
     let this_social_link = social_links
         .filter(id.eq(data_id))
         .limit(1)
         .first::<SocialLink>(&mut conn)
         .await?;
-
+ 
     let context = SocialLinkUpdateTemplate {
         social_link: this_social_link,
         active_nav: "social".to_string(),
+        flash: Some(flash),
     };
     Ok(Html(context.render()?))
 }
 
 pub async fn social_link_update_handler(
     State(state): State<AppState>,
+    Extension(session): Extension<crate::models::CustomSession>,
     Path(data_id): Path<i32>,
     Form(form_data): Form<SocialMediaForm>,
 ) -> Result<impl IntoResponse, AppError> {
     tracing::info!("{} - {}", form_data.social_media, form_data.social_link);
-
+ 
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
     use crate::schema::social_links::dsl::*;
-
+ 
     let update_social_link = UpdateSocialLink {
         social_media: Some(form_data.social_media),
         social_link: Some(form_data.social_link),
     };
-
+ 
     diesel::update(social_links.filter(id.eq(data_id)))
         .set(update_social_link)
         .execute(&mut conn)
         .await?;
+
+    crate::session_backend::set_flash(&mut conn, &session, Some("Social link updated successfully.".to_string()), None).await?;
+
     Ok(Redirect::to("/auth/admin-panel"))
 }
 
@@ -390,5 +438,5 @@ pub async fn logout_handler() -> Result<impl IntoResponse, AppError> {
     );
 
     tracing::info!("User logged out successfully...");
-    Ok((headers, Redirect::to("/auth/login")))
+    Ok((headers, Redirect::to("/auth/login")).into_response())
 }

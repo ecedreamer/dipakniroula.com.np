@@ -43,3 +43,41 @@ pub async fn delete_expired_sessions(conn: &mut AsyncPgConnection) -> QueryResul
         .execute(conn)
         .await
 }
+
+pub async fn set_flash(
+    conn: &mut AsyncPgConnection,
+    sess: &CustomSession,
+    success: Option<String>,
+    error: Option<String>,
+) -> QueryResult<()> {
+    use crate::schema::sessions::dsl::*;
+    let flash = crate::models::FlashData { success, error };
+    let json_data = serde_json::to_string(&flash).unwrap_or_default();
+
+    diesel::update(sessions.filter(id.eq(sess.id.unwrap())))
+        .set(data.eq(Some(json_data)))
+        .execute(conn)
+        .await?;
+    Ok(())
+}
+
+pub async fn take_flash(
+    conn: &mut AsyncPgConnection,
+    sess: &CustomSession,
+) -> (Option<CustomSession>, crate::models::FlashData) {
+    use crate::schema::sessions::dsl::*;
+    
+    let flash = if let Some(ref d) = sess.data {
+        serde_json::from_str::<crate::models::FlashData>(d).unwrap_or_default()
+    } else {
+        crate::models::FlashData::default()
+    };
+
+    // Clear the data in the DB
+    let update_res = diesel::update(sessions.filter(id.eq(sess.id.unwrap())))
+        .set(data.eq(None::<String>))
+        .get_result::<CustomSession>(conn)
+        .await;
+
+    (update_res.ok(), flash)
+}

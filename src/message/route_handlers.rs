@@ -9,6 +9,7 @@ use crate::middlewares::session_middleware;
 use crate::state::AppState;
 use crate::utils::error::AppError;
 use crate::models::ContactMessage;
+use axum::Extension;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -30,6 +31,7 @@ struct MessageListTemplate {
     total_pages: i64,
     pages: Vec<i64>,
     search_query: Option<String>,
+    flash: Option<crate::models::FlashData>,
 }
 
 pub async fn message_routes(state: AppState) -> Router<AppState> {
@@ -42,11 +44,13 @@ pub async fn message_routes(state: AppState) -> Router<AppState> {
 
 pub async fn admin_message_list_page(
     State(state): State<AppState>,
+    Extension(session): Extension<crate::models::CustomSession>,
     Query(params): Query<MessageQuery>,
 ) -> Result<impl IntoResponse, AppError> {
+    let mut conn = state.get_conn().await?;
+    let flash = crate::session_backend::take_flash(&mut conn, &session).await.1;
     // This is essentially a duplicate of the admin dashboard logic
     // but isolated to the message module for completeness.
-    let mut conn = state.get_conn().await?;
     
     // Minimal implementation to ensure valid code
     Ok(Html("<h1>Messages coming soon...</h1>".to_string()))
