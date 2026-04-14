@@ -29,6 +29,9 @@
             <div>
                 <h4 class="m-0 d-inline-block">Messages</h4>
                 <span class="badge badge-info ms-2">{{ message_count }} Total</span>
+                <button type="submit" form="bulk-delete-form" class="btn-premium btn-danger-premium btn-sm ms-3" id="bulk-delete-btn" disabled onclick="return confirm('Are you sure you want to delete selected messages?')">
+                    <i class="fas fa-trash-alt me-1"></i> Delete Selected
+                </button>
             </div>
             <form method="GET" action="" class="d-flex">
                 <input type="text" name="query" class="form-control form-control-sm me-2" placeholder="Search messages..." value="{{ search_query.clone().unwrap_or_default() }}">
@@ -36,9 +39,13 @@
             </form>
         </div>
         <div class="table-container">
+            <form id="bulk-delete-form" method="POST" action="/auth/bulk-delete-messages">
             <table class="admin-table">
                 <thead>
                     <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" id="select-all" class="form-check-input">
+                        </th>
                         <th>Sender</th>
                         <th>Subject</th>
                         <th>Date</th>
@@ -48,6 +55,9 @@
                 <tbody>
                     {% for message in messages %}
                     <tr>
+                        <td>
+                            <input type="checkbox" name="message_ids" value="{{ message.id.unwrap() }}" class="form-check-input message-checkbox">
+                        </td>
                         <td>
                             <div class="fw-bold">{{ message.full_name }}</div>
                             <div class="small text-muted">{{ message.email }}</div>
@@ -88,6 +98,7 @@
                     {% endfor %}
                 </tbody>
             </table>
+            </form>
 
             <!-- Pagination Controls -->
             {% if total_pages > 1 %}
@@ -147,4 +158,30 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block js %}
+<script>
+$(document).ready(function() {
+    const selectAll = $('#select-all');
+    const checkboxes = $('.message-checkbox');
+    const deleteBtn = $('#bulk-delete-btn');
+
+    function updateDeleteButton() {
+        const checkedCount = $('.message-checkbox:checked').length;
+        deleteBtn.prop('disabled', checkedCount === 0);
+    }
+
+    selectAll.on('change', function() {
+        checkboxes.prop('checked', this.checked);
+        updateDeleteButton();
+    });
+
+    checkboxes.on('change', function() {
+        const allChecked = $('.message-checkbox:checked').length === checkboxes.length;
+        selectAll.prop('checked', allChecked);
+        updateDeleteButton();
+    });
+});
+</script>
 {% endblock %}

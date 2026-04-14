@@ -49,7 +49,12 @@ pub async fn auth_routes(state: AppState) -> Router<AppState> {
             "/delete-message/{message_id}",
             get(message_delete_handler).layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)),
         )
+        .route(
+            "/bulk-delete-messages",
+            post(bulk_message_delete_handler).layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)),
+        )
 }
+
 
 
 
@@ -249,6 +254,25 @@ pub async fn message_delete_handler(
     use crate::schema::messages::dsl::*;
 
     diesel::delete(messages.filter(id.eq(message_id)))
+        .execute(&mut conn)
+        .await?;
+
+    Ok(Redirect::to("/auth/admin-panel"))
+}
+
+#[derive(Deserialize, Debug)]
+pub struct BulkDeleteForm {
+    pub message_ids: Vec<i32>,
+}
+
+pub async fn bulk_message_delete_handler(
+    State(state): State<AppState>,
+    Form(form_data): Form<BulkDeleteForm>,
+) -> Result<impl IntoResponse, AppError> {
+    let mut conn: crate::db::PooledConn = state.get_conn().await?;
+    use crate::schema::messages::dsl::*;
+
+    diesel::delete(messages.filter(id.eq_any(form_data.message_ids)))
         .execute(&mut conn)
         .await?;
 
