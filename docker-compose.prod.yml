@@ -22,8 +22,8 @@ services:
     container_name: dipak_site-webapp-prod
     restart: always
     # Ports removed from host; Nginx will find it on 'webnet' via container port 8081
-    expose:
-      - "8081"
+    ports:
+      - "8081:8081"
     env_file:
       - .env
     volumes:
