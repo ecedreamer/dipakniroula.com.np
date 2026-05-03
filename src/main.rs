@@ -1,3 +1,4 @@
+mod api;
 mod auth;
 mod blog;
 mod db;
@@ -21,6 +22,7 @@ use axum::{
     http::StatusCode,
     response::{Html, IntoResponse},
     routing::{get, post},
+    extract::DefaultBodyLimit,
 };
 use db::establish_sync_connection;
 use dotenvy::dotenv;
@@ -182,6 +184,7 @@ async fn main() {
             middlewares::optional_session_middleware,
         ))
         .route("/summernote-upload", post(summernote_upload))
+        .nest("/api", api::configure_api())
         .nest(
             "/auth",
             auth::route_handlers::auth_routes(app_state.clone()).await,
@@ -192,6 +195,7 @@ async fn main() {
         .nest_service("/media", media_files_service)
         .fallback(handle_404)
         .with_state(app_state) // Now all routes that need state have it
+        .layer(DefaultBodyLimit::max(20 * 1024 * 1024))
         .layer(axum::middleware::from_fn(
             middlewares::security_headers_middleware,
         ))

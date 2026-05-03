@@ -241,7 +241,7 @@ pub async fn blog_update_handler(
         } else if field_name == "blog-image" {
             let file_name = field.file_name().unwrap_or("").to_string();
             let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
-            let image_path = format!("{}{}_{}", "media/summernote/", timestamp, file_name);
+            let image_path = format!("{}{}_{}", "media/", timestamp, file_name);
 
             if !file_name.is_empty() {
                 let mut file = File::create(image_path.clone()).await?;
