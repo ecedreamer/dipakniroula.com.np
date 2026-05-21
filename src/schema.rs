@@ -9,6 +9,13 @@ diesel::table! {
 }
 
 diesel::table! {
+    app_settings (key) {
+        key -> Text,
+        value -> Text,
+    }
+}
+
+diesel::table! {
     blog_categories (blog_id, category_id) {
         blog_id -> Nullable<Integer>,
         category_id -> Nullable<Integer>,
@@ -79,16 +86,56 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    questions (id) {
+        id -> Integer,
+        topic -> Text,
+        difficulty -> Text,
+        question_text -> Text,
+        options -> Jsonb,
+        correct_answer -> Text,
+    }
+}
+
+diesel::table! {
+    quiz_sessions (id) {
+        id -> Integer,
+        session_uuid -> Text,
+        questions_json -> Jsonb,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
+    quiz_attempts (id) {
+
+        id -> Nullable<Integer>,
+        player_name -> Text,
+        player_email -> Text,
+        topic -> Nullable<Text>,
+        difficulty -> Text,
+        num_questions -> Integer,
+        score -> Integer,
+        total_questions -> Integer,
+        answers_json -> Nullable<Jsonb>,
+        played_at -> Timestamp,
+    }
+}
+
 diesel::joinable!(blog_categories -> blogs (blog_id));
 diesel::joinable!(blog_categories -> categories (category_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     admin_users,
+    app_settings,
     blog_categories,
     blogs,
     categories,
     experiences,
     messages,
+    questions,
+    quiz_attempts,
+    quiz_sessions,
     sessions,
     social_links,
 );

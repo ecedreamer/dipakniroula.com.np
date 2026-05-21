@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Play Quiz{% endblock %}
+{% block description %}Test your knowledge with AI-powered quiz{% endblock %}
+
+{% block content %}
+<div class="section">
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="contact-card p-4 p-md-5">
+            {% if !api_configured %}
+            <div class="text-center mb-5">
+                <h2 class="fw-bold">🧠 Play Quiz</h2>
+                <div class="alert alert-warning mt-4">
+                    <i class="bi bi-info-circle"></i>
+                    Quiz feature is not yet configured. Please contact the site admin.
+                </div>
+            </div>
+            {% else if questions.is_empty() %}
+            <div class="text-center mb-5">
+                <h2 class="fw-bold">🧠 Play Quiz</h2>
+                <p class="text-muted">Enter a topic and test your knowledge with AI-generated questions!</p>
+            </div>
+
+            <form action="/play-quiz" method="POST" onsubmit="disableSubmitButton(this)">
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <label for="player_name" class="form-label small fw-bold text-uppercase text-muted">Your Name</label>
+                        <input type="text" required name="player_name" maxlength="100" class="form-control form-control-lg" placeholder="Enter your name">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="player_email" class="form-label small fw-bold text-uppercase text-muted">Email Address</label>
+                        <input type="email" required name="player_email" maxlength="100" class="form-control form-control-lg" placeholder="your@email.com">
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-12 mb-4 mb-md-0">
+                        <label for="topic" class="form-label small fw-bold text-uppercase text-muted">Topic / Subject</label>
+                        <input type="text" required name="topic" maxlength="200" class="form-control form-control-lg" placeholder="e.g. Rust Programming, World History, Space Science">
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <label for="difficulty" class="form-label small fw-bold text-uppercase text-muted">Difficulty Level</label>
+                        <select name="difficulty" class="form-select form-control-lg">
+                            <option value="beginner" selected>Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="expert">Expert</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="num_questions" class="form-label small fw-bold text-uppercase text-muted">Number of Questions</label>
+                        <input type="number" name="num_questions" min="1" max="50" value="10" class="form-control form-control-lg">
+                    </div>
+                </div>
+
+                <div class="d-grid mt-5">
+                    <button class="btn btn-primary btn-lg py-3" type="submit"> Generate Quiz </button>
+                </div>
+            </form>
+            {% else %}
+            <div class="text-center mb-4">
+                <h2 class="fw-bold">📝 Quiz Time!</h2>
+                <p class="text-muted">Player: <strong>{{ player_name }}</strong> | Topic: <strong>{{ selected_topic }}</strong> | Level: <strong>{{ selected_difficulty }}</strong></p>
+            </div>
+
+            <form action="/play-quiz/submit" method="POST" onsubmit="disableSubmitButton(this)">
+                <input type="hidden" name="player_name" value="{{ player_name }}">
+                <input type="hidden" name="player_email" value="{{ player_email }}">
+                <input type="hidden" name="topic" value="{{ selected_topic }}">
+                <input type="hidden" name="difficulty" value="{{ selected_difficulty }}">
+                <input type="hidden" name="num_questions" value="{{ selected_num_questions }}">
+                <input type="hidden" name="session_uuid" value="{{ session_uuid }}">
+
+                {% for question in questions %}
+                {% let idx = loop.index0 + 1 %}
+                <div class="mb-4 p-4 border rounded bg-white shadow-sm">
+                    <p class="fw-bold mb-3">{{ idx }}. {{ question.question_text }}</p>
+                    {% for option in question.options %}
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="q_{{ question.id }}" id="q_{{ question.id }}_{{ loop.index0 }}" value="{{ option }}" required>
+                        <label class="form-check-label" for="q_{{ question.id }}_{{ loop.index0 }}">
+                            {{ option }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+
+                <div class="d-grid mt-4">
+                    <button class="btn btn-success btn-lg py-3" type="submit"> Submit Answers </button>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+function disableSubmitButton(form) {
+    var btn = form.querySelector('button[type="submit"]');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> Processing...';
+    }
+}
+</script>
+
+<style>
+.contact-card {
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+.form-check-input:checked {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+}
+.border {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 0.75rem !important;
+}
+</style>
+{% endblock %}

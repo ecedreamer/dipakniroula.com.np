@@ -5,6 +5,7 @@ mod db;
 mod embedded_migrations;
 mod middlewares;
 mod models;
+mod quiz;
 mod resume;
 mod route_handlers;
 mod schema;
@@ -191,6 +192,7 @@ async fn main() {
         )
         .merge(blog::route_handlers::blog_routes(app_state.clone()).await)
         .merge(resume::route_handlers::resume_routes(app_state.clone()).await)
+        .merge(quiz::route_handlers::quiz_routes(app_state.clone()).await)
         .nest_service("/static", static_files_service)
         .nest_service("/media", media_files_service)
         .fallback(handle_404)

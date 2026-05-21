@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz Result{% endblock %}
+{% block description %}Your quiz result{% endblock %}
+
+{% block content %}
+<div class="section">
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="contact-card p-4 p-md-5 text-center mb-5">
+            <h2 class="fw-bold mb-3">🎯 Quiz Result</h2>
+            <p class="mb-2">Player: <strong>{{ player_name }}</strong> | Email: <strong>{{ player_email }}</strong></p>
+            <div class="my-4">
+                <div class="display-1 fw-bold {{ display_score_class }}">
+                    {{ percentage }}%
+                </div>
+                <p class="fs-4 text-muted">{{ score }} / {{ total }} correct</p>
+            </div>
+
+            <div class="alert fs-5 {{ display_alert_class }}">
+                {{ display_message }}
+            </div>
+
+            <a href="/play-quiz" class="btn btn-primary btn-lg mt-3">Play Again</a>
+        </div>
+
+        <div class="contact-card p-4 p-md-5">
+            <h3 class="fw-bold mb-4">📋 Answer Review</h3>
+            {% for answer in answers %}
+            {% let idx = loop.index0 + 1 %}
+            <div class="mb-4 p-4 border rounded bg-white shadow-sm" style="border-left: 5px solid {% if answer.is_correct %}#10b981{% else %}#ef4444{% endif %} !important;">
+                <p class="fw-bold mb-3">{{ idx }}. {{ answer.question_text }}</p>
+                <p class="mb-1">
+                    <span class="fw-bold">Your answer:</span>
+                    <span class="{% if answer.is_correct %}text-success{% else %}text-danger{% endif %}">
+                        {{ answer.selected_answer }}
+                    </span>
+                </p>
+                {% if !answer.is_correct %}
+                <p class="mb-0">
+                    <span class="fw-bold text-success">Correct answer:</span>
+                    <span class="text-success">{{ answer.correct_answer }}</span>
+                </p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+</div>
+
+<style>
+.contact-card {
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+.text-success { color: #10b981 !important; }
+.text-warning { color: #f59e0b !important; }
+.text-danger { color: #ef4444 !important; }
+</style>
+{% endblock %}

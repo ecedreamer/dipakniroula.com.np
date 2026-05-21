@@ -1,0 +1,77 @@
+{% extends "admin/adminbase.html" %}
+
+{% block title %}Quiz Settings - Admin Panel{% endblock %}
+{% block page_title %}Quiz Settings{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-6">
+        <div class="form-card">
+            <h4 class="fw-bold mb-3">Gemini AI Configuration</h4>
+            <p class="text-muted mb-4">
+                Configure your Gemini API key and model for AI-powered quiz generation.
+                {% if api_key_set %}
+                <span class="badge-premium badge-success ms-2">Configured</span>
+                {% else %}
+                <span class="badge-premium badge-warning ms-2">Not Configured</span>
+                {% endif %}
+            </p>
+            <p class="small text-muted mb-4">
+                Get your API key from <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a>.
+            </p>
+
+            <form method="POST" action="/admin/quiz/settings">
+                <div class="form-group">
+                    <label for="api_key" class="form-label">Gemini API Key</label>
+                    <input type="password" name="api_key" id="api_key" class="form-control-premium" 
+                           placeholder="Enter your Gemini API key" required>
+                </div>
+
+                <div class="form-group mt-4">
+                    <label for="model" class="form-label">Gemini Model</label>
+                    <select name="model" id="model" class="form-control-premium">
+                        <option value="models/gemini-2.5-flash" {% if selected_model == "models/gemini-2.5-flash" %}selected{% endif %}>Gemini 2.5 Flash (default)</option>
+                        <option value="models/gemini-2.5-flash-lite" {% if selected_model == "models/gemini-2.5-flash-lite" %}selected{% endif %}>Gemini 2.5 Flash Lite</option>
+                        <option value="models/gemini-2.5-flash-image" {% if selected_model == "models/gemini-2.5-flash-image" %}selected{% endif %}>Gemini 2.5 Flash Image</option>
+                        <option value="models/gemini-2.5-pro" {% if selected_model == "models/gemini-2.5-pro" %}selected{% endif %}>Gemini 2.5 Pro</option>
+                        <option value="models/gemini-3-flash-preview" {% if selected_model == "models/gemini-3-flash-preview" %}selected{% endif %}>Gemini 3 Flash (Preview)</option>
+                        <option value="models/gemini-3-pro-preview" {% if selected_model == "models/gemini-3-pro-preview" %}selected{% endif %}>Gemini 3 Pro (Preview)</option>
+                        <option value="models/gemini-3-pro-image-preview" {% if selected_model == "models/gemini-3-pro-image-preview" %}selected{% endif %}>Gemini 3 Pro Image (Preview)</option>
+                    </select>
+                    <small class="text-muted d-block mt-1">Select the Gemini model for generating quizzes. You can also type a custom model name.</small>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn-premium btn-primary-premium">
+                        <i class="fas fa-save me-1"></i> Save Settings
+                    </button>
+                    <button type="button" class="btn-premium" onclick="toggleKeyVisibility()" style="background: #64748b; color: #fff;">
+                        <i class="fas fa-eye me-1"></i> Show/Hide Key
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleKeyVisibility() {
+    const input = document.getElementById('api_key');
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+</script>
+
+<style>
+.badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+.form-card {
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 1rem;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+</style>
+{% endblock %}

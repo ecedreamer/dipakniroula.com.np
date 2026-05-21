@@ -6,6 +6,7 @@ use diesel::prelude::*;
 use crate::auth::models::{NewSocialLink, SocialLink, UpdateSocialLink};
 use crate::middlewares::session_middleware;
 use crate::models::{AdminUser, ContactMessage};
+use crate::quiz::quiz_repository::QuizRepository;
 use crate::session_backend::create_session;
 use crate::utils::error::AppError;
 use crate::state::AppState;
@@ -165,6 +166,7 @@ struct AdminHomeTemplate {
     experience_count: i64,
     message_count: i64,
     social_count: i64,
+    quiz_count: i64,
     active_nav: String,
     current_page: i64,
     total_pages: i64,
@@ -232,6 +234,9 @@ pub async fn admin_home_page(
         .await
         .unwrap_or(0);
 
+    let quiz_repo = QuizRepository::new(&mut conn);
+    let q_count = quiz_repo.count_all().await.unwrap_or(0);
+
     let total_pages = if m_count == 0 { 1 } else { (m_count + per_page - 1) / per_page };
     let pages_vec: Vec<i64> = (1..=total_pages).collect();
 
@@ -241,6 +246,7 @@ pub async fn admin_home_page(
         experience_count: e_count,
         message_count: m_count,
         social_count: s_count,
+        quiz_count: q_count,
         active_nav: "dashboard".to_string(),
         current_page: page,
         total_pages,

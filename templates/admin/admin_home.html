@@ -21,6 +21,10 @@
         <span class="stat-title">Social Links</span>
         <span class="stat-value">{{ social_count }}</span>
     </div>
+    <div class="stat-card">
+        <span class="stat-title">Quiz Attempts</span>
+        <span class="stat-value">{{ quiz_count }}</span>
+    </div>
 </div>
 
 <div class="row">
@@ -154,6 +158,9 @@
             </a>
             <a href="/auth/add-social-link" class="list-group-item list-group-item-action py-3">
                 <i class="fas fa-link text-info me-2"></i> Add Social Link
+            </a>
+            <a href="/admin/quiz/list" class="list-group-item list-group-item-action py-3">
+                <i class="fas fa-question-circle text-danger me-2"></i> View Quiz Attempts
             </a>
         </div>
     </div>
