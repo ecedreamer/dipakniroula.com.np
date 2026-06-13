@@ -118,7 +118,7 @@ pub async fn login_handler(
             let parsed_hash = PasswordHash::new(&admin_user.password).map_err(|e| AppError::Internal(format!("Hash Error: {}", e)))?;
             match Argon2::default().verify_password(form_data.password.as_bytes(), &parsed_hash) {
                 Ok(_) => {
-                    let session_obj = create_session(&mut conn, admin_user.email)
+                    let session_obj = create_session(&mut conn, &admin_user.email, "admin")
                         .await
                         .map_err(|e| AppError::Internal(format!("Session Creation Error: {}", e)))?;
 

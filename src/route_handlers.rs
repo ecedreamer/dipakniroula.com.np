@@ -147,7 +147,7 @@ pub async fn contact_form_handler(
     let (headers, sess) = if let Some(Extension(s)) = session {
         (axum::http::HeaderMap::new(), s)
     } else {
-        let s = crate::session_backend::create_session(&mut conn, "anonymous".to_string()).await?;
+        let s = crate::session_backend::create_session(&mut conn, "anonymous", "user").await?;
         let mut h = axum::http::HeaderMap::new();
         h.insert(
             axum::http::header::SET_COOKIE,

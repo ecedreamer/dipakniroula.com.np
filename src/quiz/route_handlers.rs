@@ -1,50 +1,44 @@
 use askama::Template;
 use axum::{
     Extension, Form, Router,
-    extract::{Path, Query, State},
+    extract::{Path, State},
     response::{Html, IntoResponse, Redirect},
     routing::{get, post},
 };
+use diesel::prelude::*;
+use diesel_async::RunQueryDsl;
 use serde::Deserialize;
 use uuid::Uuid;
 
-use super::gemini;
-use super::models::{AnswerRecord, NewQuizAttempt, NewQuizSession, QuizQuestion, QuizSetupForm, QuizSettingsForm};
+use super::gemini::{self, GeminiQuestion};
+use super::models::{AnswerRecord, NewQuizAttempt, NewQuizSession, QuizAttemptDb, QuizQuestion, QuizSetupForm, QuizSettingsForm};
 use super::quiz_repository::QuizRepository;
-use crate::middlewares::session_middleware;
+use crate::middlewares::{session_middleware, user_session_middleware};
+use crate::models::CustomSession;
 use crate::state::AppState;
 use crate::utils::error::AppError;
 
 pub async fn quiz_routes(state: AppState) -> Router<AppState> {
     Router::new()
-        .route("/play-quiz", get(play_quiz_page).post(generate_quiz_handler))
-        .route("/play-quiz/submit", post(submit_quiz_handler))
-        .route(
-            "/admin/quiz/list",
-            get(admin_quiz_list_page)
-                .layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)),
-        )
-        .route(
-            "/admin/quiz/{attempt_id}/detail",
-            get(admin_quiz_detail_page)
-                .layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)),
-        )
-        .route(
-            "/admin/quiz/settings",
-            get(admin_quiz_settings_page)
-                .post(admin_quiz_settings_handler)
-                .layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)),
-        )
+        .route("/play-quiz",
+            get(play_quiz_page).post(generate_quiz_handler)
+                .layer(axum::middleware::from_fn_with_state(state.clone(), user_session_middleware)))
+        .route("/play-quiz/submit", post(submit_quiz_handler)
+            .layer(axum::middleware::from_fn_with_state(state.clone(), user_session_middleware)))
+        .route("/admin/quiz/list", get(admin_quiz_list_page)
+            .layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)))
+        .route("/admin/quiz/{attempt_id}/detail", get(admin_quiz_detail_page)
+            .layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)))
+        .route("/admin/quiz/settings", get(admin_quiz_settings_page).post(admin_quiz_settings_handler)
+            .layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)))
 }
 
 #[derive(Template)]
 #[template(path = "play_quiz.html")]
 struct PlayQuizTemplate {
     api_configured: bool,
-    player_name: String,
-    player_email: String,
-    selected_topic: String,
-    selected_difficulty: String,
+    player_name: String, player_email: String,
+    selected_topic: String, selected_difficulty: String,
     selected_num_questions: i32,
     questions: Vec<QuizQuestion>,
     session_uuid: String,
@@ -53,145 +47,93 @@ struct PlayQuizTemplate {
 
 pub async fn play_quiz_page(
     State(state): State<AppState>,
-    session: Option<Extension<crate::models::CustomSession>>,
+    Extension(session): Extension<CustomSession>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn = state.get_conn().await?;
-    let flash = if let Some(Extension(s)) = session {
-        crate::session_backend::take_flash(&mut conn, &s).await.1
-    } else {
-        crate::models::FlashData::default()
-    };
+    let user = get_oauth_user_by_email(&mut conn, &session.user_id).await?;
+    let flash = crate::session_backend::take_flash(&mut conn, &session).await.1;
+    let repo = QuizRepository::new(&mut conn);
+    let api_key = repo.get_setting("gemini_api_key").await;
 
-    let api_key = QuizRepository::new(&mut conn)
-        .get_setting("gemini_api_key")
-        .await?;
-
-    let context = PlayQuizTemplate {
-        api_configured: api_key.is_some(),
-        player_name: String::new(),
-        player_email: String::new(),
-        selected_topic: String::new(),
-        selected_difficulty: "beginner".to_string(),
+    Ok(Html(PlayQuizTemplate {
+        api_configured: api_key.is_ok() && api_key.unwrap().is_some(),
+        player_name: user.name, player_email: user.email,
+        selected_topic: String::new(), selected_difficulty: String::new(),
         selected_num_questions: 10,
-        questions: Vec::new(),
-        session_uuid: String::new(),
+        questions: Vec::new(), session_uuid: String::new(),
         flash: Some(flash),
-    };
-
-    Ok(Html(context.render()?).into_response())
+    }.render()?))
 }
 
 pub async fn generate_quiz_handler(
     State(state): State<AppState>,
-    session: Option<Extension<crate::models::CustomSession>>,
+    Extension(session): Extension<CustomSession>,
     Form(form): Form<QuizSetupForm>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn = state.get_conn().await?;
-    let flash = if let Some(Extension(s)) = session {
-        crate::session_backend::take_flash(&mut conn, &s).await.1
-    } else {
-        crate::models::FlashData::default()
-    };
+    let mut flash = crate::session_backend::take_flash(&mut conn, &session).await.1;
+    let user = get_oauth_user_by_email(&mut conn, &session.user_id).await?;
 
-    if form.player_name.trim().is_empty()
-        || form.player_email.trim().is_empty()
-        || form.topic.trim().is_empty()
-    {
-        return Ok(Redirect::to("/play-quiz").into_response());
-    }
+    let api_key = QuizRepository::new(&mut conn).get_setting("gemini_api_key").await;
+    let model = QuizRepository::new(&mut conn).get_setting("gemini_model").await;
 
-    let encrypted_key = QuizRepository::new(&mut conn)
-        .get_setting("gemini_api_key")
-        .await?
-        .ok_or_else(|| AppError::Internal("Gemini API key not configured".to_string()))?;
-    let api_key = crate::utils::crypto::decrypt(&encrypted_key)
-        .map_err(|e| AppError::Internal(format!("Failed to decrypt API key: {}", e)))?;
-    let model = QuizRepository::new(&mut conn)
-        .get_setting("gemini_model")
-        .await?
-        .unwrap_or_else(|| "models/gemini-2.5-flash".to_string());
-
-    let difficulty = form
-        .difficulty
-        .clone()
-        .unwrap_or_else(|| "beginner".to_string());
+    let difficulty = form.difficulty.clone().unwrap_or_else(|| "beginner".to_string()).to_lowercase();
     let num_q = form.num_questions.unwrap_or(10).max(1).min(50);
 
-    let gemini_questions = match gemini::generate_questions(
-        &api_key,
-        &model,
-        form.topic.trim(),
-        &difficulty,
-        num_q,
-    )
-    .await
-    {
-        Ok(q) => q,
-        Err(_e) => {
-            let error_msg = format!("Failed to generate quiz. Please try again or select a different topic/model.");
-            let context = PlayQuizTemplate {
+    if api_key.is_err() || api_key.as_ref().unwrap().is_none() {
+        flash.error = Some("Quiz API not configured.".to_string());
+        return Ok(Html(PlayQuizTemplate {
+            api_configured: false,
+            player_name: user.name, player_email: user.email,
+            selected_topic: String::new(), selected_difficulty: String::new(),
+            selected_num_questions: 10,
+            questions: Vec::new(), session_uuid: String::new(),
+            flash: Some(flash),
+        }.render()?).into_response());
+    }
+
+    match gemini::generate_questions(
+        &api_key.unwrap().unwrap(), &model.unwrap_or(Some("models/gemini-2.5-flash".to_string())).unwrap(),
+        &form.topic, &difficulty, num_q,
+    ).await {
+        Ok(gemini_questions) => {
+            let questions_json = serde_json::to_value(&gemini_questions)
+                .map_err(|e| AppError::Internal(format!("JSON: {}", e)))?;
+            let session_uuid_val = Uuid::new_v4().to_string();
+            QuizRepository::new(&mut conn).insert_quiz_session(&NewQuizSession {
+                session_uuid: session_uuid_val.clone(), questions_json,
+            }).await?;
+
+            let questions: Vec<QuizQuestion> = gemini_questions.into_iter().enumerate()
+                .map(|(i, q)| QuizQuestion { id: (i+1) as i32, question_text: q.question_text, options: q.options })
+                .collect();
+
+            Ok(Html(PlayQuizTemplate {
                 api_configured: true,
-                player_name: form.player_name,
-                player_email: form.player_email,
-                selected_topic: form.topic,
-                selected_difficulty: difficulty,
-                selected_num_questions: num_q,
-                questions: Vec::new(),
-                session_uuid: String::new(),
-                flash: Some(crate::models::FlashData {
-                    success: None,
-                    error: Some(error_msg),
-                }),
-            };
-            return Ok(Html(context.render()?).into_response());
+                player_name: user.name, player_email: user.email,
+                selected_topic: form.topic, selected_difficulty: difficulty,
+                selected_num_questions: num_q, questions,
+                session_uuid: session_uuid_val, flash: None,
+            }.render()?).into_response())
         }
-    };
-
-    let questions_json = serde_json::to_value(&gemini_questions)
-        .map_err(|e| AppError::Internal(format!("JSON serialization error: {}", e)))?;
-
-    let session_uuid = Uuid::new_v4().to_string();
-
-    QuizRepository::new(&mut conn)
-        .insert_quiz_session(&NewQuizSession {
-            session_uuid: session_uuid.clone(),
-            questions_json,
-        })
-        .await?;
-
-    let questions: Vec<QuizQuestion> = gemini_questions
-        .into_iter()
-        .enumerate()
-        .map(|(i, q)| QuizQuestion {
-            id: (i + 1) as i32,
-            question_text: q.question_text,
-            options: q.options,
-        })
-        .collect();
-
-    let context = PlayQuizTemplate {
-        api_configured: true,
-        player_name: form.player_name,
-        player_email: form.player_email,
-        selected_topic: form.topic,
-        selected_difficulty: difficulty,
-        selected_num_questions: num_q,
-        questions,
-        session_uuid,
-        flash: Some(flash),
-    };
-
-    Ok(Html(context.render()?).into_response())
+        Err(_) => {
+            flash.error = Some("Failed to generate quiz. Try a different topic.".to_string());
+            Ok(Html(PlayQuizTemplate {
+                api_configured: true,
+                player_name: user.name, player_email: user.email,
+                selected_topic: form.topic, selected_difficulty: difficulty,
+                selected_num_questions: num_q,
+                questions: Vec::new(), session_uuid: String::new(),
+                flash: Some(flash),
+            }.render()?).into_response())
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]
 pub struct QuizSubmission {
-    player_name: String,
-    player_email: String,
-    topic: String,
-    difficulty: String,
-    num_questions: i32,
-    session_uuid: String,
+    player_name: String, player_email: String, topic: String,
+    difficulty: String, num_questions: i32, session_uuid: String,
     #[serde(flatten)]
     answers: std::collections::HashMap<String, String>,
 }
@@ -199,355 +141,206 @@ pub struct QuizSubmission {
 #[derive(Template)]
 #[template(path = "quiz_result.html")]
 struct QuizResultTemplate {
-    player_name: String,
-    player_email: String,
-    score: i32,
-    total: i32,
-    percentage: String,
-    display_score_class: String,
-    display_alert_class: String,
-    display_message: String,
-    answers: Vec<AnswerRecord>,
+    player_name: String, player_email: String,
+    score: i32, total: i32, percentage: String,
+    display_score_class: String, display_alert_class: String,
+    display_message: String, answers: Vec<AnswerRecord>,
     flash: Option<crate::models::FlashData>,
 }
 
 pub async fn submit_quiz_handler(
     State(state): State<AppState>,
-    session: Option<Extension<crate::models::CustomSession>>,
+    Extension(session): Extension<CustomSession>,
     Form(form): Form<QuizSubmission>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn = state.get_conn().await?;
-    let flash = if let Some(Extension(s)) = session {
-        crate::session_backend::take_flash(&mut conn, &s).await.1
-    } else {
-        crate::models::FlashData::default()
-    };
-
+    let _flash = crate::session_backend::take_flash(&mut conn, &session).await.1;
     if form.session_uuid.trim().is_empty() {
         return Ok(Redirect::to("/play-quiz").into_response());
     }
 
-    let session_data = QuizRepository::new(&mut conn)
-        .find_quiz_session_by_uuid(&form.session_uuid)
-        .await?
-        .ok_or_else(|| AppError::NotFound("Quiz session".to_string()))?;
+    let quiz_session = QuizRepository::new(&mut conn).find_quiz_session_by_uuid(&form.session_uuid).await?
+        .ok_or_else(|| AppError::NotFound("Session expired".into()))?;
 
-    let gemini_questions: Vec<gemini::GeminiQuestion> = serde_json::from_value(
-        session_data.questions_json,
-    )
-    .map_err(|e| AppError::Internal(format!("Failed to parse session questions: {}", e)))?;
+    let session_questions: Vec<GeminiQuestion> = serde_json::from_value(quiz_session.questions_json)
+        .map_err(|e| AppError::Internal(format!("Parse: {}", e)))?;
 
-    let _ = QuizRepository::new(&mut conn)
-        .delete_quiz_session(&form.session_uuid)
-        .await;
-
-    let mut score: i32 = 0;
+    let mut score = 0;
+    let total = session_questions.len() as i32;
     let mut answer_records: Vec<AnswerRecord> = Vec::new();
 
-    for (i, q) in gemini_questions.iter().enumerate() {
-        let key = format!("q_{}", i + 1);
-        let selected = form.answers.get(&key).cloned().unwrap_or_default();
-        let is_correct = selected.trim() == q.correct_answer.trim();
-        if is_correct {
-            score += 1;
-        }
-
+    for (i, q) in session_questions.iter().enumerate() {
+        let key = format!("q_{}", i+1);
+        let user_ans = form.answers.get(&key).cloned().unwrap_or_default();
+        let correct = user_ans.trim().to_lowercase() == q.correct_answer.trim().to_lowercase();
+        if correct { score += 1; }
         answer_records.push(AnswerRecord {
-            question_id: (i + 1) as i32,
-            question_text: q.question_text.clone(),
-            options: q.options.clone(),
-            selected_answer: selected,
-            correct_answer: q.correct_answer.clone(),
-            is_correct,
+            question_id: (i+1) as i32, question_text: q.question_text.clone(),
+            options: q.options.clone(), selected_answer: user_ans,
+            correct_answer: q.correct_answer.clone(), is_correct: correct,
         });
     }
 
-    let total = gemini_questions.len() as i32;
-    let pct = if total > 0 {
-        (score as f64 / total as f64) * 100.0
-    } else {
-        0.0
-    };
-    let percentage = format!("{:.0}", pct);
-    let display_score_class = if pct >= 80.0 {
-        "text-success"
-    } else if pct >= 50.0 {
-        "text-warning"
-    } else {
-        "text-danger"
-    };
-    let display_message = if pct >= 80.0 {
-        "Excellent work! You have great knowledge!"
-    } else if pct >= 50.0 {
-        "Good effort! Keep learning to improve."
-    } else {
-        "Keep studying! You'll do better next time."
-    };
-    let display_alert_class = if pct >= 80.0 {
-        "alert-success"
-    } else if pct >= 50.0 {
-        "alert-warning"
-    } else {
-        "alert-danger"
+    let pct = if total > 0 { ((score as f64 / total as f64) * 100.0).round() as i32 } else { 0 };
+    let user = get_oauth_user_by_email(&mut conn, &session.user_id).await?;
+
+    QuizRepository::new(&mut conn).insert_attempt(&NewQuizAttempt {
+        player_name: user.name, player_email: user.email,
+        topic: Some(form.topic), difficulty: form.difficulty,
+        num_questions: form.num_questions, score, total_questions: total,
+        answers_json: Some(serde_json::to_value(&answer_records).unwrap()),
+        oauth_user_id: Some(user.id),
+    }).await?;
+    QuizRepository::new(&mut conn).delete_quiz_session(&form.session_uuid).await?;
+
+    let (cls, alert, msg) = match pct {
+        90..=100 => ("display-score-excellent", "alert alert-success", "Excellent!"),
+        70..=89 => ("display-score-good", "alert alert-info", "Great job!"),
+        50..=69 => ("display-score-good", "alert alert-warning", "Good effort!"),
+        _ => ("display-score-poor", "alert alert-danger", "Keep practicing!"),
     };
 
-    let new_attempt = NewQuizAttempt {
-        player_name: form.player_name.clone(),
-        player_email: form.player_email.clone(),
-        topic: Some(form.topic.clone()),
-        difficulty: form.difficulty.clone(),
-        num_questions: form.num_questions,
-        score,
-        total_questions: total,
-        answers_json: Some(serde_json::to_value(&answer_records).unwrap_or_default()),
-    };
-
-    let _ = QuizRepository::new(&mut conn)
-        .insert_attempt(&new_attempt)
-        .await;
-
-    let context = QuizResultTemplate {
-        player_name: form.player_name,
-        player_email: form.player_email,
-        score,
-        total,
-        percentage,
-        display_score_class: display_score_class.to_string(),
-        display_alert_class: display_alert_class.to_string(),
-        display_message: display_message.to_string(),
-        answers: answer_records,
-        flash: Some(flash),
-    };
-
-    Ok(Html(context.render()?).into_response())
+    Ok(Html(QuizResultTemplate {
+        player_name: form.player_name, player_email: form.player_email,
+        score, total, percentage: pct.to_string(),
+        display_score_class: cls.to_string(), display_alert_class: alert.to_string(),
+        display_message: msg.to_string(), answers: answer_records, flash: None,
+    }.render()?).into_response())
 }
 
-#[derive(Deserialize)]
-pub struct QuizPagination {
-    pub page: Option<i64>,
+// ── Admin ──
+
+fn score_color(pct: i32) -> &'static str {
+    if pct >= 70 { "text-success" } else if pct >= 50 { "text-warning" } else { "text-danger" }
 }
 
-#[allow(dead_code)]
-struct QuizAttemptRow {
-    id: Option<i32>,
-    player_name: String,
-    player_email: String,
-    display_topic: String,
-    difficulty: String,
-    difficulty_badge_class: String,
-    score_badge_class: String,
-    score_display: String,
-    played_at_display: String,
-}
-
-#[derive(Template)]
-#[template(path = "admin/quiz_list.html")]
-struct AdminQuizListTemplate {
-    attempts: Vec<QuizAttemptRow>,
-    active_nav: String,
-    current_page: i64,
-    total_pages: i64,
-    pages: Vec<i64>,
-    total_count: i64,
-    flash: Option<crate::models::FlashData>,
+fn difficulty_badge(d: &str) -> &'static str {
+    match d { "beginner" => "badge-success", "intermediate" => "badge-info", _ => "badge-warning" }
 }
 
 pub async fn admin_quiz_list_page(
     State(state): State<AppState>,
-    Extension(session): Extension<crate::models::CustomSession>,
-    Query(pagination): Query<QuizPagination>,
+    Extension(session): Extension<CustomSession>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn = state.get_conn().await?;
     let flash = crate::session_backend::take_flash(&mut conn, &session).await.1;
 
-    let page = pagination.page.unwrap_or(1).max(1);
-    let per_page: i64 = 15;
+    let all_attempts: Vec<QuizAttemptDb> = crate::schema::quiz_attempts::dsl::quiz_attempts
+        .order(crate::schema::quiz_attempts::dsl::played_at.desc())
+        .load(&mut conn).await
+        .map_err(|e| AppError::DatabaseError(e))?;
 
-    let repo = QuizRepository::new(&mut conn);
-    let (results, total) = repo.find_all(page, per_page).await?;
+    let total = all_attempts.len() as i64;
 
-    let attempts: Vec<QuizAttemptRow> = results
-        .into_iter()
-        .map(|a| {
-            let pct = if a.total_questions > 0 {
-                a.score as f64 / a.total_questions as f64
-            } else {
-                0.0
-            };
-            let score_badge_class = if pct >= 0.8 {
-                "text-success"
-            } else if pct >= 0.5 {
-                "text-warning"
-            } else {
-                "text-danger"
-            };
-            let difficulty_badge_class = match a.difficulty.as_str() {
-                "beginner" => "badge-success",
-                "intermediate" => "badge-info",
-                _ => "badge-warning",
-            };
-            QuizAttemptRow {
-                id: a.id,
-                player_name: a.player_name,
-                player_email: a.player_email,
-                display_topic: a.topic.unwrap_or_else(|| "All".to_string()),
-                difficulty: a.difficulty,
-                difficulty_badge_class: difficulty_badge_class.to_string(),
-                score_badge_class: score_badge_class.to_string(),
-                score_display: format!("{}/{}", a.score, a.total_questions),
-                played_at_display: a.played_at.format("%Y-%m-%d %H:%M").to_string(),
-            }
-        })
-        .collect();
-
-    let total_pages = if total == 0 {
-        1
-    } else {
-        (total + per_page - 1) / per_page
-    };
-    let pages_vec: Vec<i64> = (1..=total_pages).collect();
-
-    let context = AdminQuizListTemplate {
-        attempts,
-        active_nav: "quiz".to_string(),
-        current_page: page,
-        total_pages,
-        pages: pages_vec,
-        total_count: total,
+    Ok(Html(template::AdminQuizListTemplate {
+        attempts: all_attempts,
+        total,
         flash: Some(flash),
-    };
-
-    Ok(Html(context.render()?).into_response())
+        active_nav: "quiz".to_string(),
+    }.render()?))
 }
 
-#[derive(Template)]
-#[template(path = "admin/quiz_detail.html")]
-#[allow(dead_code)]
-struct AdminQuizDetailTemplate {
-    player_name: String,
-    player_email: String,
-    display_topic: String,
-    difficulty: String,
-    difficulty_badge_class: String,
-    score_display: String,
-    percentage_display: String,
-    score_badge_class: String,
-    played_at_display: String,
-    answers: Vec<AnswerRecord>,
-    active_nav: String,
-    flash: Option<crate::models::FlashData>,
+mod template {
+    use askama::Template;
+    use crate::quiz::models::QuizAttemptDb;
+    use crate::models::FlashData;
+
+    #[derive(Template)]
+    #[template(path = "admin/quiz_list.html")]
+    pub struct AdminQuizListTemplate {
+        pub attempts: Vec<QuizAttemptDb>,
+        pub total: i64,
+        pub flash: Option<FlashData>,
+        pub active_nav: String,
+    }
 }
 
 pub async fn admin_quiz_detail_page(
     State(state): State<AppState>,
-    Extension(session): Extension<crate::models::CustomSession>,
+    Extension(session): Extension<CustomSession>,
     Path(attempt_id): Path<i32>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn = state.get_conn().await?;
     let flash = crate::session_backend::take_flash(&mut conn, &session).await.1;
 
-    let repo = QuizRepository::new(&mut conn);
-    let attempt = repo.find_by_id(attempt_id).await?;
+    let attempt: QuizAttemptDb = crate::schema::quiz_attempts::dsl::quiz_attempts
+        .filter(crate::schema::quiz_attempts::dsl::id.eq(attempt_id))
+        .first(&mut conn).await
+        .map_err(|_| AppError::NotFound("Quiz attempt not found".into()))?;
 
-    let answers: Vec<AnswerRecord> = attempt
-        .answers_json
-        .clone()
-        .and_then(|v| serde_json::from_value(v).ok())
-        .unwrap_or_default();
-
+    let answers: Vec<AnswerRecord> = attempt.answers_json
+        .as_ref().and_then(|j| serde_json::from_value(j.clone()).ok()).unwrap_or_default();
     let pct = if attempt.total_questions > 0 {
-        attempt.score as f64 / attempt.total_questions as f64 * 100.0
-    } else {
-        0.0
-    };
-    let score_badge_class = if pct >= 80.0 {
-        "text-success"
-    } else if pct >= 50.0 {
-        "text-warning"
-    } else {
-        "text-danger"
-    };
-    let difficulty_badge_class = match attempt.difficulty.as_str() {
-        "beginner" => "badge-success",
-        "intermediate" => "badge-info",
-        _ => "badge-warning",
-    };
+        ((attempt.score as f64 / attempt.total_questions as f64) * 100.0).round() as i32
+    } else { 0 };
 
-    let context = AdminQuizDetailTemplate {
-        player_name: attempt.player_name,
-        player_email: attempt.player_email,
-        display_topic: attempt.topic.unwrap_or_else(|| "All".to_string()),
-        difficulty: attempt.difficulty,
-        difficulty_badge_class: difficulty_badge_class.to_string(),
-        score_display: format!("{} / {}", attempt.score, attempt.total_questions),
-        percentage_display: format!("{:.1}%", pct),
-        score_badge_class: score_badge_class.to_string(),
-        played_at_display: attempt.played_at.format("%Y-%m-%d %H:%M:%S").to_string(),
-        answers,
-        active_nav: "quiz".to_string(),
-        flash: Some(flash),
-    };
-
-    Ok(Html(context.render()?).into_response())
+    Ok(Html(AdminQuizDetailTemplate {
+        player_name: attempt.player_name, player_email: attempt.player_email,
+        topic: attempt.topic.unwrap_or_default(), difficulty: attempt.difficulty,
+        score: attempt.score, total: attempt.total_questions,
+        percentage: pct.to_string(), score_color: score_color(pct).to_string(),
+        played_at: attempt.played_at.format("%Y-%m-%d %H:%M").to_string(),
+        answers, back_url: "/admin/quiz/list".to_string(),
+        flash: Some(flash), active_nav: "quiz".to_string(),
+    }.render()?))
 }
 
 #[derive(Template)]
-#[template(path = "admin/quiz_settings.html")]
-struct AdminQuizSettingsTemplate {
-    api_key_set: bool,
-    selected_model: String,
-    active_nav: String,
+#[template(path = "admin/quiz_detail.html")]
+struct AdminQuizDetailTemplate {
+    player_name: String, player_email: String,
+    topic: String, difficulty: String, score: i32, total: i32,
+    percentage: String, score_color: String, played_at: String,
+    answers: Vec<AnswerRecord>, back_url: String,
     flash: Option<crate::models::FlashData>,
+    active_nav: String,
 }
 
 pub async fn admin_quiz_settings_page(
     State(state): State<AppState>,
-    Extension(session): Extension<crate::models::CustomSession>,
+    Extension(session): Extension<CustomSession>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn = state.get_conn().await?;
     let flash = crate::session_backend::take_flash(&mut conn, &session).await.1;
+    let repo = QuizRepository::new(&mut conn);
+    let api_key_str = repo.get_setting("gemini_api_key").await.unwrap_or(None).unwrap_or_default();
+    let model_str = QuizRepository::new(&mut conn).get_setting("gemini_model").await.unwrap_or(None).unwrap_or_else(|| "models/gemini-2.5-flash".to_string());
 
-    let api_key = QuizRepository::new(&mut conn)
-        .get_setting("gemini_api_key")
-        .await?;
-    let model = QuizRepository::new(&mut conn)
-        .get_setting("gemini_model")
-        .await?
-        .unwrap_or_else(|| "models/gemini-2.5-flash".to_string());
+    #[derive(Template)]
+    #[template(path = "admin/quiz_settings.html")]
+    struct T {
+        api_key: String, model: String,
+        api_key_set: bool, selected_model: String,
+        flash: Option<crate::models::FlashData>, active_nav: String,
+    }
 
-    let context = AdminQuizSettingsTemplate {
-        api_key_set: api_key.is_some(),
-        selected_model: model,
-        active_nav: "quiz-settings".to_string(),
-        flash: Some(flash),
-    };
-
-    Ok(Html(context.render()?).into_response())
+    Ok(Html(T {
+        api_key: api_key_str.clone(), model: model_str.clone(),
+        api_key_set: !api_key_str.is_empty(), selected_model: model_str,
+        flash: Some(flash), active_nav: "quiz-settings".to_string(),
+    }.render()?))
 }
 
 pub async fn admin_quiz_settings_handler(
     State(state): State<AppState>,
-    Extension(session): Extension<crate::models::CustomSession>,
+    Extension(session): Extension<CustomSession>,
     Form(form): Form<QuizSettingsForm>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn = state.get_conn().await?;
-
-    let encrypted = crate::utils::crypto::encrypt(form.api_key.trim())
-        .map_err(|e| AppError::Internal(format!("Failed to encrypt API key: {}", e)))?;
-    QuizRepository::new(&mut conn)
-        .upsert_setting("gemini_api_key", &encrypted)
-        .await?;
-    QuizRepository::new(&mut conn)
-        .upsert_setting("gemini_model", form.model.trim())
-        .await?;
-
-    crate::session_backend::set_flash(
-        &mut conn,
-        &session,
-        Some("Quiz settings saved successfully.".to_string()),
-        None,
-    )
-    .await?;
-
+    let repo = QuizRepository::new(&mut conn);
+    QuizRepository::new(&mut conn).upsert_setting("gemini_api_key", &form.api_key).await?;
+    QuizRepository::new(&mut conn).upsert_setting("gemini_model", &form.model).await?;
+    crate::session_backend::set_flash(&mut conn, &session, Some("Quiz settings updated.".to_string()), None).await?;
     Ok(Redirect::to("/admin/quiz/settings"))
+}
+
+async fn get_oauth_user_by_email(
+    conn: &mut crate::db::PooledConn,
+    user_email: &str,
+) -> Result<crate::oauth::models::OAuthUser, AppError> {
+    crate::schema::oauth_users::dsl::oauth_users
+        .filter(crate::schema::oauth_users::dsl::email.eq(user_email))
+        .first::<crate::oauth::models::OAuthUser>(conn)
+        .await
+        .map_err(|_| AppError::NotFound("User not found".into()))
 }

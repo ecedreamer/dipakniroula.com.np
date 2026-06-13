@@ -2,7 +2,7 @@ use diesel::prelude::*;
 use diesel_async::AsyncPgConnection;
 use diesel_async::RunQueryDsl;
 
-use super::models::{AppSetting, NewQuizAttempt, NewQuizSession, QuizAttempt, QuizSession};
+use super::models::{AppSetting, NewQuizAttempt, NewQuizSession, QuizAttemptDb, QuizSession};
 
 pub struct QuizRepository<'a> {
     pub conn: &'a mut AsyncPgConnection,
@@ -83,7 +83,7 @@ impl<'a> QuizRepository<'a> {
             .await
     }
 
-    pub async fn insert_attempt(self, data: &NewQuizAttempt) -> QueryResult<QuizAttempt> {
+    pub async fn insert_attempt(self, data: &NewQuizAttempt) -> QueryResult<QuizAttemptDb> {
         use crate::schema::quiz_attempts::dsl::*;
 
         diesel::insert_into(quiz_attempts)
@@ -93,40 +93,7 @@ impl<'a> QuizRepository<'a> {
 
         quiz_attempts
             .order(id.desc())
-            .first::<QuizAttempt>(self.conn)
-            .await
-    }
-
-    pub async fn find_all(
-        self,
-        page: i64,
-        per_page: i64,
-    ) -> QueryResult<(Vec<QuizAttempt>, i64)> {
-        use crate::schema::quiz_attempts::dsl::*;
-
-        let total = quiz_attempts
-            .count()
-            .get_result::<i64>(self.conn)
-            .await
-            .unwrap_or(0);
-
-        let offset = (page - 1) * per_page;
-        let results = quiz_attempts
-            .order(id.desc())
-            .limit(per_page)
-            .offset(offset)
-            .load::<QuizAttempt>(self.conn)
-            .await?;
-
-        Ok((results, total))
-    }
-
-    pub async fn find_by_id(self, attempt_id: i32) -> QueryResult<QuizAttempt> {
-        use crate::schema::quiz_attempts::dsl::*;
-
-        quiz_attempts
-            .filter(id.eq(attempt_id))
-            .first::<QuizAttempt>(self.conn)
+            .first::<QuizAttemptDb>(self.conn)
             .await
     }
 

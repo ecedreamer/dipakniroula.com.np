@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}My Dashboard — Dipak Niroula{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="hero-eyebrow mb-2">Dashboard</p>
+        <h2 class="fw-bold mb-0">My Quiz Activity</h2>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+        <div class="text-end">
+            <p class="small text-muted mb-0">{{ user.name }}</p>
+            <p class="small text-muted mb-0">{{ user.email }}</p>
+        </div>
+        {% if user.avatar_url.is_some() %}
+        <img src="{{ user.avatar_url.as_ref().unwrap() }}" alt="Avatar" class="rounded-circle" width="40" height="40">
+        {% else %}
+        <div class="rounded-circle bg-soft-primary d-flex align-items-center justify-content-center" style="width:40px;height:40px;">
+            <span class="fw-bold text-primary small">{{ user.name.chars().next().unwrap_or('?') }}</span>
+        </div>
+        {% endif %}
+        <a href="/user/logout" class="btn-hero-outline btn-sm py-1 px-3" style="margin-left:0;">Sign Out</a>
+    </div>
+</div>
+
+{% if attempts.is_empty() %}
+<div class="text-center py-5">
+    <i class="bi bi-journal-text fs-1 text-muted d-block mb-3"></i>
+    <h5 class="fw-bold mb-2">No Quiz Attempts Yet</h5>
+    <p class="text-muted mb-4">You haven't played any quizzes yet.</p>
+    <a href="/play-quiz" class="btn-hero-primary">Take a Quiz</a>
+</div>
+{% else %}
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stats-section" style="padding:1.5rem;">
+            <div class="stat-number" style="font-size:2rem;">{{ attempts.len() }}</div>
+            <div class="stat-label">Total Attempts</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stats-section" style="padding:1.5rem;">
+            <div class="stat-number" style="font-size:2rem;">{{ average_score }}%</div>
+            <div class="stat-label">Average Score</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stats-section" style="padding:1.5rem;">
+            <div class="stat-number" style="font-size:2rem;">{{ total_correct }} / {{ total_questions }}</div>
+            <div class="stat-label">Total Correct</div>
+        </div>
+    </div>
+</div>
+
+<div class="contact-card p-4">
+    <h5 class="fw-bold mb-3">Attempt History</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless align-middle mb-0">
+            <thead>
+                <tr class="small text-muted text-uppercase">
+                    <th class="fw-semibold">Date</th>
+                    <th class="fw-semibold">Topic</th>
+                    <th class="fw-semibold">Difficulty</th>
+                    <th class="fw-semibold">Score</th>
+                    <th class="fw-semibold">Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attempt in attempts %}
+                <tr>
+                    <td class="small">{{ attempt.played_at.format("%Y-%m-%d %H:%M") }}</td>
+                    <td class="fw-medium">{{ attempt.topic.as_deref().unwrap_or("N/A") }}</td>
+                    <td>
+                        <span class="cat-pill" style="font-size:0.7rem;">{{ attempt.difficulty }}</span>
+                    </td>
+                    <td class="fw-bold">{{ attempt.score }} / {{ attempt.total_questions }}</td>
+                    <td>
+                        <span class="fw-bold">
+                            {{ attempt.score }} / {{ attempt.total_questions }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="text-center mt-4">
+    <a href="/play-quiz" class="btn-hero-primary">Take Another Quiz</a>
+</div>
+{% endif %}
+
+{% endblock %}

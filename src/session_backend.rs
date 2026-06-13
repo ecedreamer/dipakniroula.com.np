@@ -5,26 +5,18 @@ use uuid::Uuid;
 use chrono::Utc;
 use crate::models::CustomSession;
 
-pub async fn create_session(conn: &mut AsyncPgConnection, u_id: String) -> QueryResult<CustomSession> {
+pub async fn create_session(conn: &mut AsyncPgConnection, u_id: &str, user_role: &str) -> QueryResult<CustomSession> {
     use crate::schema::sessions::dsl::*;
-
     let new_session = CustomSession {
-        id: None, // Will be auto-incremented
+        id: None,
         session_id: Uuid::new_v4().to_string(),
-        user_id: u_id,
+        user_id: u_id.to_string(),
         data: None,
-        expires_at: Utc::now().naive_utc() + chrono::Duration::try_hours(60).unwrap(), // 1-hour expiry
+        expires_at: Utc::now().naive_utc() + chrono::Duration::try_hours(60).unwrap(),
+        role: user_role.to_string(),
     };
-
-    diesel::insert_into(sessions)
-        .values(&new_session)
-        .execute(conn)
-        .await?;
-
-    sessions
-        .order(id.desc())
-        .first::<CustomSession>(conn)
-        .await
+    diesel::insert_into(sessions).values(&new_session).execute(conn).await?;
+    sessions.order(id.desc()).first::<CustomSession>(conn).await
 }
 
 pub async fn get_session(conn: &mut AsyncPgConnection, sess_id: &str) -> QueryResult<Option<CustomSession>> {

@@ -16,23 +16,25 @@ body_class %}resume-page{% endblock %} {% block css %}
             </p>
 
             <div class="resume-contact-info">
-                <span class="resume-contact-item"
-                    >📧
+                <span class="resume-contact-item">
+                    <i class="bi bi-envelope-fill"></i>
                     <a href="mailto:sangit.niroula@gmail.com"
                         >sangit.niroula@gmail.com</a
-                    ></span
-                >
-                <span class="resume-contact-item"
-                    >📱 +977 9849978896 / 9823371327</span
-                >
-                <span class="resume-contact-item">📍 Kathmandu, Nepal</span>
+                    >
+                </span>
+                <span class="resume-contact-item">
+                    <i class="bi bi-telephone-fill"></i> +977 9849978896 / 9823371327
+                </span>
+                <span class="resume-contact-item">
+                    <i class="bi bi-geo-alt-fill"></i> Kathmandu, Nepal
+                </span>
                 {% for social_link in social_links %}
-                <span class="resume-contact-item"
-                    >🔗
+                <span class="resume-contact-item">
+                    <i class="bi bi-link-45deg"></i>
                     <a href="{{social_link.social_link}}" target="_blank"
                         >{{social_link.social_media}}</a
-                    ></span
-                >
+                    >
+                </span>
                 {% endfor %}
             </div>
         </header>
@@ -315,7 +317,7 @@ body_class %}resume-page{% endblock %} {% block css %}
                 margin: 0 !important;
             }
             .resume-item { page-break-inside: avoid; }
-            a { color: #2c5282 !important; text-decoration: none !important; }
+            a { color: #2563eb !important; text-decoration: none !important; }
         }
     </style>
 </head>

@@ -1,18 +1,13 @@
-FROM rust:latest AS builder
+FROM rust:latest
 
 WORKDIR /usr/src/app
 
-COPY media .
-COPY migrations .
-COPY src .
-COPY static .
-COPY templates .
-COPY .env .
-COPY Cargo.* .
-COPY diesel.* .
+# Pre-fetch dependencies into the registry cache (stays in the image layer)
+# so they don't need to be downloaded on first container start
+COPY Cargo.toml Cargo.lock ./
+RUN mkdir -p src && echo "fn main() {}" > src/main.rs && \
+    cargo build --release 2>/dev/null; true && \
+    rm -rf src target
 
-RUN cargo install cargo-watch
-
-CMD ["cargo", "build"]
-
-CMD ["cargo", "watch", "-x", "run"]
+# Source code is mounted at runtime via docker-compose volume
+CMD ["cargo", "run"]

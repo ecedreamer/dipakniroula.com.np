@@ -11,7 +11,7 @@ Python, Rust, Java, Distributed System {% endblock %}
     <div class="row align-items-center g-5 py-5">
         <div class="col-lg-7">
             <p class="hero-eyebrow">Hello, I'm</p>
-            <h1 class="display-5 fw-bold mb-3">Dipak Niroula</h1>
+            <h1 class="fw-bold mb-3">Dipak Niroula</h1>
             <p class="hero-tagline mb-4">Software Engineer &amp; Architect</p>
             <p class="hero-bio mb-5">
                 10+ years building scalable backend systems, distributed architectures, and
@@ -40,11 +40,87 @@ Python, Rust, Java, Distributed System {% endblock %}
     </div>
 </section>
 
-{% if popular_blogs.len() > 0 %}
-<section class="blogs-section mt-5 pt-4 border-top">
+<!-- Stats Section -->
+<section class="stats-section my-5 reveal">
+    <div class="row align-items-center justify-content-center g-4">
+        <div class="col-6 col-md-3">
+            <div class="stat-item">
+                <div class="stat-number">10+</div>
+                <div class="stat-label">Years Experience</div>
+            </div>
+        </div>
+        <div class="stat-divider d-none d-md-block"></div>
+        <div class="col-6 col-md-3">
+            <div class="stat-item">
+                <div class="stat-number">100+</div>
+                <div class="stat-label">Projects Delivered</div>
+            </div>
+        </div>
+        <div class="stat-divider d-none d-md-block"></div>
+        <div class="col-6 col-md-3">
+            <div class="stat-item">
+                <div class="stat-number">1k+</div>
+                <div class="stat-label">Engineers Mentored</div>
+            </div>
+        </div>
+        <div class="stat-divider d-none d-md-block"></div>
+        <div class="col-6 col-md-3">
+            <div class="stat-item">
+                <div class="stat-number">3</div>
+                <div class="stat-label">Startups Co-founded</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Work Section -->
+<section class="featured-section my-5 pt-4 reveal">
     <div class="section-header d-flex justify-content-between align-items-center mb-4">
-        <h2 class="section-title h5 fw-semibold mb-0">Popular Articles</h2>
-        <a href="/blog/list" class="section-link text-decoration-none small">View all →</a>
+        <div>
+            <p class="hero-eyebrow mb-2">What I Do</p>
+            <h2 class="section-title h4 fw-bold mb-0">Expertise &amp; Services</h2>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-hdd-stack"></i></div>
+                <h3>Backend Architecture</h3>
+                <p>High-performance distributed systems, microservices, and event-driven architectures in Rust, Python &amp; Java.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-database-gear"></i></div>
+                <h3>Data &amp; Search</h3>
+                <p>Custom search engines, data ingestion pipelines, and real-time analytics platforms using Lucene, Tantivy, Kafka.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-cloud-arrow-up"></i></div>
+                <h3>DevOps &amp; Cloud</h3>
+                <p>Docker, Kubernetes, CI/CD pipelines, and cloud infrastructure on AWS for scalable production deployments.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-people"></i></div>
+                <h3>Tech Leadership</h3>
+                <p>Architecture reviews, team mentoring, technical strategy, and bridging engineering with business goals.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if popular_blogs.len() > 0 %}
+<section class="blogs-section mt-5 pt-5">
+    <div class="section-header d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <p class="hero-eyebrow mb-2">Read</p>
+            <h2 class="section-title h4 fw-bold mb-0">Popular Articles</h2>
+        </div>
+        <a href="/blog/list" class="section-link text-decoration-none small fw-semibold">View all <span aria-hidden="true">→</span></a>
     </div>
     <div class="row g-4">
         {% for blog in popular_blogs %}

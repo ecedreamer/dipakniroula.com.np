@@ -2,13 +2,16 @@ services:
   webapp:
     build:
       context: .
-      dockerfile: Dockerfile_dev # change for production
+      dockerfile: Dockerfile_dev
     ports:
       - "8081:8081"
     env_file:
       - .env
     volumes:
+      # Source code (bind mount for live editing)
       - ./:/usr/src/app
+      # Persist compiled dependencies (Linux-native, survives restarts)
+      - cargo-target:/usr/src/app/target
     restart: unless-stopped
     depends_on:
       - db
@@ -32,6 +35,7 @@ services:
 
 volumes:
   postgres_data:
+  cargo-target:
 
 networks:
   internal:

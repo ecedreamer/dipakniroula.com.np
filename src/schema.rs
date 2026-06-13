@@ -1,5 +1,3 @@
-// @generated automatically by Diesel CLI.
-
 diesel::table! {
     admin_users (id) {
         id -> Integer,
@@ -69,12 +67,24 @@ diesel::table! {
 }
 
 diesel::table! {
+    oauth_users (id) {
+        id -> Integer,
+        google_id -> Text,
+        email -> Text,
+        name -> Text,
+        avatar_url -> Nullable<Text>,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     sessions (id) {
         id -> Nullable<Integer>,
         session_id -> Text,
         user_id -> Text,
         data -> Nullable<Text>,
         expires_at -> Timestamp,
+        role -> Text,
     }
 }
 
@@ -108,7 +118,6 @@ diesel::table! {
 
 diesel::table! {
     quiz_attempts (id) {
-
         id -> Nullable<Integer>,
         player_name -> Text,
         player_email -> Text,
@@ -119,11 +128,13 @@ diesel::table! {
         total_questions -> Integer,
         answers_json -> Nullable<Jsonb>,
         played_at -> Timestamp,
+        oauth_user_id -> Nullable<Integer>,
     }
 }
 
 diesel::joinable!(blog_categories -> blogs (blog_id));
 diesel::joinable!(blog_categories -> categories (category_id));
+diesel::joinable!(quiz_attempts -> oauth_users (oauth_user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     admin_users,
@@ -133,6 +144,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     categories,
     experiences,
     messages,
+    oauth_users,
     questions,
     quiz_attempts,
     quiz_sessions,

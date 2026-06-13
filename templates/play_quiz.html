@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+{% block quiz %}active{% endblock %}
 {% block title %}Play Quiz{% endblock %}
 {% block description %}Test your knowledge with AI-powered quiz{% endblock %}
 
@@ -10,41 +11,37 @@
         <div class="contact-card p-4 p-md-5">
             {% if !api_configured %}
             <div class="text-center mb-5">
-                <h2 class="fw-bold">🧠 Play Quiz</h2>
+                <p class="hero-eyebrow mb-2">Quiz</p>
+                <h2 class="fw-bold">Play Quiz</h2>
                 <div class="alert alert-warning mt-4">
                     <i class="bi bi-info-circle"></i>
                     Quiz feature is not yet configured. Please contact the site admin.
                 </div>
             </div>
-            {% else if questions.is_empty() %}
+            {% else %}
+            {% if questions.is_empty() %}
             <div class="text-center mb-5">
-                <h2 class="fw-bold">🧠 Play Quiz</h2>
+                <p class="hero-eyebrow mb-2">Quiz</p>
+                <h2 class="fw-bold">Play Quiz</h2>
                 <p class="text-muted">Enter a topic and test your knowledge with AI-generated questions!</p>
+                <p class="small text-muted">Logged in as <strong>{{ player_name }}</strong> &lt;{{ player_email }}&gt;</p>
             </div>
 
             <form action="/play-quiz" method="POST" onsubmit="disableSubmitButton(this)">
-                <div class="row mb-4">
-                    <div class="col-md-6 mb-4 mb-md-0">
-                        <label for="player_name" class="form-label small fw-bold text-uppercase text-muted">Your Name</label>
-                        <input type="text" required name="player_name" maxlength="100" class="form-control form-control-lg" placeholder="Enter your name">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="player_email" class="form-label small fw-bold text-uppercase text-muted">Email Address</label>
-                        <input type="email" required name="player_email" maxlength="100" class="form-control form-control-lg" placeholder="your@email.com">
-                    </div>
-                </div>
+                <input type="hidden" name="player_name" value="{{ player_name }}">
+                <input type="hidden" name="player_email" value="{{ player_email }}">
 
                 <div class="row mb-4">
                     <div class="col-md-12 mb-4 mb-md-0">
                         <label for="topic" class="form-label small fw-bold text-uppercase text-muted">Topic / Subject</label>
-                        <input type="text" required name="topic" maxlength="200" class="form-control form-control-lg" placeholder="e.g. Rust Programming, World History, Space Science">
+                        <input type="text" required name="topic" id="topic" maxlength="200" class="form-control" placeholder="e.g. Rust Programming, World History, Space Science">
                     </div>
                 </div>
 
                 <div class="row mb-4">
                     <div class="col-md-6 mb-4 mb-md-0">
                         <label for="difficulty" class="form-label small fw-bold text-uppercase text-muted">Difficulty Level</label>
-                        <select name="difficulty" class="form-select form-control-lg">
+                        <select name="difficulty" class="form-select form-control">
                             <option value="beginner" selected>Beginner</option>
                             <option value="intermediate">Intermediate</option>
                             <option value="expert">Expert</option>
@@ -52,7 +49,7 @@
                     </div>
                     <div class="col-md-6">
                         <label for="num_questions" class="form-label small fw-bold text-uppercase text-muted">Number of Questions</label>
-                        <input type="number" name="num_questions" min="1" max="50" value="10" class="form-control form-control-lg">
+                        <input type="number" name="num_questions" min="1" max="50" value="10" class="form-control">
                     </div>
                 </div>
 
@@ -62,8 +59,9 @@
             </form>
             {% else %}
             <div class="text-center mb-4">
-                <h2 class="fw-bold">📝 Quiz Time!</h2>
-                <p class="text-muted">Player: <strong>{{ player_name }}</strong> | Topic: <strong>{{ selected_topic }}</strong> | Level: <strong>{{ selected_difficulty }}</strong></p>
+                <p class="hero-eyebrow mb-2">Quiz</p>
+                <h2 class="fw-bold">Quiz Time!</h2>
+                <p class="text-muted">Topic: <strong>{{ selected_topic }}</strong> &middot; Level: <strong>{{ selected_difficulty }}</strong></p>
             </div>
 
             <form action="/play-quiz/submit" method="POST" onsubmit="disableSubmitButton(this)">
@@ -94,6 +92,7 @@
                 </div>
             </form>
             {% endif %}
+            {% endif %}
         </div>
     </div>
 </div>
@@ -108,20 +107,4 @@ function disableSubmitButton(form) {
     }
 }
 </script>
-
-<style>
-.contact-card {
-    background: #fff;
-    border-radius: 1rem;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-}
-.form-check-input:checked {
-    background-color: #4f46e5;
-    border-color: #4f46e5;
-}
-.border {
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 0.75rem !important;
-}
-</style>
 {% endblock %}

@@ -5,6 +5,7 @@ mod db;
 mod embedded_migrations;
 mod middlewares;
 mod models;
+mod oauth;
 mod quiz;
 mod resume;
 mod route_handlers;
@@ -190,13 +191,14 @@ async fn main() {
             "/auth",
             auth::route_handlers::auth_routes(app_state.clone()).await,
         )
+        .merge(oauth::route_handlers::oauth_routes(app_state.clone()))
         .merge(blog::route_handlers::blog_routes(app_state.clone()).await)
         .merge(resume::route_handlers::resume_routes(app_state.clone()).await)
         .merge(quiz::route_handlers::quiz_routes(app_state.clone()).await)
         .nest_service("/static", static_files_service)
         .nest_service("/media", media_files_service)
         .fallback(handle_404)
-        .with_state(app_state) // Now all routes that need state have it
+        .with_state(app_state)
         .layer(DefaultBodyLimit::max(20 * 1024 * 1024))
         .layer(axum::middleware::from_fn(
             middlewares::security_headers_middleware,

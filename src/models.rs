@@ -49,6 +49,7 @@ pub struct CustomSession {
     pub user_id: String,
     pub data: Option<String>,
     pub expires_at: NaiveDateTime,
+    pub role: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]

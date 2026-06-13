@@ -1,13 +1,12 @@
-/* Professional Resume Styles for ATS Friendliness and Premium Look */
+/* Professional Resume Styles */
 
 :root {
-    --primary-text: #1a202c;
-    --secondary-text: #4a5568;
-    --accent-color: #2c5282;
-    /* Muted Navy */
+    --primary-text: #0f172a;
+    --secondary-text: #475569;
+    --accent-color: #2563eb;
     --bg-light: #f8fafc;
     --paper-white: #ffffff;
-    --border-color: #edf2f7;
+    --border-color: #e2e8f0;
 }
 
 body.resume-page {
@@ -49,14 +48,14 @@ h1.resume-name {
 }
 
 .resume-section-title {
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--accent-color);
     margin: 2rem 0 1rem 0;
     border-bottom: 2px solid var(--border-color);
-    padding-bottom: 0.25rem;
+    padding-bottom: 0.35rem;
 }
 
 /* Experience & Education Blocks */
@@ -150,6 +149,13 @@ h1.resume-name {
     gap: 0.5rem;
 }
 
+.resume-contact-item i {
+    font-size: 0.9rem;
+    color: var(--accent-color);
+    width: 16px;
+    text-align: center;
+}
+
 /* Skills Grid */
 .resume-skills-grid {
     display: grid;
@@ -168,6 +174,10 @@ h1.resume-name {
     color: var(--primary-text);
     border-left: 3px solid var(--accent-color);
     padding-left: 0.75rem;
+}
+
+.skill-category-title strong {
+    color: var(--accent-color);
 }
 
 .skill-list {
@@ -189,23 +199,23 @@ h1.resume-name {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.6rem 1.4rem;
-    background-color: var(--accent-color);
+    padding: 0.65rem 1.5rem;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
     color: #fff;
     font-size: 0.9rem;
     font-weight: 600;
     font-family: inherit;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
-    transition:
-        background-color 0.2s ease,
-        opacity 0.2s ease;
-    letter-spacing: 0.01em;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 10px rgba(37, 99, 235, 0.25);
 }
 
 .resume-pdf-btn:hover:not(:disabled) {
-    background-color: var(--primary-text);
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+    transform: translateY(-1px);
 }
 
 .resume-pdf-btn:disabled {
@@ -304,8 +314,8 @@ h1.resume-name {
     }
 
     .resume-section-title {
-        color: #2c5282 !important;
-        border-bottom: 2px solid #edf2f7 !important;
+        color: #2563eb !important;
+        border-bottom: 2px solid #e2e8f0 !important;
         margin-top: 1rem !important;
         margin-bottom: 0.5rem !important;
     }
@@ -327,11 +337,11 @@ h1.resume-name {
     }
 
     .resume-contact-info a {
-        color: #2c5282 !important;
+        color: #2563eb !important;
     }
 
     .skill-category-title {
-        border-left-color: #2c5282 !important;
+        border-left-color: #2563eb !important;
     }
 }
 

@@ -1,84 +1,66 @@
 {% extends "admin/adminbase.html" %}
 
 {% block title %}Quiz Detail - Admin Panel{% endblock %}
-{% block page_title %}Quiz Attempt Details{% endblock %}
+{% block page_title %}Quiz Attempt Detail{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-8">
-        <div class="table-container p-4 mb-4">
-            <h4 class="fw-bold mb-3">Player Information</h4>
-            <table class="table table-borderless">
-                <tr>
-                    <th style="width: 160px;" class="text-muted">Name</th>
-                    <td>{{ player_name }}</td>
-                </tr>
-                <tr>
-                    <th class="text-muted">Email</th>
-                    <td>{{ player_email }}</td>
-                </tr>
-                <tr>
-                    <th class="text-muted">Topic</th>
-                    <td>{{ display_topic }}</td>
-                </tr>
-                <tr>
-                    <th class="text-muted">Difficulty</th>
-                    <td>
-                        <span class="badge-premium {{ difficulty_badge_class }}">
-                            {{ difficulty }}
-                        </span>
-                    </td>
-                </tr>
-                <tr>
-                    <th class="text-muted">Score</th>
-                    <td>
-                        <span class="fw-bold fs-5 {{ score_badge_class }}">
-                            {{ score_display }}
-                        </span>
-                        <span class="ms-2">({{ percentage_display }})</span>
-                    </td>
-                </tr>
-                <tr>
-                    <th class="text-muted">Played At</th>
-                    <td>{{ played_at_display }}</td>
-                </tr>
-            </table>
-        </div>
+<div class="mb-3">
+    <a href="{{ back_url }}" class="btn-premium btn-primary-premium">
+        <i class="fas fa-arrow-left"></i> Back to List
+    </a>
+</div>
 
-        <div class="table-container p-4">
-            <h4 class="fw-bold mb-4">Answer Details</h4>
-            {% for answer in answers %}
-            {% let idx = loop.index0 + 1 %}
-            <div class="mb-4 p-4 border rounded" style="border-left: 5px solid {% if answer.is_correct %}#10b981{% else %}#ef4444{% endif %} !important;">
-                <p class="fw-bold mb-3">{{ idx }}. {{ answer.question_text }}</p>
-                <p class="mb-1">
-                    <span class="fw-bold">Selected:</span>
-                    <span class="{% if answer.is_correct %}text-success{% else %}text-danger{% endif %}">
-                        {{ answer.selected_answer }}
-                    </span>
-                </p>
-                {% if !answer.is_correct %}
-                <p class="mb-0">
-                    <span class="fw-bold text-success">Correct:</span>
-                    <span class="text-success">{{ answer.correct_answer }}</span>
-                </p>
-                {% endif %}
+<div class="form-card mb-4">
+    <h5 class="fw-bold mb-4">Player Information</h5>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="form-label">Name</div>
+            <div class="fw-semibold">{{ player_name }}</div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-label">Email</div>
+            <div class="fw-semibold">{{ player_email }}</div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-label">Topic</div>
+            <div>{{ topic }}</div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-label">Difficulty</div>
+            <div>{{ difficulty }}</div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-label">Score</div>
+            <div class="fw-bold {{ score_color }}">
+                {{ score }} / {{ total }} ({{ percentage }}%)
             </div>
-            {% endfor %}
         </div>
-
-        <a href="/admin/quiz/list" class="btn btn-secondary mt-3">← Back to List</a>
+        <div class="col-md-4">
+            <div class="form-label">Played At</div>
+            <div class="small">{{ played_at }}</div>
+        </div>
     </div>
 </div>
 
-<style>
-.badge-warning {
-    background: #fef3c7;
-    color: #92400e;
-}
-.table th {
-    font-weight: 600;
-    font-size: 0.875rem;
-}
-</style>
+<div class="form-card">
+    <h5 class="fw-bold mb-4">Answer Details</h5>
+    {% for answer in answers %}
+    {% let idx = loop.index0 + 1 %}
+    <div class="mb-3 p-3" style="border-left: 5px solid {% if answer.is_correct %}#10b981{% else %}#ef4444{% endif %}; background: #f8fafc; border-radius: 0 8px 8px 0;">
+        <p class="fw-bold mb-2">{{ idx }}. {{ answer.question_text }}</p>
+        <p class="mb-1 small">
+            <span class="fw-bold">Your answer:</span>
+            <span class="{% if answer.is_correct %}text-success{% else %}text-danger{% endif %}">
+                {{ answer.selected_answer }}
+            </span>
+        </p>
+        {% if !answer.is_correct %}
+        <p class="mb-0 small">
+            <span class="fw-bold text-success">Correct answer:</span>
+            <span class="text-success">{{ answer.correct_answer }}</span>
+        </p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
 {% endblock %}

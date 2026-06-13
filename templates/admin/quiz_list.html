@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="header-top mb-4 d-flex justify-content-between align-items-center">
-    <h4 class="m-0">All Attempts <span class="badge badge-info ms-2">{{ total_count }} Total</span></h4>
+    <h4 class="m-0">All Attempts <span class="badge badge-info ms-2">{{ total }} Total</span></h4>
 </div>
 
 <div class="table-container">
@@ -28,16 +28,18 @@
                 <td class="fw-bold">{{ a.id.unwrap() }}</td>
                 <td>{{ a.player_name }}</td>
                 <td>{{ a.player_email }}</td>
-                <td>{{ a.display_topic }}</td>
+                <td>{{ a.topic.as_deref().unwrap_or("N/A") }}</td>
                 <td>
-                    <span class="badge-premium {{ a.difficulty_badge_class }}">
+                    <span class="badge-premium {% if a.difficulty == "beginner" %}badge-success{% else %}badge-info{% endif %}">
                         {{ a.difficulty }}
                     </span>
                 </td>
                 <td>
-                    <span class="fw-bold {{ a.score_badge_class }}">{{ a.score_display }}</span>
+                    <span class="fw-bold">
+                        {{ a.score }} / {{ a.total_questions }}
+                    </span>
                 </td>
-                <td class="small">{{ a.played_at_display }}</td>
+                <td class="small">{{ a.played_at.format("%Y-%m-%d %H:%M") }}</td>
                 <td>
                     <div class="actions-group">
                         <a href="/admin/quiz/{{ a.id.unwrap() }}/detail" class="btn-premium btn-primary-premium btn-sm">
@@ -55,73 +57,4 @@
         </tbody>
     </table>
 </div>
-
-{% if total_pages > 1 %}
-<nav aria-label="Page navigation" class="mt-4 mb-3">
-    <ul class="pagination justify-content-center">
-        {% if current_page > 1 %}
-        <li class="page-item">
-            <a class="page-link" href="?page={{ current_page - 1 }}">Previous</a>
-        </li>
-        {% else %}
-        <li class="page-item disabled">
-            <span class="page-link">Previous</span>
-        </li>
-        {% endif %}
-
-        {% if total_pages <= 10 %}
-            {% for p in pages %}
-            {% if *p == current_page %}
-            <li class="page-item active"><span class="page-link">{{ p }}</span></li>
-            {% else %}
-            <li class="page-item"><a class="page-link" href="?page={{ p }}">{{ p }}</a></li>
-            {% endif %}
-            {% endfor %}
-        {% else %}
-            {% if current_page > 3 %}
-            <li class="page-item"><a class="page-link" href="?page=1">1</a></li>
-            {% if current_page > 4 %}
-            <li class="page-item disabled"><span class="page-link">...</span></li>
-            {% endif %}
-            {% endif %}
-
-            {% for p in pages %}
-            {% if *p >= (current_page - 2) %}
-            {% if *p <= (current_page + 2) %}
-            {% if *p == current_page %}
-            <li class="page-item active"><span class="page-link">{{ p }}</span></li>
-            {% else %}
-            <li class="page-item"><a class="page-link" href="?page={{ p }}">{{ p }}</a></li>
-            {% endif %}
-            {% endif %}
-            {% endif %}
-            {% endfor %}
-
-            {% if current_page < total_pages - 2 %}
-            {% if current_page < total_pages - 3 %}
-            <li class="page-item disabled"><span class="page-link">...</span></li>
-            {% endif %}
-            <li class="page-item"><a class="page-link" href="?page={{ total_pages }}">{{ total_pages }}</a></li>
-            {% endif %}
-        {% endif %}
-
-        {% if current_page < total_pages %}
-        <li class="page-item">
-            <a class="page-link" href="?page={{ current_page + 1 }}">Next</a>
-        </li>
-        {% else %}
-        <li class="page-item disabled">
-            <span class="page-link">Next</span>
-        </li>
-        {% endif %}
-    </ul>
-</nav>
-{% endif %}
-
-<style>
-.badge-warning {
-    background: #fef3c7;
-    color: #92400e;
-}
-</style>
 {% endblock %}

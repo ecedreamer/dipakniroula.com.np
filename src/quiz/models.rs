@@ -5,7 +5,7 @@ use chrono::NaiveDateTime;
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::quiz_attempts)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct QuizAttempt {
+pub struct QuizAttemptDb {
     pub id: Option<i32>,
     pub player_name: String,
     pub player_email: String,
@@ -16,6 +16,7 @@ pub struct QuizAttempt {
     pub total_questions: i32,
     pub answers_json: Option<serde_json::Value>,
     pub played_at: NaiveDateTime,
+    pub oauth_user_id: Option<i32>,
 }
 
 #[derive(Debug, Insertable)]
@@ -30,6 +31,7 @@ pub struct NewQuizAttempt {
     pub score: i32,
     pub total_questions: i32,
     pub answers_json: Option<serde_json::Value>,
+    pub oauth_user_id: Option<i32>,
 }
 
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Clone)]
@@ -88,4 +90,11 @@ pub struct QuizSetupForm {
 pub struct QuizSettingsForm {
     pub api_key: String,
     pub model: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GeminiQuestion {
+    pub question_text: String,
+    pub options: Vec<String>,
+    pub correct_answer: String,
 }
