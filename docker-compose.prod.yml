@@ -28,6 +28,7 @@ services:
       - .env
     volumes:
       - app_logs:/tmp/logs/dipakniroula.com.np/
+      - ./media:/usr/local/bin/media
     networks:
       - webnet
       - internal
