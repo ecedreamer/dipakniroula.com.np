@@ -8,6 +8,7 @@ use crate::blog::blog_repository::category_repository::CategoryRepository;
 
 use crate::middlewares::session_middleware;
 use crate::filters;
+use crate::quiz::quiz_repository::QuizRepository;
 use crate::state::AppState;
 use crate::utils::error::AppError;
 use std::str::FromStr;
@@ -51,6 +52,12 @@ pub async fn blog_routes(state: AppState) -> Router<AppState> {
             get(blog_list_page_admin).layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)),
         )
         .route(
+            "/admin/blog/generate",
+            get(blog_generate_page)
+                .post(blog_generate_handler)
+                .layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)),
+        )
+        .route(
             "/admin/category/create",
             get(category_create_page)
                 .post(category_create_handler)
@@ -80,6 +87,9 @@ pub async fn blog_routes(state: AppState) -> Router<AppState> {
 #[template(path = "admin/blogcreate.html")]
 struct BlogCreateTemplate {
     categories: Vec<Category>,
+    generated_title: Option<String>,
+    generated_content: Option<String>,
+    generated_image: Option<String>,
     active_nav: String,
     flash: Option<crate::models::FlashData>,
 }
@@ -100,11 +110,90 @@ pub async fn blog_create_page(
     let category_repo = CategoryRepository::new(&mut conn);
     let context = BlogCreateTemplate {
         categories: category_repo.find().await?,
+        generated_title: None,
+        generated_content: None,
+        generated_image: None,
         active_nav: "blogs".to_string(),
         flash: Some(flash),
     };
 
     Ok(Html(context.render()?))
+}
+
+
+#[derive(Template)]
+#[template(path = "admin/blog_generate.html")]
+struct BlogGenerateTemplate {
+    categories: Vec<Category>,
+    active_nav: String,
+    flash: Option<crate::models::FlashData>,
+}
+
+pub async fn blog_generate_page(
+    State(state): State<AppState>,
+    Extension(session): Extension<crate::models::CustomSession>,
+) -> Result<impl IntoResponse, AppError> {
+    let mut conn = state.get_conn().await?;
+    let flash = crate::session_backend::take_flash(&mut conn, &session).await.1;
+    let category_repo = CategoryRepository::new(&mut conn);
+
+    Ok(Html(BlogGenerateTemplate {
+        categories: category_repo.find().await?,
+        active_nav: "blogs".to_string(),
+        flash: Some(flash),
+    }.render()?))
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BlogGenerateForm {
+    pub topic: String,
+    pub outline: Option<String>,
+    pub category: i32,
+}
+
+pub async fn blog_generate_handler(
+    State(state): State<AppState>,
+    Extension(session): Extension<crate::models::CustomSession>,
+    Form(form): Form<BlogGenerateForm>,
+) -> Result<impl IntoResponse, AppError> {
+    let mut conn = state.get_conn().await?;
+
+    let api_key = QuizRepository::new(&mut conn).get_setting("gemini_api_key").await;
+    let model = QuizRepository::new(&mut conn).get_setting("gemini_model").await;
+
+    let api_key = api_key
+        .map_err(|_| AppError::Internal("Failed to read settings".into()))?
+        .ok_or_else(|| AppError::Internal("Gemini API key not configured. Set it in Quiz Settings.".into()))?;
+
+    let model = model
+        .unwrap_or(Some("models/gemini-2.5-flash".to_string()))
+        .unwrap_or_default();
+
+    let outline = form.outline.unwrap_or_default();
+    let category_name = CategoryRepository::new(&mut conn)
+        .find_by_id(form.category).await
+        .map(|c| c.name)
+        .unwrap_or_else(|_| "Technology".to_string());
+
+    let generated = crate::blog::generate::generate_blog(
+        &api_key, &model, &form.topic, &outline, &category_name,
+    ).await?;
+
+    let image_path = crate::blog::generate::generate_blog_image(
+        &api_key, &model, &generated.title, generated.image_prompt.as_deref(),
+    ).await.ok();
+
+    let categories = CategoryRepository::new(&mut conn).find().await?;
+    let flash = crate::session_backend::take_flash(&mut conn, &session).await.1;
+
+    Ok(Html(BlogCreateTemplate {
+        categories,
+        generated_title: Some(generated.title),
+        generated_content: Some(generated.content),
+        generated_image: image_path,
+        active_nav: "blogs".to_string(),
+        flash: Some(flash),
+    }.render()?))
 }
 
 pub async fn blog_create_handler(
@@ -134,6 +223,11 @@ pub async fn blog_create_handler(
                 while let Ok(Some(chunk)) = field.chunk().await {
                     file.write_all(&chunk).await?;
                 }
+            }
+        } else if field_name == "existing_image" {
+            let val = field.text().await.unwrap_or_default();
+            if !val.is_empty() {
+                image_path = val;
             }
         } else if field_name == "title" {
             title = field.text().await.map_err(|e| AppError::Internal(e.to_string()))?;
@@ -438,6 +532,8 @@ pub async fn blog_list_page(
 #[template(path = "blogdetail.html")]
 struct BlogDetailTemplate {
     blog: Blog,
+    blog_categories: Vec<Category>,
+    related_posts: Vec<Blog>,
     flash: Option<crate::models::FlashData>,
 }
 
@@ -459,9 +555,32 @@ pub async fn blog_detail_page(
     let blog_repo = BlogRepository::new(&mut conn);
     let _ = blog_repo.increase_view_count(blog_id).await;
 
+    let current_blog_id = blog_id;
     match single_blog_result {
         Ok(blog) => {
-            let context = BlogDetailTemplate { blog, flash: Some(flash) };
+            let cats: Vec<i32> = crate::schema::blog_categories::dsl::blog_categories
+                .filter(crate::schema::blog_categories::dsl::blog_id.eq(current_blog_id))
+                .select(crate::schema::blog_categories::dsl::category_id)
+                .load::<Option<i32>>(&mut conn)
+                .await
+                .unwrap_or_default()
+                .into_iter()
+                .flatten()
+                .collect();
+
+            let blog_categories = if cats.is_empty() {
+                Vec::new()
+            } else {
+                use crate::schema::categories::dsl::*;
+                categories.filter(id.eq_any(&cats)).load::<Category>(&mut conn).await.unwrap_or_default()
+            };
+
+            let related_posts = BlogRepository::new(&mut conn)
+                .find_related(current_blog_id, &cats, 3)
+                .await
+                .unwrap_or_default();
+
+            let context = BlogDetailTemplate { blog, blog_categories, related_posts, flash: Some(flash) };
             Ok(Html(context.render()?).into_response())
         }
         Err(err) => {

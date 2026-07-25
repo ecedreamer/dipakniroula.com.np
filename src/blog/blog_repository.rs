@@ -105,6 +105,31 @@ pub mod blog_repo {
                 .execute(self.conn)
                 .await
         }
+
+        pub async fn find_related(
+            self,
+            blog_id: i32,
+            category_ids: &[i32],
+            limit: i64,
+        ) -> QueryResult<Vec<Blog>> {
+            if category_ids.is_empty() {
+                return Ok(Vec::new());
+            }
+            blogs::dsl::blogs
+                .inner_join(
+                    blog_categories::dsl::blog_categories
+                        .on(blog_categories::dsl::blog_id.eq(blogs::id)),
+                )
+                .filter(blog_categories::category_id.eq_any(category_ids))
+                .filter(blogs::id.ne(blog_id))
+                .filter(blogs::is_active.eq(1))
+                .distinct()
+                .order(blogs::view_count.desc())
+                .limit(limit)
+                .select(blogs::all_columns)
+                .load::<Blog>(self.conn)
+                .await
+        }
     }
 }
 

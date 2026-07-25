@@ -16,6 +16,49 @@ pub struct Blog {
     pub is_active: i32,
 }
 
+impl Blog {
+    fn strip_html(&self) -> String {
+        self.content
+            .chars()
+            .fold((String::new(), false), |(mut acc, mut in_tag), c| {
+                if c == '<' {
+                    in_tag = true;
+                } else if c == '>' {
+                    in_tag = false;
+                } else if !in_tag {
+                    acc.push(c);
+                }
+                (acc, in_tag)
+            })
+            .0
+    }
+
+    pub fn reading_time_minutes(&self) -> i32 {
+        let stripped = self.strip_html();
+        let word_count = stripped.split_whitespace().count() as f64;
+        let minutes = (word_count / 200.0).ceil() as i32;
+        minutes.max(1)
+    }
+
+    pub fn excerpt(&self, max_chars: usize) -> String {
+        let stripped = self.strip_html();
+        let decoded = stripped
+            .replace("&nbsp;", " ")
+            .replace("&amp;", "&")
+            .replace("&lt;", "<")
+            .replace("&gt;", ">")
+            .replace("&quot;", "\"")
+            .replace("&apos;", "'");
+        if decoded.chars().count() <= max_chars {
+            decoded
+        } else {
+            let truncated: String = decoded.chars().take(max_chars).collect();
+            let last_space = truncated.rfind(' ').unwrap_or(max_chars);
+            format!("{}...", &truncated[..last_space])
+        }
+    }
+}
+
 
 #[derive(Deserialize, AsChangeset)]
 #[diesel(table_name = crate::schema::blogs)]

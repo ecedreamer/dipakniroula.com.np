@@ -8,16 +8,42 @@
 <style>
     .note-editor { border-radius: 0.5rem; overflow: hidden; border: 1px solid var(--border) !important; }
     .note-toolbar { background: var(--light) !important; border-bottom: 1px solid var(--border) !important; }
+    .ai-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.2rem 0.6rem;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #fff;
+        border-radius: 100px;
+        margin-left: 0.5rem;
+        vertical-align: middle;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <a href="/admin/blog/generate" class="btn-premium" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff;">
+            <i class="fas fa-magic"></i> Generate with AI
+        </a>
+    </div>
+</div>
+
 <div class="form-card" style="max-width: 1000px;">
     <form action="/admin/blog/create" method="POST" enctype="multipart/form-data">
         <div class="row">
             <div class="col-md-8 mb-3">
                 <label for="title" class="form-label">Article Title</label>
+                {% if let Some(title) = generated_title %}
+                <input type="text" name="title" id="title" class="form-control-premium" placeholder="Enter post title..." value="{{ title }}" required>
+                <span class="ai-badge"><i class="fas fa-robot"></i> AI Generated</span>
+                {% else %}
                 <input type="text" name="title" id="title" class="form-control-premium" placeholder="Enter post title..." required>
+                {% endif %}
             </div>
             <div class="col-md-4 mb-3">
                 <label for="category" class="form-label">Category</label>
@@ -32,7 +58,17 @@
         <div class="row items-center mb-3">
             <div class="col-md-6">
                 <label for="blog-image" class="form-label">Featured Image</label>
+                {% if let Some(img) = generated_image %}
+                <div class="mb-2">
+                    <img src="/{{ img }}" alt="AI Generated Image" class="img-fluid rounded" style="max-height: 180px; width: 100%; object-fit: cover;">
+                    <p class="small text-muted mt-1"><i class="fas fa-robot"></i> AI generated featured image</p>
+                </div>
+                <input type="hidden" name="existing_image" value="{{ img }}">
+                {% endif %}
                 <input type="file" name="blog-image" id="blog-image" class="form-control-premium" accept="image/*">
+                {% if generated_image.is_some() %}
+                <small class="text-muted">Leave empty to use the AI-generated image above</small>
+                {% endif %}
             </div>
             <div class="col-md-6 d-flex align-items-end">
                 <div class="form-check form-switch mb-2">
@@ -44,7 +80,11 @@
 
         <div class="mb-4">
             <label for="content" class="form-label">Content</label>
+            {% if let Some(content) = generated_content %}
+            <textarea name="content" id="summernote" required>{{ content }}</textarea>
+            {% else %}
             <textarea name="content" id="summernote" required></textarea>
+            {% endif %}
         </div>
 
         <div class="d-flex gap-2">

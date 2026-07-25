@@ -30,13 +30,22 @@
         {% for blog in blog_list %}
         <article class="blog-list-item">
             {% if blog.image.as_ref().is_some() %}
-            <div class="blog-list-thumb">
-                <img src="/{{ blog.image.as_ref().unwrap() }}" alt="{{ blog.title }}">
-            </div>
+            <a href="/blog/{{ blog.id.unwrap() }}/detail" class="blog-list-thumb-link">
+                <div class="blog-list-thumb">
+                    <img src="/{{ blog.image.as_ref().unwrap() }}" alt="{{ blog.title }}">
+                </div>
+            </a>
             {% endif %}
             <div class="blog-list-content">
                 <p class="blog-list-date text-muted small mb-1">{{ blog.published_date }}</p>
-                <h2 class="blog-list-title h5 fw-semibold mb-2">{{ blog.title }}</h2>
+                <a href="/blog/{{ blog.id.unwrap() }}/detail" class="blog-list-title-link">
+                    <h2 class="blog-list-title h5 fw-semibold mb-1">{{ blog.title }}</h2>
+                </a>
+                <p class="blog-list-excerpt small text-muted mb-2">{{ blog.excerpt(200) }}</p>
+                <div class="d-flex align-items-center gap-3 mb-1">
+                    <span class="blog-meta-item small text-muted"><i class="bi bi-clock"></i> {{ blog.reading_time_minutes() }} min read</span>
+                    <span class="blog-meta-item small text-muted"><i class="bi bi-eye"></i> {{ blog.view_count }} views</span>
+                </div>
                 <a href="/blog/{{ blog.id.unwrap() }}/detail" class="read-more-link">Read article →</a>
             </div>
         </article>
