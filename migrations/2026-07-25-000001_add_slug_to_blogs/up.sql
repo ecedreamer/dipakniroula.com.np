@@ -1,2 +1,2 @@
 ALTER TABLE blogs ADD COLUMN slug TEXT NOT NULL DEFAULT '';
-CREATE UNIQUE INDEX IF NOT EXISTS blogs_slug_idx ON blogs(slug);
+CREATE UNIQUE INDEX IF NOT EXISTS blogs_slug_idx ON blogs(slug) WHERE slug != '';
