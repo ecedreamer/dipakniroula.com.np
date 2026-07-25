@@ -133,9 +133,7 @@ CRITICAL REQUIREMENTS - Follow exactly:
 6. Also generate a short image_prompt (max 100 chars) describing what a featured image for this blog should look like
 7. Return ONLY a valid JSON object - NO markdown, NO code fences, NO explanations before or after
 8. The ENTIRE response must be ONLY the JSON object, nothing else
-9. The "content" field must be a single line of HTML with NO literal newlines
-10. Use \n (escaped backslash-n) instead of actual newlines in the content field
-11. The response must start with {{ and end with }}
+9. The response must start with {{ and end with }}
 
 Use this exact structure:
 {{"title":"Your Compelling Blog Title Here","content":"<h2>Section 1</h2><p>Content here...</p><h2>Section 2</h2><p>More content...</p>","image_prompt":"A modern illustration of..."}}"#,
