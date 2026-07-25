@@ -27,15 +27,39 @@ fn try_parse_json(text: &str) -> Result<GeneratedBlog, String> {
         .map_err(|e| format!("{}", e))
 }
 
+fn extract_string_value(text: &str, key: &str) -> Option<String> {
+    let search = &format!("\"{}\":\"", key);
+    let start = text.find(search)?;
+    let value_start = start + search.len();
+    let mut result = String::new();
+    for c in text[value_start..].chars() {
+        if c == '\\' {
+            continue;
+        }
+        if c == '"' {
+            return Some(result);
+        }
+        result.push(c);
+    }
+    // Reached end of text without closing quote - return what we have
+    Some(result)
+}
+
 fn try_parse_with_fixes(text: &str) -> Result<GeneratedBlog, String> {
     // Try as-is
     if let Ok(blog) = try_parse_json(text) {
         return Ok(blog);
     }
     // Try appending closing brace (in case of truncation)
-    if !text.trim_end().ends_with('}') {
-        let with_brace = format!("{}}}", text.trim_end());
+    let trimmed = text.trim_end();
+    if !trimmed.ends_with('}') {
+        let with_brace = format!("{}}}", trimmed);
         if let Ok(blog) = try_parse_json(&with_brace) {
+            return Ok(blog);
+        }
+        // Try appending closing quote + brace (content string was truncated)
+        let with_quote_brace = format!("{}}}\"}}", trimmed);
+        if let Ok(blog) = try_parse_json(&with_quote_brace) {
             return Ok(blog);
         }
     }
@@ -67,15 +91,21 @@ fn try_parse_with_fixes(text: &str) -> Result<GeneratedBlog, String> {
         fixed.push(c);
     }
 
-    // Try with fixed newlines
-    if let Ok(blog) = try_parse_json(&fixed) {
-        return Ok(blog);
+    // Try with fixed newlines + various closings
+    for suffix in &["}", "\"}", "\"", "null\"}"] {
+        let attempt = format!("{}{}", fixed.trim_end(), suffix);
+        if let Ok(blog) = try_parse_json(&attempt) {
+            return Ok(blog);
+        }
     }
-    // Try with fixed newlines + closing brace
-    if !fixed.trim_end().ends_with('}') {
-        let with_brace = format!("{}}}", fixed.trim_end());
-        return try_parse_json(&with_brace);
+
+    // Last resort: manually extract title and content
+    let title = extract_string_value(text, "title").unwrap_or_default();
+    let content = extract_string_value(text, "content").unwrap_or_default();
+    if !title.is_empty() && !content.is_empty() {
+        return Ok(GeneratedBlog { title, content, image_prompt: None });
     }
+
     try_parse_json(&fixed)
 }
 
