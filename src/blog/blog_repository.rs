@@ -25,6 +25,13 @@ pub mod blog_repo {
                 .await
         }
 
+        pub async fn find_by_slug(self, blog_slug: &str) -> QueryResult<Blog> {
+            blogs::dsl::blogs
+                .filter(blogs::dsl::slug.eq(blog_slug))
+                .first::<Blog>(self.conn)
+                .await
+        }
+
         pub async fn find_active_only(
             self,
             category_option: Option<i32>,

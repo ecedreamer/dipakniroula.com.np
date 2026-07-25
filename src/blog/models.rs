@@ -1,5 +1,37 @@
 use diesel::{AsChangeset, Insertable, Queryable};
 use serde::Deserialize;
+use std::sync::atomic::{AtomicU64, Ordering};
+
+static SLUG_COUNTER: AtomicU64 = AtomicU64::new(0);
+
+pub fn generate_slug(title: &str) -> String {
+    let base: String = title
+        .to_lowercase()
+        .chars()
+        .filter_map(|c| {
+            if c.is_alphanumeric() || c == '-' || c == ' ' {
+                Some(if c == ' ' { '-' } else { c })
+            } else if c == '_' || c == '.' {
+                Some(c)
+            } else {
+                None
+            }
+        })
+        .collect::<String>()
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join("-")
+        .trim_matches('-')
+        .to_string();
+
+    if base.is_empty() {
+        return format!("post-{}", uuid::Uuid::new_v4().to_string().split('-').next().unwrap());
+    }
+
+    let truncated: String = base.chars().take(80).collect();
+    let counter = SLUG_COUNTER.fetch_add(1, Ordering::Relaxed);
+    format!("{}-{}", truncated, counter % 99999)
+}
 
 
 #[derive(Debug, Queryable, Deserialize)]
@@ -14,6 +46,7 @@ pub struct Blog {
     pub modified_date: Option<String>,
     pub view_count: i32,
     pub is_active: i32,
+    pub slug: String,
 }
 
 impl Blog {
@@ -69,6 +102,7 @@ pub struct UpdateBlog {
     pub image: Option<String>,
     pub modified_date: Option<String>,
     pub view_count: Option<i32>,
+    pub slug: Option<String>,
 }
 
 
@@ -81,6 +115,7 @@ pub struct NewBlog<'a> {
     pub is_active: i32,
     pub published_date: String,
     pub modified_date: Option<String>,
+    pub slug: &'a str,
 }
 
 

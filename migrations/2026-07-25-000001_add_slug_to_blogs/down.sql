@@ -1,0 +1,2 @@
+DROP INDEX IF EXISTS blogs_slug_idx;
+ALTER TABLE blogs DROP COLUMN slug;

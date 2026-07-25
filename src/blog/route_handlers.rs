@@ -78,7 +78,8 @@ pub async fn blog_routes(state: AppState) -> Router<AppState> {
             get(category_delete_handler).layer(axum::middleware::from_fn_with_state(state.clone(), session_middleware)),
         )
         .route("/blogs", get(blog_list_page))
-        .route("/blog/{blog_id}/detail", get(blog_detail_page))
+        .route("/blog/{slug}", get(blog_detail_page))
+        .route("/blog/{blog_id}/detail", get(blog_detail_redirect))
 }
 
 
@@ -208,6 +209,7 @@ pub async fn blog_create_handler(
     let mut content = String::new();
     let mut blog_status = 0;
     let mut categories = Vec::new();
+    let mut existing_slug = String::new();
     
     while let Ok(Some(mut field)) = multipart.next_field().await {
         let field_name = field.name().unwrap_or("").to_string();
@@ -238,6 +240,8 @@ pub async fn blog_create_handler(
             }
         } else if field_name == "content" {
             content = field.text().await.map_err(|e| AppError::Internal(e.to_string()))?;
+        } else if field_name == "existing_slug" {
+            existing_slug = field.text().await.unwrap_or_default();
         } else if field_name == "is_active" {
             let value = field.text().await.map_err(|e| AppError::Internal(e.to_string()))?;
             blog_status = if value == "on" { 1 } else { 0 };
@@ -245,6 +249,7 @@ pub async fn blog_create_handler(
     }
 
     let blog = NewBlog {
+        slug: if existing_slug.is_empty() { &crate::blog::models::generate_slug(&title) } else { &existing_slug },
         is_active: blog_status,
         title: &title,
         content: &content,
@@ -317,15 +322,17 @@ pub async fn blog_update_handler(
         modified_date: None,
         is_active: Some(0),
         view_count: None,
+        slug: None,
     };
+    let mut incoming_title = String::new();
 
     while let Ok(Some(mut field)) = multipart.next_field().await {
         let field_name = field.name().unwrap_or("").to_string();
 
         if field_name == "title" {
-            let new_title = field.text().await.unwrap_or(String::new());
-            if !new_title.is_empty() {
-                update_blog.title = Some(new_title);
+            incoming_title = field.text().await.unwrap_or(String::new());
+            if !incoming_title.is_empty() {
+                update_blog.title = Some(incoming_title.clone());
             }
         } else if field_name == "content" {
             let new_content = field.text().await.unwrap_or(String::new());
@@ -356,6 +363,17 @@ pub async fn blog_update_handler(
     update_blog.modified_date = Some(Utc::now().format("%Y-%m-%d %H:%M:%S").to_string());
 
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
+
+    // Generate slug for old posts that don't have one
+    let existing = BlogRepository::new(&mut conn).find_by_id(blog_id).await.ok();
+    let needs_slug = existing.as_ref().map(|b| b.slug.is_empty()).unwrap_or(false)
+        || update_blog.title.is_some();
+    if needs_slug {
+        let title_for_slug = update_blog.title.as_ref().map(|s| s.as_str())
+            .or_else(|| existing.as_ref().map(|b| b.title.as_str()))
+            .unwrap_or("post");
+        update_blog.slug = Some(crate::blog::models::generate_slug(title_for_slug));
+    }
 
     let blog_repo = BlogRepository::new(&mut conn);
     blog_repo.update_one(blog_id, &update_blog).await?;
@@ -549,7 +567,7 @@ struct BlogDetailTemplate {
 pub async fn blog_detail_page(
     State(state): State<AppState>,
     session: Option<Extension<crate::models::CustomSession>>,
-    Path(blog_id): Path<i32>,
+    Path(slug): Path<String>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
     let flash = if let Some(Extension(s)) = session {
@@ -558,48 +576,51 @@ pub async fn blog_detail_page(
         crate::models::FlashData::default()
     };
 
-    let blog_repo = BlogRepository::new(&mut conn);
-    let single_blog_result = blog_repo.find_by_id(blog_id).await;
-
-    let blog_repo = BlogRepository::new(&mut conn);
-    let _ = blog_repo.increase_view_count(blog_id).await;
-
-    let current_blog_id = blog_id;
-    match single_blog_result {
-        Ok(blog) => {
-            let cats: Vec<i32> = crate::schema::blog_categories::dsl::blog_categories
-                .filter(crate::schema::blog_categories::dsl::blog_id.eq(current_blog_id))
-                .select(crate::schema::blog_categories::dsl::category_id)
-                .load::<Option<i32>>(&mut conn)
-                .await
-                .unwrap_or_default()
-                .into_iter()
-                .flatten()
-                .collect();
-
-            let blog_categories = if cats.is_empty() {
-                Vec::new()
-            } else {
-                use crate::schema::categories::dsl::*;
-                categories.filter(id.eq_any(&cats)).load::<Category>(&mut conn).await.unwrap_or_default()
-            };
-
-            let related_posts = BlogRepository::new(&mut conn)
-                .find_related(current_blog_id, &cats, 3)
-                .await
-                .unwrap_or_default();
-
-            let context = BlogDetailTemplate { blog, blog_categories, related_posts, flash: Some(flash) };
-            Ok(Html(context.render()?).into_response())
+    let blog = match BlogRepository::new(&mut conn).find_by_slug(&slug).await {
+        Ok(b) => b,
+        Err(_) => {
+            tracing::warn!("Blog with slug '{}' not found", slug);
+            return Ok(Redirect::to("/blog/list").into_response());
         }
-        Err(err) => {
-            tracing::warn!(
-                "Blog with the id: {} does not exist; error: {:?}",
-                blog_id,
-                err
-            );
-            Ok(Redirect::to("/blog/list").into_response())
-        }
+    };
+    let blog_id = blog.id.unwrap_or(0);
+
+    let _ = BlogRepository::new(&mut conn).increase_view_count(blog_id).await;
+
+    let cats: Vec<i32> = crate::schema::blog_categories::dsl::blog_categories
+        .filter(crate::schema::blog_categories::dsl::blog_id.eq(blog_id))
+        .select(crate::schema::blog_categories::dsl::category_id)
+        .load::<Option<i32>>(&mut conn)
+        .await
+        .unwrap_or_default()
+        .into_iter()
+        .flatten()
+        .collect();
+
+    let blog_categories = if cats.is_empty() {
+        Vec::new()
+    } else {
+        use crate::schema::categories::dsl::*;
+        categories.filter(id.eq_any(&cats)).load::<Category>(&mut conn).await.unwrap_or_default()
+    };
+
+    let related_posts = BlogRepository::new(&mut conn)
+        .find_related(blog_id, &cats, 3)
+        .await
+        .unwrap_or_default();
+
+    let context = BlogDetailTemplate { blog, blog_categories, related_posts, flash: Some(flash) };
+    Ok(Html(context.render()?).into_response())
+}
+
+pub async fn blog_detail_redirect(
+    State(state): State<AppState>,
+    Path(blog_id): Path<i32>,
+) -> Result<impl IntoResponse, AppError> {
+    let mut conn = state.get_conn().await?;
+    match BlogRepository::new(&mut conn).find_by_id(blog_id).await {
+        Ok(blog) if !blog.slug.is_empty() => Ok(Redirect::to(&format!("/blog/{}", blog.slug)).into_response()),
+        _ => Ok(Redirect::to("/blog/list").into_response()),
     }
 }
 

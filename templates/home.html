@@ -125,7 +125,7 @@ Python, Rust, Java, Distributed System {% endblock %}
     <div class="row g-4">
         {% for blog in popular_blogs %}
         <div class="col-md-4">
-            <a href="/blog/{{ blog.id.unwrap() }}/detail" class="blog-card-link text-decoration-none">
+            <a href="/blog/{{ blog.slug }}" class="blog-card-link text-decoration-none">
                 <div class="blog-card">
                     {% if blog.image.is_some() %}
                     <div class="blog-card-img">

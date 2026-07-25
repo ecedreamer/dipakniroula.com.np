@@ -30,6 +30,7 @@ diesel::table! {
         modified_date -> Nullable<Text>,
         view_count -> Integer,
         is_active -> Integer,
+        slug -> Text,
     }
 }
 
