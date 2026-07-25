@@ -401,9 +401,18 @@ async fn blog_delete_handler(
     Path(blog_id): Path<i32>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut conn: crate::db::PooledConn = state.get_conn().await?;
-    use crate::schema::blogs::dsl::*;
+    let target_id = blog_id;
 
-    diesel::delete(blogs.filter(id.eq(blog_id)))
+    diesel::delete(
+        crate::schema::blog_categories::dsl::blog_categories
+            .filter(crate::schema::blog_categories::dsl::blog_id.eq(target_id))
+    )
+        .execute(&mut conn)
+        .await?;
+
+    diesel::delete(
+        crate::schema::blogs::dsl::blogs.filter(crate::schema::blogs::dsl::id.eq(target_id))
+    )
         .execute(&mut conn)
         .await?;
     
