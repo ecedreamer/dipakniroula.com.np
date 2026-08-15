@@ -16,6 +16,9 @@ mod session_backend;
 mod state;
 mod utils;
 
+#[global_allocator]
+static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
+
 use argon2::password_hash::rand_core;
 use askama::Template;
 use axum::http::{HeaderValue, Method};

@@ -6,11 +6,12 @@ edition = "2024"
 [dependencies]
 askama = "0.16.0"
 axum = { version = "0.8.9" , features = ["multipart"]}
-tokio = { version = "1.53.1", features = ["full"] }
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "fs", "net", "io-util"] }
+tikv-jemallocator = "0.6.0"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 
-tower-http = { version = "0.7.0", features = ["fs", "cors"] }
+tower-http = { version = "0.7.0", features = ["fs", "cors", "decompression-gzip", "decompression-br"] }
 axum_csrf = "0.11.0"
 
 chrono = { version = "0.4.45", features = ["serde"] }
@@ -51,3 +52,6 @@ codegen-units = 1  # Improve cross-crate optimizations
 strip = "debuginfo"  # Strip debug symbols
 incremental = false  # Disable incremental compilation
 overflow-checks = true
+
+[profile.release.build-override]
+opt-level = 3
